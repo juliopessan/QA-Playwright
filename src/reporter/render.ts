@@ -108,7 +108,7 @@ function img(ref: string | undefined, alt: string, opts: RenderOptions): string 
   } else {
     src = `../${ref}`;
   }
-  return `<button type="button" class="shot" data-full="${esc(src.length > 2000 ? "" : src)}" aria-label="Ampliar: ${esc(alt)}"><img src="${esc(src)}" alt="${esc(alt)}" loading="lazy"></button>`;
+  return `<button type="button" class="shot" aria-label="Ampliar: ${esc(alt)}"><img src="${esc(src)}" alt="${esc(alt)}" loading="lazy"></button>`;
 }
 
 function stepHtml(s: StepResult, opts: RenderOptions): string {
@@ -143,6 +143,7 @@ export function renderReport(m: RunManifest, opts: RenderOptions): string {
   const count = (st: CaseStatus) => m.verdicts.filter((v) => v.status === st).length;
   const healedSteps = m.verdicts.flatMap((v) => v.steps.filter((s) => s.status === "healed").map((s) => ({ v, s })));
   const total = m.verdicts.length;
+  const hasAttention = m.verdicts.some((v) => v.status !== "pass");
   const pct = (n: number) => (total ? ((n / total) * 100).toFixed(2) : "0");
   const rate = total ? Math.round((count("pass") / total) * 100) : 0;
   const totalMs = m.verdicts.reduce((n, v) => n + v.steps.reduce((a, s) => a + s.durationMs, 0), 0);
@@ -208,7 +209,7 @@ ${
     <button type="button" data-filter="blocked" aria-pressed="false">Bloqueados</button>
     <button type="button" data-filter="pass" aria-pressed="false">Aprovados</button>
     <input type="search" id="q" placeholder="Buscar por ID ou título" aria-label="Buscar por ID ou título">
-    <label><input type="checkbox" id="attention" checked> Mostrar só o que exige atenção</label>
+    <label><input type="checkbox" id="attention"${hasAttention ? " checked" : ""}> Mostrar só o que exige atenção</label>
   </div>
   <div id="cases">${total ? m.verdicts.map((v) => caseHtml(v, opts)).join("\n") : "<p>Nenhum caso executado.</p>"}</div>
   <p id="empty" class="hidden">Nenhum caso corresponde aos filtros.</p>
