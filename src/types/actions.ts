@@ -3,6 +3,8 @@ import { z } from "zod";
 export const LocatorSchema = z.object({
   role: z.string().min(1),
   name: z.string().optional(),
+  /** Desambiguação quando vários elementos têm o mesmo papel e nome (índice 0-based). */
+  nth: z.number().int().min(0).optional(),
 });
 export type Locator = z.infer<typeof LocatorSchema>;
 
