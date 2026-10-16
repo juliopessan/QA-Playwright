@@ -11,7 +11,8 @@
     "test": "vitest run",
     "qa-agent": "node dist/cli/index.js",
     "typecheck": "tsc -p tsconfig.test.json",
-    "demo": "vite-node scripts/demo.ts"
+    "demo": "vite-node scripts/demo.ts",
+    "test-app": "vite-node scripts/serve-app.ts"
   },
   "engines": {
     "node": ">=20.12"

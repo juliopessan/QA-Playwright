@@ -16,6 +16,9 @@ export interface AnthropicProviderOptions {
 
 const TOOL_NAME = "respond";
 
+/** Modelos atuais rejeitam `tool_choice` forçado (400); por isso usamos `auto` e pedimos a ferramenta por instrução. */
+const TOOL_INSTRUCTION = `Responda SEMPRE chamando a ferramenta \`${TOOL_NAME}\` com o resultado estruturado. Não escreva texto fora dela.`;
+
 export class AnthropicProvider implements LLMProvider {
   readonly id: string;
   private readonly client: AnthropicLike;
@@ -23,8 +26,9 @@ export class AnthropicProvider implements LLMProvider {
   private readonly maxTokens: number;
 
   constructor(opts: AnthropicProviderOptions = {}) {
-    this.model = opts.model ?? process.env.QA_AGENT_MODEL ?? "claude-sonnet-5-5";
-    this.maxTokens = opts.maxTokens ?? 4096;
+    this.model = opts.model ?? process.env.QA_AGENT_MODEL ?? "claude-opus-5-5";
+    // O pensamento adaptativo conta para max_tokens; um teto baixo trunca antes da chamada da ferramenta.
+    this.maxTokens = opts.maxTokens ?? 16000;
     this.id = `anthropic:${this.model}`;
     if (opts.client) {
       this.client = opts.client;
@@ -48,7 +52,7 @@ export class AnthropicProvider implements LLMProvider {
     const res = await this.client.messages.create({
       model: this.model,
       max_tokens: this.maxTokens,
-      system: req.system,
+      system: `${req.system}\n\n${TOOL_INSTRUCTION}`,
       messages: [{ role: "user", content }],
       tools: [
         {
@@ -57,13 +61,17 @@ export class AnthropicProvider implements LLMProvider {
           input_schema: z.toJSONSchema(req.schema as z.ZodType),
         },
       ],
-      tool_choice: { type: "tool", name: TOOL_NAME },
+      tool_choice: { type: "auto" },
     });
 
     const block = (res.content as any[]).find((b) => b.type === "tool_use");
-    if (!block) throw new Error("Resposta do modelo sem bloco tool_use");
+    // Sem tool_use devolvemos o texto: a validação por schema acusa e `completeValidated` retenta.
+    const text = (res.content as any[])
+      .filter((b) => b.type === "text")
+      .map((b) => b.text)
+      .join("\n");
     return {
-      data: block.input,
+      data: block ? block.input : text,
       usage: {
         calls: 1,
         inputTokens: res.usage?.input_tokens ?? 0,

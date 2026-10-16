@@ -19,7 +19,7 @@ export async function completeValidated<T>(
 
   const retryReq: LLMRequest<T> = {
     ...req,
-    prompt: `${req.prompt}\n\nSua resposta anterior foi inválida: ${p1.error.message}\nResponda novamente seguindo exatamente o schema.`,
+    prompt: `${req.prompt}\n\nSua resposta anterior foi inválida: ${p1.error.message}\nResponda novamente chamando a ferramenta respond, seguindo exatamente o schema.`,
   };
   const second = await provider.complete(retryReq);
   const usage = addUsage(first.usage, second.usage);

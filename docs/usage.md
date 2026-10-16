@@ -17,7 +17,7 @@ Segredos ficam **somente** no `.env` (ou nos *secrets* do CI), nunca no Excel. V
 | Variável | Uso |
 |---|---|
 | `ANTHROPIC_API_KEY` | Chave da API do Claude (provedor padrão). |
-| `QA_AGENT_MODEL` | Modelo a usar (padrão `claude-sonnet-5-5`). |
+| `QA_AGENT_MODEL` | Modelo a usar (padrão `claude-opus-5-5`; `claude-sonnet-5-5` é mais barato). |
 | `APP_USER`, `APP_PASS`, ... | As que o seu Excel referenciar como `{{NOME}}` na coluna `Dados`. |
 
 Valores de variáveis cujo nome contém `PASS`, `SECRET`, `TOKEN`, `KEY` ou `PWD` são redigidos (`••••`) em erros, logs e relatório.

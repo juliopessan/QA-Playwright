@@ -36,11 +36,13 @@ export interface ExecCtx {
 }
 
 const SECRET_NAME = /PASS|SECRET|TOKEN|KEY|PWD/i;
+/** Valores de ambiente mais curtos que isto não são tratados como segredo (ex.: FLAG_KEY=1 estragaria qualquer texto). */
+const MIN_ENV_SECRET_LENGTH = 6;
 const MAX_OBSERVED = 500;
 
 export function secretsOf(ctx: ExecCtx): string[] {
   const fromEnv = Object.entries(ctx.env)
-    .filter(([k, v]) => SECRET_NAME.test(k) && v)
+    .filter(([k, v]) => SECRET_NAME.test(k) && v && v.length >= MIN_ENV_SECRET_LENGTH)
     .map(([, v]) => v as string);
   return [...ctx.secrets, ...fromEnv];
 }

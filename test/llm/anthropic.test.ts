@@ -2,6 +2,7 @@ import { describe, it, expect, afterEach } from "vitest";
 import { z } from "zod";
 import { AnthropicProvider } from "../../src/llm/anthropic.js";
 import { brandMaskedImage } from "../../src/masking/image.js";
+import { completeValidated } from "../../src/llm/validated.js";
 
 const schema = z.object({ answer: z.number() });
 
@@ -32,16 +33,18 @@ describe("AnthropicProvider", () => {
     else process.env.ANTHROPIC_API_KEY = prev;
   });
 
-  it("envia a tool com o JSON Schema do request e tool_choice forçado", async () => {
+  it("envia a tool com o JSON Schema do request e tool_choice auto (forçar tool é 400 nos modelos atuais)", async () => {
     const { client, seen } = fakeClient(okResponse);
     const p = new AnthropicProvider({ client, model: "m-test" });
     await p.complete({ task: "compile", system: "sys", prompt: "oi", schema });
     expect(seen[0].model).toBe("m-test");
-    expect(seen[0].system).toBe("sys");
     expect(seen[0].tools[0].name).toBe("respond");
     expect(seen[0].tools[0].input_schema.type).toBe("object");
     expect(seen[0].tools[0].input_schema.properties.answer).toBeDefined();
-    expect(seen[0].tool_choice).toEqual({ type: "tool", name: "respond" });
+    expect(seen[0].tool_choice).toEqual({ type: "auto" });
+    expect(seen[0].system).toContain("sys");
+    expect(seen[0].system).toMatch(/ferramenta `respond`/);
+    expect(seen[0].max_tokens).toBeGreaterThanOrEqual(16000);
   });
 
   it("converte MaskedImage em bloco image base64 png", async () => {
@@ -76,9 +79,33 @@ describe("AnthropicProvider", () => {
     expect(() => new AnthropicProvider()).toThrow("ANTHROPIC_API_KEY ausente");
   });
 
-  it("resposta sem tool_use lança erro claro", async () => {
-    const { client } = fakeClient({ content: [{ type: "text", text: "oi" }], usage: { input_tokens: 1, output_tokens: 1 } });
+  it("resposta só com texto devolve o texto como data (a validação acusa e há retentativa)", async () => {
+    const { client } = fakeClient({ content: [{ type: "text", text: "oi, sem ferramenta" }], usage: { input_tokens: 1, output_tokens: 1 } });
     const p = new AnthropicProvider({ client });
-    await expect(p.complete({ task: "compile", system: "s", prompt: "p", schema })).rejects.toThrow(/tool_use/);
+    const r = await p.complete({ task: "compile", system: "s", prompt: "p", schema });
+    expect(r.data).toBe("oi, sem ferramenta");
+  });
+
+  it("com completeValidated: 1ª resposta sem tool_use, 2ª com tool_use → sucesso em 2 chamadas", async () => {
+    const responses = [
+      { content: [{ type: "text", text: "esqueci a ferramenta" }], usage: { input_tokens: 1, output_tokens: 1 } },
+      okResponse,
+    ];
+    const seen: any[] = [];
+    const client = { messages: { create: async (p: unknown) => (seen.push(p), responses[seen.length - 1]) } };
+    const p = new AnthropicProvider({ client });
+    const r = await completeValidated(p, { task: "compile", system: "s", prompt: "p", schema });
+    expect(r.data).toEqual({ answer: 42 });
+    expect(seen).toHaveLength(2);
+    expect(JSON.stringify(seen[1].messages)).toContain("respond");
+  });
+
+  it("modelo padrão é claude-opus-5-5 (QA_AGENT_MODEL sobrescreve)", () => {
+    const prev = process.env.QA_AGENT_MODEL;
+    delete process.env.QA_AGENT_MODEL;
+    expect(new AnthropicProvider({ client: fakeClient(okResponse).client }).id).toBe("anthropic:claude-opus-5-5");
+    process.env.QA_AGENT_MODEL = "claude-sonnet-5-5";
+    expect(new AnthropicProvider({ client: fakeClient(okResponse).client }).id).toBe("anthropic:claude-sonnet-5-5");
+    if (prev === undefined) delete process.env.QA_AGENT_MODEL; else process.env.QA_AGENT_MODEL = prev;
   });
 });
