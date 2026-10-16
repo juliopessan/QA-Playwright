@@ -49,6 +49,16 @@ export function secretsOf(ctx: ExecCtx): string[] {
 
 export const redactSecrets = (text: string, ctx: ExecCtx): string => makeRedactor(secretsOf(ctx))(text);
 
+/**
+ * Resolve o destino de um goto. Caminhos ("/x", "x") são relativos à URL base, inclusive quando
+ * ela fica numa subpasta (ex.: GitHub Pages); URLs absolutas são mantidas.
+ */
+export function resolveGotoUrl(target: string, baseUrl: string): string {
+  if (/^[a-z][a-z0-9+.-]*:/i.test(target) || !baseUrl) return new URL(target, baseUrl || undefined).href;
+  const base = baseUrl.endsWith("/") ? baseUrl : `${baseUrl}/`;
+  return new URL(target.replace(/^\/+/, ""), base).href;
+}
+
 export function isHostAllowed(url: string, allowedHosts: string[]): boolean {
   let u: URL;
   try {
@@ -95,7 +105,7 @@ async function run(page: Page, a: Action, ctx: ExecCtx): Promise<{ observed?: st
   const t = ctx.timeoutMs;
   switch (a.kind) {
     case "goto": {
-      const href = new URL(resolveOrThrow(a.url, ctx), ctx.baseUrl || undefined).href;
+      const href = resolveGotoUrl(resolveOrThrow(a.url, ctx), ctx.baseUrl);
       if (!isHostAllowed(href, ctx.allowedHosts)) throw new HostNotAllowedError(new URL(href).hostname);
       await page.goto(href, { timeout: t, waitUntil: "load" });
       return {};
