@@ -50,6 +50,8 @@ function gitCommit(): string | undefined {
   }
 }
 
+export const SESSION_EXPIRED_MESSAGE = "Sessão SSO expirada. Rode 'qa-agent login' e use --resume <runId>.";
+
 const blockedVerdict = (tc: TestCase, reason: string): CaseVerdict => ({
   caseId: tc.id,
   title: tc.title,
@@ -96,6 +98,7 @@ export async function runAll(opts: RunAllOptions): Promise<RunManifest> {
   const needsBrowser = todo.some((c) => !c.readError);
   const browser = needsBrowser ? await chromium.launch({ headless: !opts.headed }) : undefined;
 
+  let sessionExpired = false;
   try {
     for (const tc of todo) {
       if (tc.readError || !browser) {
@@ -115,6 +118,10 @@ export async function runAll(opts: RunAllOptions): Promise<RunManifest> {
           evidenceDir: join(runDir, "evidence"),
           heal,
         });
+        if (result.aborted === "session-expired") {
+          sessionExpired = true;
+          break;
+        }
         const verdict = await judgeCase(tc, result, { provider, cfg, runDir });
         writer.setUsage(provider.usage);
         await writer.append(verdict);
@@ -126,6 +133,7 @@ export async function runAll(opts: RunAllOptions): Promise<RunManifest> {
     await browser?.close();
   }
   writer.setUsage(provider.usage);
+  if (sessionExpired) await writer.abort(SESSION_EXPIRED_MESSAGE);
   return writer.finish();
 }
 

@@ -29,6 +29,7 @@ export interface RunOptions {
   resume?: string;
   maxLlmCalls?: string;
   envFile: string;
+  config?: string;
   dryRun?: boolean;
 }
 
@@ -43,6 +44,7 @@ async function runCommand(xlsx: string, opts: RunOptions, io: CliIO): Promise<nu
   if (!existsSync(xlsx)) throw new UsageError(`arquivo não encontrado: ${xlsx}`);
   const env = loadEnv(io, opts.envFile);
   const cfg = await loadConfig({
+    configPath: opts.config,
     excelPath: xlsx,
     overrides: opts.baseUrl ? { baseUrl: opts.baseUrl } : {},
   });
@@ -71,6 +73,10 @@ async function runCommand(xlsx: string, opts: RunOptions, io: CliIO): Promise<nu
     runsDir: io.runsDir,
     maxLlmCalls: opts.maxLlmCalls ? Number(opts.maxLlmCalls) : undefined,
   });
+  if (manifest.aborted) {
+    io.err(`${manifest.aborted} (run ${manifest.runId})`);
+    return 3;
+  }
   const count = (s: string) => manifest.verdicts.filter((v) => v.status === s).length;
   io.out(
     `Run ${manifest.runId}: ${count("pass")} aprovado(s), ${count("fail")} reprovado(s), ` +
@@ -95,6 +101,7 @@ export async function main(argv: string[], io: CliIO): Promise<number> {
     .option("--resume <runId>", "retoma um run interrompido")
     .option("--max-llm-calls <n>", "teto de chamadas ao LLM")
     .option("--env-file <path>", "arquivo .env com as variáveis", ".env")
+    .option("--config <path>", "arquivo de configuração yaml", undefined)
     .option("--dry-run", "só lê e valida os casos")
     .action(async (xlsx: string, opts: RunOptions) => {
       code = await runCommand(xlsx, opts, io);
