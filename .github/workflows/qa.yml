@@ -1,0 +1,62 @@
+name: QA Agent
+
+on:
+  workflow_dispatch:
+    inputs:
+      xlsx:
+        description: "Caminho do Excel com os casos de teste"
+        default: "fixtures/casos-sinteticos.xlsx"
+      only:
+        description: "Executar apenas este ID de caso (opcional)"
+        default: ""
+  schedule:
+    - cron: "17 9 * * 1" # segunda-feira, 09:17 UTC
+
+permissions:
+  contents: read
+
+jobs:
+  qa:
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - run: npm ci
+
+      - name: Instalar Chromium do Playwright
+        run: npx playwright install --with-deps chromium
+
+      - run: npm run build
+
+      - name: Executar QA
+        env:
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+          APP_USER: ${{ secrets.APP_USER }}
+          APP_PASS: ${{ secrets.APP_PASS }}
+          LOCKED_USER: ${{ secrets.LOCKED_USER }}
+          QA_BASE_URL: ${{ vars.QA_BASE_URL }}
+          QA_XLSX: ${{ inputs.xlsx }}
+          QA_ONLY: ${{ inputs.only }}
+        run: |
+          XLSX="${QA_XLSX:-fixtures/casos-sinteticos.xlsx}"
+          ARGS=(run "$XLSX" --max-llm-calls 500)
+          if [ -n "$QA_BASE_URL" ]; then ARGS+=(--base-url "$QA_BASE_URL"); fi
+          if [ -n "$QA_ONLY" ]; then ARGS+=(--only "$QA_ONLY"); fi
+          node dist/cli/index.js "${ARGS[@]}"
+
+      - name: Publicar relatório e manifest
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: qa-report
+          path: |
+            runs/**/report/
+            runs/**/manifest.json
+          if-no-files-found: warn
+          retention-days: 30

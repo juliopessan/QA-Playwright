@@ -157,7 +157,7 @@ describe.each(["light", "dark"] as const)("relatório: acessibilidade (%s)", (sc
     const page = await open(scheme);
     await page.click('[data-filter="all"]');
     await page.$$eval("details.case", (els) => els.forEach((e) => ((e as HTMLDetailsElement).open = true)));
-    const results = await new AxeBuilder({ page }).analyze();
+    const results = await new AxeBuilder({ page: page as unknown as ConstructorParameters<typeof AxeBuilder>[0]['page'] }).analyze();
     expect(results.violations.map((x) => `${x.id}: ${x.nodes.map((n) => n.target.join(" ")).join(" | ")}`)).toEqual([]);
     await page.close();
   });

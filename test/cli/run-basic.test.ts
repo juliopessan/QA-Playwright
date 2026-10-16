@@ -47,6 +47,15 @@ describe("qa-agent run --dry-run", () => {
     expect(t.err.join("\n")).toContain("Variáveis ausentes: APP_PASS, LOCKED_USER");
   });
 
+  it("--max-llm-calls inválido sai 2 em vez de virar 'sem limite'", async () => {
+    for (const bad of ["abc", "0", "-3", "1.5"]) {
+      const t = io();
+      const code = await main(["run", FIXTURE, "--dry-run", "--max-llm-calls", bad], t.cli);
+      expect(code, bad).toBe(2);
+      expect(t.err.join("\n")).toContain("--max-llm-calls");
+    }
+  });
+
   it("opção desconhecida sai 2", async () => {
     const t = io();
     const code = await main(["run", FIXTURE, "--naoexiste"], t.cli);

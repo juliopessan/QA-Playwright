@@ -46,6 +46,9 @@ function loadEnv(io: CliIO, envFile: string): Record<string, string | undefined>
 
 async function runCommand(xlsx: string, opts: RunOptions, io: CliIO): Promise<number> {
   if (!existsSync(xlsx)) throw new UsageError(`arquivo não encontrado: ${xlsx}`);
+  if (opts.maxLlmCalls !== undefined && !/^[1-9]\d*$/.test(opts.maxLlmCalls)) {
+    throw new UsageError("--max-llm-calls deve ser um inteiro positivo");
+  }
   const env = loadEnv(io, opts.envFile);
   const cfg = await loadConfig({
     configPath: opts.config,
