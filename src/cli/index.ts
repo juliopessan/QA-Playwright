@@ -1,10 +1,14 @@
-import { existsSync, readFileSync } from "node:fs";
+import { existsSync, readFileSync, realpathSync } from "node:fs";
+import { fileURLToPath } from "node:url";
 import { parseEnv } from "node:util";
 import { Command, CommanderError } from "commander";
 import { loadConfig } from "../config/index.js";
 import { readTestCases } from "../reader/index.js";
 import { assertVars } from "../vars/index.js";
 import { interactiveLogin } from "../auth/index.js";
+import type { LLMProvider } from "../llm/provider.js";
+import { AnthropicProvider } from "../llm/anthropic.js";
+import { runAll } from "../run/run-all.js";
 
 export const PROGRAM_NAME = "qa-agent";
 
@@ -12,6 +16,9 @@ export interface CliIO {
   out: (s: string) => void;
   err: (s: string) => void;
   env: Record<string, string | undefined>;
+  /** Provedor de LLM injetável (testes); padrão: AnthropicProvider. */
+  provider?: LLMProvider;
+  runsDir?: string;
 }
 
 export interface RunOptions {
@@ -49,7 +56,27 @@ async function runCommand(xlsx: string, opts: RunOptions, io: CliIO): Promise<nu
   for (const i of issues) io.err(`linha ${i.row}${i.caseId ? ` (${i.caseId})` : ""}: ${i.message}`);
   if (issues.length) return 2;
   if (opts.dryRun) return 0;
-  throw new UsageError("execução ainda não disponível (use --dry-run)");
+  if (cases.length === 0) throw new UsageError("nenhum caso para executar");
+
+  const provider = io.provider ?? new AnthropicProvider({ apiKey: env.ANTHROPIC_API_KEY });
+  const manifest = await runAll({
+    xlsx,
+    cfg,
+    provider,
+    env,
+    only: opts.only,
+    headed: opts.headed,
+    heal: opts.heal,
+    resume: opts.resume,
+    runsDir: io.runsDir,
+    maxLlmCalls: opts.maxLlmCalls ? Number(opts.maxLlmCalls) : undefined,
+  });
+  const count = (s: string) => manifest.verdicts.filter((v) => v.status === s).length;
+  io.out(
+    `Run ${manifest.runId}: ${count("pass")} aprovado(s), ${count("fail")} reprovado(s), ` +
+      `${count("needs-review")} para revisão, ${count("blocked")} bloqueado(s)`,
+  );
+  return count("fail") + count("blocked") > 0 ? 1 : 0;
 }
 
 export async function main(argv: string[], io: CliIO): Promise<number> {
@@ -97,7 +124,8 @@ export async function main(argv: string[], io: CliIO): Promise<number> {
   }
 }
 
-if (import.meta.url === `file://${process.argv[1]}`) {
+const entry = process.argv[1] ? realpathSync(process.argv[1]) : "";
+if (entry === fileURLToPath(import.meta.url)) {
   main(process.argv.slice(2), {
     out: (s) => console.log(s),
     err: (s) => console.error(s),
