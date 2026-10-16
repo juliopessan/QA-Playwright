@@ -1,5 +1,6 @@
 import { scriptedProvider } from "./scripted-provider.js";
 import type { FakeLLMProvider } from "../../src/llm/fake.js";
+import type { LLMRequest } from "../../src/llm/provider.js";
 
 type A = Record<string, unknown>;
 
@@ -68,7 +69,7 @@ export function syntheticProvider(): FakeLLMProvider {
     {
       match: /./,
       task: "compile",
-      response: (req) => {
+      response: (req: LLMRequest<unknown>) => {
         const p = req.prompt;
         const step = line(p, "Passo \\d+");
         const data = line(p, "Dados \\(template\\)");

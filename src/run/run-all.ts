@@ -7,9 +7,10 @@ import { CompileCache } from "../compiler/cache.js";
 import type { AppConfig } from "../config/index.js";
 import { BudgetedProvider } from "../llm/budget.js";
 import type { LLMProvider } from "../llm/provider.js";
+import { makeHealer } from "../healer/index.js";
 import { judgeCase } from "../judge/index.js";
 import { readTestCases } from "../reader/index.js";
-import { runCase, safeId, type HealFn } from "../runner/run-case.js";
+import { runCase, safeId } from "../runner/run-case.js";
 import type { Env } from "../vars/index.js";
 import type { CaseVerdict, RunManifest, TestCase } from "../types/index.js";
 import { ManifestWriter, newRunId } from "./manifest.js";
@@ -27,8 +28,6 @@ export interface RunAllOptions {
   cacheDir?: string;
   authDir?: string;
   maxLlmCalls?: number;
-  /** Fábrica do healer (Task 18). */
-  makeHealer?: (ctx: { provider: LLMProvider; cache: CompileCache; cfg: AppConfig; env: Env }) => HealFn;
 }
 
 function cliVersion(): string {
@@ -89,10 +88,7 @@ export async function runAll(opts: RunAllOptions): Promise<RunManifest> {
   const runDir = writer.runDir;
   const done = new Set(writer.manifest.verdicts.map((v) => v.caseId));
   const cache = new CompileCache(opts.cacheDir ?? ".qa-cache");
-  const heal =
-    opts.heal !== false && opts.makeHealer
-      ? opts.makeHealer({ provider, cache, cfg, env: opts.env })
-      : undefined;
+  const heal = opts.heal === false ? undefined : makeHealer({ provider, cfg });
 
   const todo = cases.filter((c) => !done.has(c.id));
   const needsBrowser = todo.some((c) => !c.readError);

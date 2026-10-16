@@ -2,20 +2,25 @@ import { mkdirSync } from "node:fs";
 import { join } from "node:path";
 import type { Page, Route } from "playwright";
 import type { AppConfig } from "../config/index.js";
-import { compileStep } from "../compiler/compile.js";
+import { compileStep, stepCacheKey } from "../compiler/compile.js";
 import type { CompileCache } from "../compiler/cache.js";
 import type { LLMProvider } from "../llm/provider.js";
 import { maskedScreenshot, redactText } from "../masking/index.js";
 import { isSessionExpired } from "../auth/index.js";
 import type { Env } from "../vars/index.js";
 import type { Action, CompiledStep, Step, StepResult, TestCase } from "../types/index.js";
-import { executeAction, isHostAllowed, redactSecrets, type ExecCtx } from "./execute.js";
+import { executeAction, ExpectationFailed, HostNotAllowedError, isHostAllowed, redactSecrets, type ExecCtx } from "./execute.js";
 
+/**
+ * Tenta substituir UMA ação que falhou por erro de interação. Já executa as ações propostas;
+ * devolve-as (para atualizar o cache) ou `undefined` se não conseguiu.
+ */
 export type HealFn = (failure: {
   step: Step;
   action: Action;
   error: string;
   page: Page;
+  exec: ExecCtx;
 }) => Promise<{ actions: Action[]; note: string } | undefined>;
 
 export interface RunDeps {
@@ -90,6 +95,7 @@ export async function runCase(tc: TestCase, deps: RunDeps): Promise<CaseResult> 
 
       let comp: CompiledStep;
       let llmError: string | undefined;
+      const urlAtCompile = page.url();
       try {
         comp = await compileStep(step, { page, provider: deps.provider, cache: deps.cache, cfg });
       } catch (e) {
@@ -104,16 +110,40 @@ export async function runCase(tc: TestCase, deps: RunDeps): Promise<CaseResult> 
         stop = true;
       } else {
         const observed: string[] = [];
-        for (const action of comp.actions) {
+        const actions = [...comp.actions];
+        const healNotes: string[] = [];
+        for (let i = 0; i < actions.length; i++) {
+          const action = actions[i];
           try {
             const r = await executeAction(page, action, ctx);
             if (r.observed) observed.push(r.observed);
           } catch (e) {
+            const msg = e instanceof Error ? e.message : String(e);
+            const healable =
+              deps.heal &&
+              !(e instanceof ExpectationFailed) &&
+              !(e instanceof HostNotAllowedError) &&
+              action.kind !== "expectText" &&
+              action.kind !== "expectUrl";
+            const healed = healable
+              ? await deps.heal!({ step, action, error: msg, page, exec: ctx }).catch(() => undefined)
+              : undefined;
+            if (healed) {
+              actions.splice(i, 1, ...healed.actions);
+              i += healed.actions.length - 1; // as ações propostas já foram executadas pelo healer
+              healNotes.push(healed.note);
+              continue;
+            }
             result.status = "fail";
-            result.error = e instanceof Error ? e.message : String(e);
+            result.error = msg;
             stop = true;
             break;
           }
+        }
+        if (healNotes.length && result.status === "pass") {
+          result.status = "healed";
+          result.healNote = redactSecrets(healNotes.join("; "), ctx);
+          await deps.cache.set(stepCacheKey(step, urlAtCompile, deps.provider.id), { ...comp, actions });
         }
         if (comp.subjective && result.status === "pass") {
           const text = await page.locator("body").innerText().catch(() => "");
