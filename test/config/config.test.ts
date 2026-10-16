@@ -56,3 +56,15 @@ describe("loadConfig", () => {
     expect(cfg.allowedHosts).toEqual(["www.saucedemo.com", "login.microsoftonline.com"]);
   });
 });
+
+describe("loginUrlPattern", () => {
+  it("vem do yaml e é opcional", async () => {
+    const dir = mkdtempSync(join(tmpdir(), "qa-cfg-"));
+    const p = join(dir, "c.yaml");
+    writeFileSync(p, "loginUrlPattern: 'login\\.microsoftonline\\.com'\n");
+    const cfg = await loadConfig({ configPath: p });
+    expect(cfg.loginUrlPattern).toBe("login\\.microsoftonline\\.com");
+    const none = await loadConfig({ configPath: "/nao/existe.yaml" });
+    expect(none.loginUrlPattern).toBeUndefined();
+  });
+});

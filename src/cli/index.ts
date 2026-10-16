@@ -4,6 +4,7 @@ import { Command, CommanderError } from "commander";
 import { loadConfig } from "../config/index.js";
 import { readTestCases } from "../reader/index.js";
 import { assertVars } from "../vars/index.js";
+import { interactiveLogin } from "../auth/index.js";
 
 export const PROGRAM_NAME = "qa-agent";
 
@@ -70,6 +71,17 @@ export async function main(argv: string[], io: CliIO): Promise<number> {
     .option("--dry-run", "só lê e valida os casos")
     .action(async (xlsx: string, opts: RunOptions) => {
       code = await runCommand(xlsx, opts, io);
+    });
+
+  program
+    .command("login")
+    .description("Abre o navegador para o login SSO e salva a sessão em .qa-auth/")
+    .option("--base-url <url>", "URL do sistema (padrão: baseUrl do qa-agent.config.yaml)")
+    .action(async (opts: { baseUrl?: string }) => {
+      const cfg = await loadConfig({ overrides: opts.baseUrl ? { baseUrl: opts.baseUrl } : {} });
+      if (!cfg.baseUrl) throw new UsageError("informe --base-url ou defina baseUrl no qa-agent.config.yaml");
+      const file = await interactiveLogin(cfg.baseUrl);
+      io.out(`Sessão salva em ${file}`);
     });
 
   try {

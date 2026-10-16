@@ -13,6 +13,8 @@ export interface AppConfig {
   minConfidence: number;
   maxHealAttempts: number;
   redactPatterns: string[];
+  /** Regex (fonte) da URL de login/SSO; quando definida, ativa a detecção de sessão expirada. */
+  loginUrlPattern?: string;
 }
 
 export interface LoadConfigOptions {
@@ -63,6 +65,7 @@ async function readConfigSheet(excelPath: string): Promise<Partial<AppConfig>> {
   if (raw.timeout_passo_s) out.stepTimeoutMs = Number(raw.timeout_passo_s) * 1000;
   if (raw.mascarar_seletores) out.maskSelectors = splitList(raw.mascarar_seletores, /;/);
   if (raw.variaveis_esperadas) out.requiredVars = splitList(raw.variaveis_esperadas, /,/);
+  if (raw.padrao_url_login) out.loginUrlPattern = raw.padrao_url_login;
   if (raw.hosts_permitidos) out.allowedHosts = splitList(raw.hosts_permitidos, /,/);
   return out;
 }
