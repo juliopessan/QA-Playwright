@@ -1,10 +1,10 @@
 import { describe, it, expect, beforeAll, afterAll } from "vitest";
-import { mkdtempSync, readFileSync, existsSync, statSync } from "node:fs";
+import { mkdtempSync, readFileSync, existsSync, statSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { chromium, type Browser, type Page } from "playwright";
 import { startTestApp } from "./server.js";
-import { buildWeb, credentialsFromEnv, generateCredentials, writeEnvWeb } from "../../scripts/build-web.js";
+import { buildWeb, credentialsFromEnv, credentialsFromFile, generateCredentials, writeEnvWeb } from "../../scripts/build-web.js";
 
 let browser: Browser;
 beforeAll(async () => {
@@ -130,5 +130,22 @@ describe("credentialsFromEnv", () => {
   it("sem usuário ou senha devolve undefined", () => {
     expect(credentialsFromEnv({ QA_WEB_USER: "u1" })).toBeUndefined();
     expect(credentialsFromEnv({})).toBeUndefined();
+  });
+});
+
+describe("credentialsFromFile", () => {
+  it("lê user/pass/lockedUser de um JSON versionado", () => {
+    const f = join(mkdtempSync(join(tmpdir(), "qa-cred-")), "web-credentials.json");
+    writeFileSync(f, JSON.stringify({ user: "qa_x", pass: "senha-longa-xyz", lockedUser: "qa_bloqueado_x" }));
+    expect(credentialsFromFile(f)).toEqual({ user: "qa_x", pass: "senha-longa-xyz", lockedUser: "qa_bloqueado_x" });
+  });
+  it("arquivo ausente ou incompleto devolve undefined", () => {
+    const dir = mkdtempSync(join(tmpdir(), "qa-cred-"));
+    expect(credentialsFromFile(join(dir, "nao-existe.json"))).toBeUndefined();
+    writeFileSync(join(dir, "x.json"), JSON.stringify({ user: "so-usuario" }));
+    expect(credentialsFromFile(join(dir, "x.json"))).toBeUndefined();
+  });
+  it("o web-credentials.json versionado é válido", () => {
+    expect(credentialsFromFile("web-credentials.json")).toBeDefined();
   });
 });

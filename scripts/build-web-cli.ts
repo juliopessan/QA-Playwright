@@ -1,11 +1,12 @@
 /**
  * npm run build:web [-- --new]
  * Gera web-dist/ e grava .env.web (fora do git). Ordem das credenciais: variáveis QA_WEB_USER/
- * QA_WEB_PASS/QA_WEB_LOCKED_USER (ex.: painel da Vercel) > .env.web existente > novas geradas (--new força).
+ * QA_WEB_PASS/QA_WEB_LOCKED_USER (ex.: painel da Vercel) > web-credentials.json (versionado) >
+ * .env.web existente > novas geradas. --new ignora tudo e gera novas.
  */
 import { existsSync, readFileSync } from "node:fs";
 import { parseEnv } from "node:util";
-import { buildWeb, credentialsFromEnv, generateCredentials, writeEnvWeb, type WebCredentials } from "./build-web.js";
+import { buildWeb, credentialsFromEnv, credentialsFromFile, generateCredentials, writeEnvWeb, type WebCredentials } from "./build-web.js";
 
 function existing(): WebCredentials | undefined {
   if (process.argv.includes("--new") || !existsSync(".env.web")) return undefined;
@@ -15,13 +16,15 @@ function existing(): WebCredentials | undefined {
     : undefined;
 }
 
-const fromEnv = process.argv.includes("--new") ? undefined : credentialsFromEnv(process.env);
-const reused = fromEnv ?? existing();
+const forceNew = process.argv.includes("--new");
+const fromEnv = forceNew ? undefined : credentialsFromEnv(process.env);
+const fromFile = forceNew ? undefined : credentialsFromFile("web-credentials.json");
+const reused = fromEnv ?? fromFile ?? existing();
 const creds = reused ?? generateCredentials();
 buildWeb({ outDir: "web-dist", creds });
 const apiKey = existsSync(".env") ? parseEnv(readFileSync(".env", "utf8")).ANTHROPIC_API_KEY : undefined;
 writeEnvWeb(".env.web", creds, apiKey);
-console.log(`Site gerado em web-dist/ (${fromEnv ? "credenciais das variáveis QA_WEB_*" : reused ? "credenciais reaproveitadas de .env.web" : "credenciais novas"})`);
+console.log(`Site gerado em web-dist/ (${fromEnv ? "credenciais das variáveis QA_WEB_*" : fromFile ? "credenciais de web-credentials.json" : reused ? "credenciais reaproveitadas de .env.web" : "credenciais novas"})`);
 console.log(`Usuário: ${creds.user}`);
 console.log(`Senha:   ${creds.pass}`);
 console.log(`Usuário bloqueado (mesma senha): ${creds.lockedUser}`);

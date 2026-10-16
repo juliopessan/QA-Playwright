@@ -3,7 +3,7 @@
  * As credenciais ficam no JavaScript da página: servem apenas para teste, nunca para nada real.
  */
 import { randomBytes } from "node:crypto";
-import { chmodSync, cpSync, mkdirSync, readdirSync, readFileSync, rmSync, writeFileSync } from "node:fs";
+import { chmodSync, cpSync, existsSync, mkdirSync, readdirSync, readFileSync, rmSync, writeFileSync } from "node:fs";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 
@@ -26,6 +26,17 @@ export function credentialsFromEnv(env: Record<string, string | undefined>): Web
   const pass = env.QA_WEB_PASS?.trim();
   if (!user || !pass) return undefined;
   return { user, pass, lockedUser: env.QA_WEB_LOCKED_USER?.trim() || `${user}_bloqueado` };
+}
+
+/** Credenciais fixas versionadas (são públicas na página de qualquer forma); evitam trocar a cada deploy. */
+export function credentialsFromFile(file: string): WebCredentials | undefined {
+  if (!existsSync(file)) return undefined;
+  try {
+    const c = JSON.parse(readFileSync(file, "utf8")) as Partial<WebCredentials>;
+    return c.user && c.pass && c.lockedUser ? { user: c.user, pass: c.pass, lockedUser: c.lockedUser } : undefined;
+  } catch {
+    return undefined;
+  }
 }
 
 export function buildWeb(opts: { outDir: string; creds: WebCredentials }): void {
