@@ -1,0 +1,4 @@
+body{font-family:Arial,sans-serif;margin:24px}
+.error{color:#b00;background:#fee;padding:8px;margin:8px 0}
+.inventory_item{border:1px solid #ccc;padding:8px;margin:8px 0}
+.badge{background:#c00;color:#fff;border-radius:50%;padding:2px 6px;margin-left:4px}
