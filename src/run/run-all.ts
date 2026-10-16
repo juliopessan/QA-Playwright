@@ -7,6 +7,7 @@ import { CompileCache } from "../compiler/cache.js";
 import type { AppConfig } from "../config/index.js";
 import { BudgetedProvider } from "../llm/budget.js";
 import type { LLMProvider } from "../llm/provider.js";
+import { judgeCase } from "../judge/index.js";
 import { readTestCases } from "../reader/index.js";
 import { runCase, safeId, type HealFn } from "../runner/run-case.js";
 import type { Env } from "../vars/index.js";
@@ -114,17 +115,9 @@ export async function runAll(opts: RunAllOptions): Promise<RunManifest> {
           evidenceDir: join(runDir, "evidence"),
           heal,
         });
-        // Veredito provisório; o Judge (Task 15) o substitui.
-        const ok = result.steps.every((s) => s.status === "pass" || s.status === "healed");
+        const verdict = await judgeCase(tc, result, { provider, cfg, runDir });
         writer.setUsage(provider.usage);
-        await writer.append({
-          caseId: tc.id,
-          title: tc.title,
-          status: ok ? "pass" : "fail",
-          reasoning: ok ? "Todos os passos passaram." : "Algum passo não passou.",
-          evidenceRefs: result.steps.flatMap((s) => [s.screenshotBefore, s.screenshotAfter]).filter(Boolean) as string[],
-          steps: result.steps,
-        });
+        await writer.append(verdict);
       } finally {
         await context.close();
       }

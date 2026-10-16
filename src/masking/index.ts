@@ -1,3 +1,4 @@
+import { readFile } from "node:fs/promises";
 import type { Page } from "playwright";
 import { brandMaskedImage, type MaskedImage } from "./image.js";
 
@@ -30,4 +31,9 @@ const DEFAULT_PATTERNS: RegExp[] = [
 export function redactText(text: string, extraPatterns: string[] = []): string {
   const extras = extraPatterns.map((p) => new RegExp(p, "g"));
   return [...DEFAULT_PATTERNS, ...extras].reduce((t, re) => t.replace(re, "[REDIGIDO]"), text);
+}
+
+/** Relê um print salvo por `maskedScreenshot` (evidência já mascarada) para enviá-lo ao Judge. */
+export async function loadMaskedEvidence(file: string): Promise<MaskedImage> {
+  return brandMaskedImage(await readFile(file));
 }
