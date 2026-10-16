@@ -29,7 +29,15 @@ casos.xlsx ─▶ Reader ─▶ Compiler (LLM + cache) ─▶ Runner ─▶ Heal
 3. **Login SSO** na aplicação interna real (`qa-agent login`).
 4. **Paleta da Bayer:** os valores em `src/reporter/tokens.css` são aproximados. Confira com o brand guide oficial.
 
-## Início rápido
+## Teste rápido sem SSO, sem chave e sem rede
+
+```bash
+npm install && npm run demo
+```
+
+Sobe um app local com **login simples (usuário e senha, sem SSO)**, roda os 12 casos do Excel sintético com um provedor determinístico no lugar do LLM e gera o relatório em `runs/<runId>/report/index.html`. Credenciais da demo: `standard_user` / `secret_sauce` (as mesmas de `fixtures/.env.example`). Serve para ver o pipeline e o relatório funcionando; a qualidade das ações geradas pelo Claude só se verifica com `ANTHROPIC_API_KEY`.
+
+## Início rápido (com Claude e a SauceDemo real)
 
 ```bash
 npm install

@@ -42,7 +42,7 @@ describe("qa-agent run --dry-run", () => {
 
   it("variável ausente no env sai 2 listando os nomes", async () => {
     const t = io({ APP_USER: "u" });
-    const code = await main(["run", FIXTURE, "--dry-run"], t.cli);
+    const code = await main(["run", FIXTURE, "--dry-run", "--env-file", "/nao/existe.env"], t.cli);
     expect(code).toBe(2);
     expect(t.err.join("\n")).toContain("Variáveis ausentes: APP_PASS, LOCKED_USER");
   });

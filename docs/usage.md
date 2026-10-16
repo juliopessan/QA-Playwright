@@ -48,6 +48,20 @@ Aba opcional **`Config`** (`Parâmetro | Valor | Descrição`):
 
 Precedência: padrões < `qa-agent.config.yaml` < aba `Config` < opções da CLI.
 
+## Login simples (sem SSO)
+
+Para sistemas com login por formulário (usuário e senha), **não é preciso `qa-agent login`**: faça o login nos próprios passos do Excel, com os dados em variáveis.
+
+| ID | Passo nº | Passo | Dados |
+|---|---|---|---|
+| TC-001 | 2 | Preencher o campo de usuário | `{{APP_USER}}` |
+| TC-001 | 3 | Preencher o campo de senha | `{{APP_PASS}}` |
+| TC-001 | 4 | Clicar no botão Login | |
+
+Defina `APP_USER` e `APP_PASS` no `.env` e **não** configure `padrao_url_login`: sem ele, a detecção de sessão expirada fica desligada e nada é tratado como SSO. O campo de senha é sempre mascarado nos prints.
+
+Para testar o pipeline sem chave de API e sem rede, use `npm run demo` (app local com este mesmo tipo de login).
+
 ## Login SSO
 
 ```bash
