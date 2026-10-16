@@ -6,7 +6,8 @@ const PRODUCTS = [
   { id: "sauce-labs-onesie", name: "Sauce Labs Onesie", price: 7.99 },
   { id: "test-allthethings-t-shirt-red", name: "Test.allTheThings() T-Shirt (Red)", price: 15.99 },
 ];
-const USERS = { standard_user: "secret_sauce", locked_out_user: "secret_sauce" };
+const CFG = window.APP_CONFIG || { users: {}, locked: [] };
+const USERS = CFG.users;
 const page = document.body.dataset.page;
 const get = (k, d) => { try { return JSON.parse(sessionStorage.getItem(k)) ?? d; } catch { return d; } };
 const set = (k, v) => sessionStorage.setItem(k, JSON.stringify(v));
@@ -42,7 +43,7 @@ if (page === "login") {
     const u = $("#user-name").value, p = $("#password").value;
     if (!u || !p) return showError("#error-slot", `Epic sadface: ${u ? "Password" : "Username"} is required`);
     if (USERS[u] !== p) return showError("#error-slot", "Epic sadface: Username and password do not match any user in this service");
-    if (u === "locked_out_user") return showError("#error-slot", "Epic sadface: Sorry, this user has been locked out.");
+    if (CFG.locked.includes(u)) return showError("#error-slot", "Epic sadface: Sorry, this user has been locked out.");
     set("user", u); set("cart", []);
     location.href = "/inventory.html";
   };

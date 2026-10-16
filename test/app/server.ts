@@ -11,7 +11,7 @@ const MIME: Record<string, string> = {
 };
 
 /** App estático local que imita o fluxo da SauceDemo (login, inventário, carrinho, checkout). */
-export async function startTestApp(port = 0): Promise<{ url: string; close(): Promise<void> }> {
+export async function startTestApp(port = 0, root = PUBLIC): Promise<{ url: string; close(): Promise<void> }> {
   const server = createServer(async (req, res) => {
     const path = new URL(req.url ?? "/", "http://x").pathname;
     const rel = path === "/" ? "index.html" : normalize(path).replace(/^([/\\])+/, "");
@@ -20,7 +20,7 @@ export async function startTestApp(port = 0): Promise<{ url: string; close(): Pr
       return;
     }
     try {
-      const body = await readFile(join(PUBLIC, rel));
+      const body = await readFile(join(root, rel));
       res.writeHead(200, { "content-type": MIME[extname(rel)] ?? "application/octet-stream" }).end(body);
     } catch {
       res.writeHead(404, { "content-type": "text/plain" }).end("Not found");

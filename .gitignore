@@ -5,3 +5,5 @@ dist/
 runs/
 .env
 .superpowers/
+web-dist/
+.env.web
