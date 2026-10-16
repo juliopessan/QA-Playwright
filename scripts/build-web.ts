@@ -20,6 +20,14 @@ export function generateCredentials(): WebCredentials {
   return { user: `qa_${id}`, pass: randomBytes(12).toString("base64url"), lockedUser: `qa_bloqueado_${id}` };
 }
 
+/** Credenciais fixadas por variáveis de ambiente (ex.: no painel da Vercel), para não mudarem a cada deploy. */
+export function credentialsFromEnv(env: Record<string, string | undefined>): WebCredentials | undefined {
+  const user = env.QA_WEB_USER?.trim();
+  const pass = env.QA_WEB_PASS?.trim();
+  if (!user || !pass) return undefined;
+  return { user, pass, lockedUser: env.QA_WEB_LOCKED_USER?.trim() || `${user}_bloqueado` };
+}
+
 export function buildWeb(opts: { outDir: string; creds: WebCredentials }): void {
   rmSync(opts.outDir, { recursive: true, force: true });
   mkdirSync(opts.outDir, { recursive: true });

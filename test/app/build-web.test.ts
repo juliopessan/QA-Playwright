@@ -4,7 +4,7 @@ import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { chromium, type Browser, type Page } from "playwright";
 import { startTestApp } from "./server.js";
-import { buildWeb, generateCredentials, writeEnvWeb } from "../../scripts/build-web.js";
+import { buildWeb, credentialsFromEnv, generateCredentials, writeEnvWeb } from "../../scripts/build-web.js";
 
 let browser: Browser;
 beforeAll(async () => {
@@ -115,5 +115,20 @@ describe("writeEnvWeb", () => {
     expect(txt).toContain("LOCKED_USER=qa_bloqueado_abc123");
     expect(txt).toContain("ANTHROPIC_API_KEY=sk-ant-teste");
     expect(statSync(f).mode & 0o777).toBe(0o600);
+  });
+});
+
+describe("credentialsFromEnv", () => {
+  it("lê QA_WEB_USER/QA_WEB_PASS/QA_WEB_LOCKED_USER", () => {
+    expect(
+      credentialsFromEnv({ QA_WEB_USER: "u1", QA_WEB_PASS: "senha-longa-123", QA_WEB_LOCKED_USER: "u1_lock" }),
+    ).toEqual({ user: "u1", pass: "senha-longa-123", lockedUser: "u1_lock" });
+  });
+  it("usuário bloqueado é opcional (padrão: <usuário>_bloqueado)", () => {
+    expect(credentialsFromEnv({ QA_WEB_USER: "u1", QA_WEB_PASS: "senha-longa-123" })?.lockedUser).toBe("u1_bloqueado");
+  });
+  it("sem usuário ou senha devolve undefined", () => {
+    expect(credentialsFromEnv({ QA_WEB_USER: "u1" })).toBeUndefined();
+    expect(credentialsFromEnv({})).toBeUndefined();
   });
 });
