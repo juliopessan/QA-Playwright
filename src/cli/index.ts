@@ -1,4 +1,5 @@
-import { existsSync, readFileSync, realpathSync } from "node:fs";
+import { existsSync, readdirSync, readFileSync, realpathSync } from "node:fs";
+import { join } from "node:path";
 import { fileURLToPath } from "node:url";
 import { parseEnv } from "node:util";
 import { Command, CommanderError } from "commander";
@@ -9,6 +10,8 @@ import { interactiveLogin } from "../auth/index.js";
 import type { LLMProvider } from "../llm/provider.js";
 import { AnthropicProvider } from "../llm/anthropic.js";
 import { runAll } from "../run/run-all.js";
+import { writeReport } from "../reporter/write.js";
+import type { EvidenceMode } from "../reporter/render.js";
 
 export const PROGRAM_NAME = "qa-agent";
 
@@ -30,6 +33,7 @@ export interface RunOptions {
   maxLlmCalls?: string;
   envFile: string;
   config?: string;
+  evidence: EvidenceMode;
   dryRun?: boolean;
 }
 
@@ -73,6 +77,9 @@ async function runCommand(xlsx: string, opts: RunOptions, io: CliIO): Promise<nu
     runsDir: io.runsDir,
     maxLlmCalls: opts.maxLlmCalls ? Number(opts.maxLlmCalls) : undefined,
   });
+  const runDir = join(io.runsDir ?? "runs", manifest.runId);
+  const report = await writeReport(runDir, { mode: opts.evidence });
+  io.out(`Relatório: ${report}`);
   if (manifest.aborted) {
     io.err(`${manifest.aborted} (run ${manifest.runId})`);
     return 3;
@@ -102,6 +109,7 @@ export async function main(argv: string[], io: CliIO): Promise<number> {
     .option("--max-llm-calls <n>", "teto de chamadas ao LLM")
     .option("--env-file <path>", "arquivo .env com as variáveis", ".env")
     .option("--config <path>", "arquivo de configuração yaml", undefined)
+    .option("--evidence <modo>", "relatório: embedded (padrão) ou linked", "embedded")
     .option("--dry-run", "só lê e valida os casos")
     .action(async (xlsx: string, opts: RunOptions) => {
       code = await runCommand(xlsx, opts, io);
@@ -116,6 +124,18 @@ export async function main(argv: string[], io: CliIO): Promise<number> {
       if (!cfg.baseUrl) throw new UsageError("informe --base-url ou defina baseUrl no qa-agent.config.yaml");
       const file = await interactiveLogin(cfg.baseUrl);
       io.out(`Sessão salva em ${file}`);
+    });
+
+  program
+    .command("report")
+    .description("Gera/reabre o relatório HTML do último run (ou do indicado)")
+    .option("--run <runId>", "run a usar (padrão: o mais recente)")
+    .option("--evidence <modo>", "embedded (padrão) ou linked", "embedded")
+    .action(async (opts: { run?: string; evidence: EvidenceMode }) => {
+      const runsDir = io.runsDir ?? "runs";
+      const id = opts.run ?? (existsSync(runsDir) ? readdirSync(runsDir).filter((d) => existsSync(join(runsDir, d, "manifest.json"))).sort().at(-1) : undefined);
+      if (!id || !existsSync(join(runsDir, id, "manifest.json"))) throw new UsageError(`run não encontrado: ${opts.run ?? "(nenhum run em " + runsDir + ")"}`);
+      io.out(await writeReport(join(runsDir, id), { mode: opts.evidence }));
     });
 
   try {

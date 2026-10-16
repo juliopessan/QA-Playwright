@@ -29,8 +29,22 @@ export interface CompiledStep {
   fromCache: boolean;
 }
 
+export interface HealRecord {
+  /** Descrição da ação que falhou. */
+  from: string;
+  /** Descrições das ações que a substituíram. */
+  to: string[];
+  note: string;
+}
+
 export interface StepResult {
   stepIndex: number;
+  /** Texto original do passo no Excel. */
+  text?: string;
+  expected?: string;
+  /** Descrições legíveis das ações executadas (já sem segredos). */
+  actions?: string[];
+  heals?: HealRecord[];
   status: StepStatus;
   screenshotBefore?: string;
   screenshotAfter?: string;

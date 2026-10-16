@@ -73,6 +73,24 @@ describe("runCase", () => {
     await page.close();
   });
 
+  it("registra texto do passo, esperado e descrições das ações, sem segredos", async () => {
+    const rules: Rule[] = [
+      {
+        match: /Preencher senha/,
+        response: compiled([
+          { ...fill("Password", "{{APP_PASS}}", true), description: "Digitar secret_sauce no campo Password" },
+        ]),
+      },
+    ];
+    const { d, page } = await deps({ rules });
+    await page.goto(app.url);
+    const r = await runCase({ id: "T", title: "t", steps: [{ index: 1, text: "Preencher senha", data: "{{APP_PASS}}", expected: "campo preenchido" }] }, d);
+    expect(r.steps[0].text).toBe("Preencher senha");
+    expect(r.steps[0].expected).toBe("campo preenchido");
+    expect(r.steps[0].actions).toEqual(["Digitar •••• no campo Password"]);
+    await page.close();
+  });
+
   it("gera before/after em evidence/TC_001/01-before.png", async () => {
     const { d, base, page } = await deps();
     const r = await runCase(loginCase("TC/001"), d);

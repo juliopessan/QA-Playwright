@@ -90,7 +90,13 @@ export async function runCase(tc: TestCase, deps: RunDeps): Promise<CaseResult> 
         continue;
       }
       const t0 = Date.now();
-      const result: StepResult = { stepIndex: step.index, status: "pass", durationMs: 0 };
+      const result: StepResult = {
+        stepIndex: step.index,
+        text: step.text,
+        ...(step.expected ? { expected: step.expected } : {}),
+        status: "pass",
+        durationMs: 0,
+      };
       result.screenshotBefore = await shot(step, "before");
 
       let comp: CompiledStep;
@@ -129,6 +135,11 @@ export async function runCase(tc: TestCase, deps: RunDeps): Promise<CaseResult> 
               ? await deps.heal!({ step, action, error: msg, page, exec: ctx }).catch(() => undefined)
               : undefined;
             if (healed) {
+              (result.heals ??= []).push({
+                from: action.description,
+                to: healed.actions.map((a) => a.description),
+                note: healed.note,
+              });
               actions.splice(i, 1, ...healed.actions);
               i += healed.actions.length - 1; // as ações propostas já foram executadas pelo healer
               healNotes.push(healed.note);
@@ -139,6 +150,14 @@ export async function runCase(tc: TestCase, deps: RunDeps): Promise<CaseResult> 
             stop = true;
             break;
           }
+        }
+        result.actions = actions.map((a) => redactSecrets(a.description, ctx));
+        if (result.heals) {
+          result.heals = result.heals.map((h) => ({
+            from: redactSecrets(h.from, ctx),
+            to: h.to.map((t) => redactSecrets(t, ctx)),
+            note: redactSecrets(h.note, ctx),
+          }));
         }
         if (healNotes.length && result.status === "pass") {
           result.status = "healed";
