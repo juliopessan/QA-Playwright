@@ -3,7 +3,7 @@
  * As credenciais ficam no JavaScript da página: servem apenas para teste, nunca para nada real.
  */
 import { randomBytes } from "node:crypto";
-import { chmodSync, cpSync, mkdirSync, rmSync, writeFileSync } from "node:fs";
+import { chmodSync, cpSync, mkdirSync, readdirSync, readFileSync, rmSync, writeFileSync } from "node:fs";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 
@@ -24,6 +24,18 @@ export function buildWeb(opts: { outDir: string; creds: WebCredentials }): void 
   rmSync(opts.outDir, { recursive: true, force: true });
   mkdirSync(opts.outDir, { recursive: true });
   cpSync(PUBLIC, opts.outDir, { recursive: true });
+  // Marca neutra: a página pública não deve se passar pela SauceDemo.
+  for (const f of readdirSync(opts.outDir).filter((n) => n.endsWith(".html"))) {
+    const file = join(opts.outDir, f);
+    const html = readFileSync(file, "utf8")
+      .replace("<title>Swag Labs (local)</title>", "<title>QA Agent · Loja de teste</title>")
+      .replace(
+        "<h1>Swag Labs</h1>",
+        '<h1>QA Agent</h1>\n  <p>Site de teste do QA Agent. Não é a SauceDemo; credenciais apenas para testes.</p>',
+      );
+    writeFileSync(file, html);
+  }
+  writeFileSync(join(opts.outDir, ".nojekyll"), "");
   const { user, pass, lockedUser } = opts.creds;
   const config = `// Gerado por npm run build:web. Credenciais de TESTE, públicas por natureza.
 window.APP_CONFIG = {

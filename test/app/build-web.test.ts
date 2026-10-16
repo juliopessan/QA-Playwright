@@ -48,6 +48,38 @@ describe("buildWeb", () => {
     expect(cfg).not.toContain("secret_sauce");
   });
 
+  it("usa a marca QA Agent, avisa que é site de teste e não usa caminhos absolutos", () => {
+    const out = mkdtempSync(join(tmpdir(), "qa-web-"));
+    buildWeb({ outDir: out, creds });
+    const index = readFileSync(join(out, "index.html"), "utf8");
+    expect(index).toContain("<h1>QA Agent</h1>");
+    expect(index).toMatch(/site de teste do QA Agent/i);
+    expect(index).not.toContain("Swag Labs");
+    for (const f of ["index.html", "inventory.html", "cart.html", "checkout-step-one.html", "checkout-step-two.html", "checkout-complete.html", "app.js"]) {
+      const txt = readFileSync(join(out, f), "utf8");
+      expect(txt, f).not.toMatch(/(href|src)="\//);
+      expect(txt, f).not.toMatch(/location\.(href|replace)\s*[=(]\s*["']\//);
+    }
+    expect(existsSync(join(out, ".nojekyll"))).toBe(true);
+  });
+
+  it("o site gerado funciona servido numa subpasta (como no GitHub Pages)", async () => {
+    const root = mkdtempSync(join(tmpdir(), "qa-web-root-"));
+    buildWeb({ outDir: join(root, "QA-Playwright"), creds });
+    const app = await startTestApp(0, root);
+    try {
+      const page = await browser.newPage();
+      await login(page, `${app.url}/QA-Playwright/index.html`, creds.user, creds.pass);
+      await page.waitForURL("**/QA-Playwright/inventory.html");
+      await page.getByRole("button", { name: "Open Menu" }).click();
+      await page.getByRole("link", { name: "Logout" }).click();
+      await page.waitForURL("**/QA-Playwright/index.html");
+      await page.close();
+    } finally {
+      await app.close();
+    }
+  });
+
   it("o site gerado aceita as credenciais novas e recusa as antigas", async () => {
     const out = mkdtempSync(join(tmpdir(), "qa-web-"));
     buildWeb({ outDir: out, creds });

@@ -105,9 +105,9 @@ describe("app local de teste", () => {
     await login(page);
     await page.getByRole("button", { name: "Open Menu" }).click();
     await page.getByRole("link", { name: "Logout" }).click();
-    await page.waitForURL(app.url + "/");
+    await page.waitForURL(app.url + "/index.html");
     await page.goto(app.url + "/inventory.html");
-    await page.waitForURL(app.url + "/");
+    await page.waitForURL(app.url + "/index.html");
     await page.close();
   });
 

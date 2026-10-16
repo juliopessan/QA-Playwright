@@ -59,7 +59,7 @@ export function compileFor(step: string, data: string, expected: string): unknow
   if (/Abrir o menu lateral/.test(step)) return ok([click("button", "Open Menu")]);
   if (/Clicar em Logout/.test(step)) return ok([click("link", "Logout")]);
   if (/voltou à tela de login/.test(step))
-    return ok([{ kind: "expectUrl", pattern: "/\\/$/", description: "URL da página inicial" }, text("Swag Labs", role("heading"))], { kind: "verification" });
+    return ok([{ kind: "expectUrl", pattern: "/(\\/|index\\.html)$/", description: "URL da página inicial" }, text("Swag Labs", role("heading"))], { kind: "verification" });
   return { kind: "action", confidence: 0, subjective: false, actions: [] };
 }
 

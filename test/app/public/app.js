@@ -14,7 +14,7 @@ const set = (k, v) => sessionStorage.setItem(k, JSON.stringify(v));
 const money = (n) => "$" + n.toFixed(2);
 const $ = (s) => document.querySelector(s);
 
-if (page !== "login" && !get("user", null)) location.replace("/");
+if (page !== "login" && !get("user", null)) location.replace("index.html");
 
 function renderHeader() {
   const h = $("#header");
@@ -22,8 +22,8 @@ function renderHeader() {
   const n = get("cart", []).length;
   h.innerHTML = `
     <button id="menu-btn">Open Menu</button>
-    <nav id="menu" hidden><a href="/" id="logout">Logout</a></nav>
-    <a href="/cart.html" aria-label="Shopping Cart">${n ? `<span class="badge">${n}</span>` : ""}</a>`;
+    <nav id="menu" hidden><a href="index.html" id="logout">Logout</a></nav>
+    <a href="cart.html" aria-label="Shopping Cart">${n ? `<span class="badge">${n}</span>` : ""}</a>`;
   $("#menu-btn").onclick = () => { $("#menu").hidden = false; };
   $("#logout").onclick = () => { sessionStorage.clear(); };
 }
@@ -45,7 +45,7 @@ if (page === "login") {
     if (USERS[u] !== p) return showError("#error-slot", "Epic sadface: Username and password do not match any user in this service");
     if (CFG.locked.includes(u)) return showError("#error-slot", "Epic sadface: Sorry, this user has been locked out.");
     set("user", u); set("cart", []);
-    location.href = "/inventory.html";
+    location.href = "inventory.html";
   };
 }
 
@@ -83,8 +83,8 @@ if (page === "cart") {
     });
   };
   draw();
-  $("#continue-shopping").onclick = () => { location.href = "/inventory.html"; };
-  $("#checkout").onclick = () => { location.href = "/checkout-step-one.html"; };
+  $("#continue-shopping").onclick = () => { location.href = "inventory.html"; };
+  $("#checkout").onclick = () => { location.href = "checkout-step-one.html"; };
 }
 
 if (page === "checkout-one") {
@@ -94,7 +94,7 @@ if (page === "checkout-one") {
     if (!f) return showError("#error-slot", "Error: First Name is required");
     if (!l) return showError("#error-slot", "Error: Last Name is required");
     if (!z) return showError("#error-slot", "Error: Postal Code is required");
-    location.href = "/checkout-step-two.html";
+    location.href = "checkout-step-two.html";
   };
 }
 
@@ -104,7 +104,7 @@ if (page === "checkout-two") {
   const tax = Math.round(total * 0.08 * 100) / 100;
   $("#overview").innerHTML = items.map((p) => `<div>${p.name} ${money(p.price)}</div>`).join("") +
     `<div>Item total: ${money(total)}</div><div>Tax: ${money(tax)}</div><div>Total: ${money(total + tax)}</div>`;
-  $("#finish").onclick = () => { set("cart", []); location.href = "/checkout-complete.html"; };
+  $("#finish").onclick = () => { set("cart", []); location.href = "checkout-complete.html"; };
 }
 
 renderHeader();
