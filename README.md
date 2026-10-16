@@ -25,7 +25,7 @@ casos.xlsx ─▶ Reader ─▶ Compiler (LLM + cache) ─▶ Runner ─▶ Heal
 **Ainda não verificado** (exige rede e chave de API):
 
 1. Execução contra a **SauceDemo real**. Os textos de mensagens e os preços do Excel sintético foram escritos de memória; confira e ajuste a coluna "Resultado esperado" se divergirem.
-2. Qualidade das ações geradas pelo **Claude real** em escala. Verificado só no **TC-001** contra o app local (`npm run test-app`): o Claude compilou e executou os 5 passos (5 chamadas, ~13,5 mil tokens de entrada) e a 2ª execução fez **0 chamadas** (cache). Os demais 11 casos e o Healer com o modelo real ainda não foram exercitados; nos testes automatizados o LLM é um provedor determinístico.
+2. Qualidade das ações geradas pelo **Claude real** contra a SauceDemo e contra a aplicação interna. Verificado contra o **app local** (`npm run test-app`) com `claude-opus-5-5`: os 12 casos do Excel sintético rodaram em ~2 min com 30 chamadas (~84 mil tokens de entrada, ~7 mil de saída, perto de US$ 0,50) e 11 coincidiram com o esperado; o TC-011 (botão inexistente) saiu em `needs-review` em vez de `fail`, porque o modelo informa que não encontra o elemento. Uma 2ª execução faz 0 chamadas (cache). O Healer com o modelo real ainda não foi exercitado (nenhum passo precisou de autocorreção); nos testes automatizados o LLM é um provedor determinístico.
 3. **Login SSO** na aplicação interna real (`qa-agent login`).
 4. **Paleta da Bayer:** os valores em `src/reporter/tokens.css` são aproximados. Confira com o brand guide oficial.
 
