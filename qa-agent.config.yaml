@@ -1,0 +1,11 @@
+# Configuração padrão do QA Agent. A aba "Config" do Excel e as opções de CLI têm precedência.
+columns:
+  id: "ID"
+  title: "Título"
+  stepNo: "Passo nº"
+  step: "Passo"
+  data: "Dados"
+  expected: "Resultado esperado"
+minConfidence: 0.6
+maxHealAttempts: 2
+# allowedHosts: []   # padrão: host da url_base; acrescente hosts de SSO se necessário

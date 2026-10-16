@@ -1,0 +1,7 @@
+node_modules/
+dist/
+.qa-cache/
+.qa-auth/
+runs/
+.env
+.superpowers/
