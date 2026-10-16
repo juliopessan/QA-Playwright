@@ -3,13 +3,18 @@
   "version": "0.1.0",
   "description": "Agentic QA: Excel natural-language test cases -> Playwright execution -> HTML evidence report",
   "type": "module",
-  "bin": { "qa-agent": "dist/cli/index.js" },
+  "bin": {
+    "qa-agent": "dist/cli/index.js"
+  },
   "scripts": {
     "build": "tsc",
     "test": "vitest run",
-    "qa-agent": "node dist/cli/index.js"
+    "qa-agent": "node dist/cli/index.js",
+    "typecheck": "tsc -p tsconfig.test.json"
   },
-  "engines": { "node": ">=20.12" },
+  "engines": {
+    "node": ">=20.12"
+  },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.65.0",
     "commander": "^12.1.0",
