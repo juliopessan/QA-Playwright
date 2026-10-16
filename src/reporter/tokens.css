@@ -1,0 +1,51 @@
+/* Design tokens do relatório. Valores de marca são APROXIMADOS e não verificados contra o brand guide oficial. */
+:root {
+  --navy: #10384f;
+  --brand-blue: #0091df;
+  --brand-cyan: #00bcff;
+  --brand-green: #89d329;
+
+  --bg: #ffffff;
+  --surface: #f2f6f8;
+  --border: #c9d5dc;
+  --text: #10242f;
+  --muted: #485e6b;
+  --link: #0069a3;
+  --header-bg: #10384f;
+  --header-fg: #ffffff;
+
+  --status-pass-bg: #ddf2b8;
+  --status-pass-fg: #1f4200;
+  --status-fail-bg: #fbe0e2;
+  --status-fail-fg: #8a1b21;
+  --status-review-bg: #fdebc8;
+  --status-review-fg: #6b4300;
+  --status-blocked-bg: #e3e8eb;
+  --status-blocked-fg: #2f3d45;
+  --status-healed-bg: #d6ecf9;
+  --status-healed-fg: #064b73;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --bg: #0b1e29;
+    --surface: #12303f;
+    --border: #2b4a5b;
+    --text: #e8f0f4;
+    --muted: #a9bdc8;
+    --link: #5cc3ff;
+    --header-bg: #0a2a3c;
+    --header-fg: #ffffff;
+
+    --status-pass-bg: #27400b;
+    --status-pass-fg: #d7f5a5;
+    --status-fail-bg: #5c1217;
+    --status-fail-fg: #ffc9cd;
+    --status-review-bg: #59380a;
+    --status-review-fg: #ffdfa3;
+    --status-blocked-bg: #2d3b43;
+    --status-blocked-fg: #d5dee3;
+    --status-healed-bg: #0b3a58;
+    --status-healed-fg: #bfe6ff;
+  }
+}
