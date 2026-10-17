@@ -13,4 +13,7 @@ describe("GET /api/health", () => {
     expect(h.ready).toBe(false);
     expect(h.similarVariables).toEqual(["EXA_KEY", "exa_api_key"]);
   });
+  it("aceita EXA_API como nome alternativo", () => {
+    expect(health({ EXA_API: "x" })).toMatchObject({ ready: true, exa: true, anthropic: false });
+  });
 });

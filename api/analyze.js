@@ -1,4 +1,4 @@
-import { clientIp, makeLimiter, readBody, send, validateTarget } from "./_lib/core.js";
+import { clientIp, exaKey, makeLimiter, readBody, send, validateTarget } from "./_lib/core.js";
 import { exaCrawl } from "./_lib/exa.js";
 import { fetchPage, measuredFindings } from "./_lib/probe.js";
 import { reviewWithClaude } from "./_lib/review.js";
@@ -15,7 +15,7 @@ export function makeAnalyze(deps = {}) {
   return async function handler(req, res) {
     if (req.method !== "POST") return send(res, 405, { error: "Use POST." }, { Allow: "POST" });
     const env = deps.env ?? process.env;
-    if (!env.EXA_API_KEY) return send(res, 503, { error: "A análise ainda não foi configurada neste site." });
+    if (!exaKey(env)) return send(res, 503, { error: "A análise ainda não foi configurada neste site." });
 
     const target = validateTarget(readBody(req).url);
     if (!target.ok) return send(res, 400, { error: target.error, field: "url" });
@@ -25,7 +25,7 @@ export function makeAnalyze(deps = {}) {
     const started = Date.now();
     const notes = [];
     const [crawl, page] = await Promise.allSettled([
-      (deps.exaCrawl ?? exaCrawl)(target.url, { apiKey: env.EXA_API_KEY }),
+      (deps.exaCrawl ?? exaCrawl)(target.url, { apiKey: exaKey(env) }),
       (deps.fetchPage ?? fetchPage)(target.url),
     ]);
     if (crawl.status === "rejected" && page.status === "rejected") {
