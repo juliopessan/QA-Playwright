@@ -1,4 +1,7 @@
 import { describe, it, expect, beforeAll, afterAll } from "vitest";
+import { mkdtempSync, readFileSync } from "node:fs";
+import { tmpdir } from "node:os";
+import { join } from "node:path";
 import { chromium, type Browser, type Page } from "playwright";
 import { maskedScreenshot, redactText } from "../../src/masking/index.js";
 import type { MaskedImage } from "../../src/masking/image.js";
@@ -34,6 +37,16 @@ describe("maskedScreenshot", () => {
     const withoutExtra = await maskedScreenshot(page, []);
     const withExtra = await maskedScreenshot(page, ["#cpf"]);
     expect(Buffer.compare(withoutExtra.data, withExtra.data)).not.toBe(0);
+    await page.close();
+  });
+
+  it("jpeg: devolve mediaType image/jpeg, bytes JPEG e salva o arquivo", async () => {
+    await freshPage('<h1 style="color:#c00">Olá</h1>');
+    const f = join(mkdtempSync(join(tmpdir(), "qa-jpg-")), "t.jpg");
+    const m = await maskedScreenshot(page, [], { path: f, type: "jpeg", quality: 60, fullPage: true });
+    expect(m.mediaType).toBe("image/jpeg");
+    expect(m.data.subarray(0, 2).toString("hex")).toBe("ffd8");
+    expect(readFileSync(f).subarray(0, 2).toString("hex")).toBe("ffd8");
     await page.close();
   });
 

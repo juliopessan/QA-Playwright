@@ -7,3 +7,4 @@ runs/
 .superpowers/
 web-dist/
 .env.web
+qa-report/

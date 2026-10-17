@@ -1,0 +1,160 @@
+import { existsSync, mkdirSync, readdirSync, readFileSync } from "node:fs";
+import { join } from "node:path";
+import { parseEnv } from "node:util";
+import { loadStorageStatePath } from "../auth/index.js";
+import { writeDocs } from "../docs/markdown.js";
+import { AnthropicProvider } from "../llm/anthropic.js";
+import { BudgetedProvider } from "../llm/budget.js";
+import type { LLMProvider } from "../llm/provider.js";
+import { DiskCache } from "../explore/cache.js";
+import { loadExploreConfig } from "../explore/config.js";
+import { explore } from "../explore/crawler.js";
+import { makeScreenHook } from "../explore/llm-hook.js";
+import { parseObjectives, type Objective } from "../flows/parse.js";
+import { runFlows } from "../flows/run-flows.js";
+import { newRunId } from "../run/manifest.js";
+import type { Finding } from "../explore/types.js";
+import type { CliIO } from "./index.js";
+
+export interface ExploreCliOptions {
+  outDir: string;
+  maxTelas?: string;
+  estabilidadeMs?: string;
+  ux: boolean;
+  maxLlmCalls?: string;
+  objetivos?: string;
+  config?: string;
+  envFile: string;
+  headed?: boolean;
+}
+
+export class UsageError extends Error {}
+
+/** Achados do run mais recente anterior a `currentRunId` na pasta de relatórios. */
+export function findPreviousFindings(outBase: string, currentRunId: string): Finding[] | undefined {
+  if (!existsSync(outBase)) return undefined;
+  const runs = readdirSync(outBase)
+    .filter((d) => d < currentRunId && existsSync(join(outBase, d, "dados", "achados.json")))
+    .sort();
+  const last = runs.at(-1);
+  if (!last) return undefined;
+  try {
+    return JSON.parse(readFileSync(join(outBase, last, "dados", "achados.json"), "utf8")) as Finding[];
+  } catch {
+    return undefined;
+  }
+}
+
+const posIntOpt = (v: string | undefined, name: string): number | undefined => {
+  if (v === undefined) return undefined;
+  if (!/^\d+$/.test(v)) throw new UsageError(`${name} deve ser um inteiro não negativo`);
+  return Number(v);
+};
+
+export async function exploreCommand(url: string, opts: ExploreCliOptions, io: CliIO): Promise<number> {
+  try {
+    new URL(url);
+  } catch {
+    throw new UsageError(`URL inválida: ${url}`);
+  }
+  const env = existsSync(opts.envFile) ? { ...parseEnv(readFileSync(opts.envFile, "utf8")), ...io.env } : io.env;
+  const storageState = loadStorageStatePath();
+  if (!env.APP_USER && !env.APP_PASS && !storageState) {
+    throw new UsageError("informe APP_USER e APP_PASS (no .env ou no ambiente) ou salve uma sessão com `qa-agent login`");
+  }
+  const cfg = loadExploreConfig(opts.config, {
+    maxScreens: posIntOpt(opts.maxTelas, "--max-telas"),
+    settleMs: posIntOpt(opts.estabilidadeMs, "--estabilidade-ms"),
+    ux: opts.ux ? undefined : false,
+  });
+
+  let objectives: Objective[] = [];
+  if (opts.objetivos) {
+    if (!existsSync(opts.objetivos)) throw new UsageError(`arquivo de objetivos não encontrado: ${opts.objetivos}`);
+    const parsed = parseObjectives(readFileSync(opts.objetivos, "utf8"));
+    if (parsed.errors.length) throw new UsageError(`objetivos inválidos:\n- ${parsed.errors.join("\n- ")}`);
+    objectives = parsed.objectives;
+  }
+  const maxCalls = posIntOpt(opts.maxLlmCalls, "--max-llm-calls");
+  let provider: LLMProvider | undefined = io.provider ?? (env.ANTHROPIC_API_KEY ? new AnthropicProvider({ apiKey: env.ANTHROPIC_API_KEY }) : undefined);
+  if (provider && maxCalls !== undefined) provider = new BudgetedProvider(provider, maxCalls);
+
+  const runId = newRunId();
+  const runDir = join(opts.outDir, runId);
+  mkdirSync(runDir, { recursive: true });
+  const previous = findPreviousFindings(opts.outDir, runId);
+
+  let result;
+  try {
+    result = await explore({
+      baseUrl: url,
+      user: env.APP_USER ?? "",
+      pass: env.APP_PASS ?? "",
+      storageState: env.APP_USER ? undefined : storageState,
+      outDir: runDir,
+      runId,
+      limits: cfg.limits,
+      ignoreUrls: cfg.ignoreUrls,
+      extraWriteVerbs: cfg.extraWriteVerbs,
+      postAllowed: cfg.postAllowed,
+      perf: cfg.perf,
+      settleMs: cfg.settleMs,
+      headed: opts.headed,
+      hooks: provider
+        ? {
+            afterScreen: makeScreenHook({
+              provider,
+              ux: cfg.ux,
+              cache: new DiskCache(join(opts.outDir, ".cache", "deepen")),
+              extraWriteVerbs: cfg.extraWriteVerbs,
+            }),
+          }
+        : undefined,
+    });
+  } catch (e) {
+    const msg = (e as Error).message.split("\n")[0];
+    throw new UsageError(msg.startsWith("Login falhou") ? msg : `exploração falhou: ${msg}`);
+  }
+
+  if (objectives.length) {
+    if (!provider) {
+      result.llm.notes.push(`Fluxos-objetivo não executados (${objectives.length}): sem ANTHROPIC_API_KEY.`);
+    } else {
+      try {
+        await runFlows(
+          objectives,
+          {
+            baseUrl: url, user: env.APP_USER ?? "", pass: env.APP_PASS ?? "", storageState: env.APP_USER ? undefined : storageState,
+            runDir, provider, env, perf: cfg.perf, headed: opts.headed,
+          },
+          result,
+        );
+      } catch (e) {
+        result.llm.notes.push(`Fluxos-objetivo interrompidos: ${(e as Error).message.split("\n")[0]}`);
+      }
+      if (provider instanceof BudgetedProvider) {
+        result.llm.calls = provider.usage.calls;
+        result.llm.inputTokens = provider.usage.inputTokens;
+        result.llm.outputTokens = provider.usage.outputTokens;
+      }
+    }
+  }
+  if (!provider) {
+    result.llm.notes.push("Sem ANTHROPIC_API_KEY: o Aprofundador (abas e modais) e a análise de UX não rodaram; só crawler e análises objetivas.");
+  }
+  writeDocs(result, runDir, { previous });
+  const by = (s: string) => result.findings.filter((f) => f.severity === s).length;
+  io.out(
+    `Run ${runId}: ${result.screens.length} telas, ${result.findings.length} achados ` +
+      `(${by("critical")} críticos, ${by("high")} altos, ${by("medium")} médios, ${by("low")} baixos), ${result.blocked.length} ações bloqueadas`,
+  );
+  io.out(`Documentação: ${join(runDir, "README.md")}`);
+  if (result.limitsHit.includes("sessaoExpirada")) {
+    io.err("Sessão expirada durante a exploração: o relatório é parcial. Rode `qa-agent login` e tente de novo.");
+    return 3;
+  }
+  const flows = result.flows ?? [];
+  if (flows.length) io.out(`Fluxos: ${flows.map((f) => `${f.title} → ${f.status}`).join("; ")}`);
+  if (result.limitsHit.length) io.out(`Limites atingidos: ${result.limitsHit.join(", ")}`);
+  return flows.some((f) => f.status === "fail" || f.status === "blocked") ? 1 : 0;
+}

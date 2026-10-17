@@ -10,15 +10,18 @@ const ALWAYS_MASK = ["input[type=password]"];
 export async function maskedScreenshot(
   page: Page,
   selectors: string[],
-  opts: { path?: string } = {},
+  opts: { path?: string; type?: "png" | "jpeg"; quality?: number; fullPage?: boolean } = {},
 ): Promise<MaskedImage> {
   const all = [...new Set([...ALWAYS_MASK, ...selectors])];
   const buf = await page.screenshot({
     mask: all.map((s) => page.locator(s)),
     maskColor: "#10384F",
     ...(opts.path ? { path: opts.path } : {}),
+    ...(opts.type ? { type: opts.type } : {}),
+    ...(opts.type === "jpeg" && opts.quality ? { quality: opts.quality } : {}),
+    ...(opts.fullPage ? { fullPage: true } : {}),
   });
-  return brandMaskedImage(buf);
+  return brandMaskedImage(buf, opts.type === "jpeg" ? "image/jpeg" : "image/png");
 }
 
 const DEFAULT_PATTERNS: RegExp[] = [
@@ -35,5 +38,5 @@ export function redactText(text: string, extraPatterns: string[] = []): string {
 
 /** Relê um print salvo por `maskedScreenshot` (evidência já mascarada) para enviá-lo ao Judge. */
 export async function loadMaskedEvidence(file: string): Promise<MaskedImage> {
-  return brandMaskedImage(await readFile(file));
+  return brandMaskedImage(await readFile(file), /\.jpe?g$/i.test(file) ? "image/jpeg" : "image/png");
 }

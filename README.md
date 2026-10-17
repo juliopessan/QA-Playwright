@@ -12,17 +12,33 @@ casos.xlsx ─▶ Reader ─▶ Compiler (LLM + cache) ─▶ Runner ─▶ Heal
 - **Dados protegidos:** senhas e seletores configurados são mascarados em prints e no texto enviado ao LLM.
 - **LLM trocável:** o Claude é o provedor padrão, atrás da interface `LLMProvider`.
 
+## Modo SaaS: explorar, analisar e documentar
+
+Além do Excel, o `qa-agent explore <url>` testa um **SaaS inteiro**: descobre as telas (BFS, inclusive abas e modais de leitura com ajuda do Claude), fotografa cada uma, roda análises objetivas (erros técnicos, acessibilidade com axe, desempenho) e de UX, e gera uma pasta Markdown para a engenharia **revisar em um PR**. A exploração é **somente leitura** (guarda de elemento + guarda de rede, verificada por teste: zero requisições de escrita chegam ao servidor). Fluxos de negócio vêm de um `objetivos.md` e rodam com escrita permitida, com veredito do Judge. Issues só são abertas para achados que a engenharia marcar `[x]`.
+
+```bash
+qa-agent explore https://app.exemplo.com [--objetivos objetivos.md] [--sem-ux] [--max-telas 80] [--max-llm-calls 100]
+qa-agent publish <runId> --pr --repo dono/repo      # branch qa/<runId> + PR (não faça merge)
+qa-agent issues <runId> --repo dono/repo            # uma issue por achado marcado [x], sem duplicar
+npm run test-saas                                   # SaaS sintético com problemas plantados
+```
+
+Detalhes, formato do relatório, configuração e limitações em [`docs/saas-explore.md`](docs/saas-explore.md).
+
 ## Status
 
 | Item | Situação |
 |---|---|
 | Pipeline completo (leitura → execução → autocorreção → julgamento → relatório) | Implementado |
-| Suíte de testes | 24 arquivos, 187 testes passando (`npm test`), mais `typecheck` e `build` sem erros |
+| Suíte de testes | 41 arquivos, 350+ testes passando (`npm test`), mais `typecheck` e `build` sem erros |
+| Modo SaaS (`explore`, `publish`, `issues`) | Implementado; aceitação contra um SaaS sintético confere os problemas plantados e **zero escritas** no servidor. Rodado com o Claude real (`claude-opus-5-5`) contra o SaaS sintético: 8 telas, 3 subestados, 1 fluxo-objetivo (23 chamadas, ~49 mil tokens de entrada). `publish`/`issues` só foram testados com cliente GitHub falso e com a camada HTTP simulada: a publicação real é verificação manual |
 | Aceitação | Os 12 casos do Excel sintético produzem os vereditos que o próprio arquivo declara, contra um app local que imita a SauceDemo |
 | Relatório | Verificado com axe (0 violações nos temas claro e escuro), filtros, lightbox e impressão |
 | CI | Workflow de exemplo em `.github/workflows/qa.yml` (validado por teste de estrutura; ainda não executado no GitHub) |
 
 **Ainda não verificado** (exige rede e chave de API):
+
+0. **Modo SaaS em SaaS reais:** o Aprofundador e a UX foram vistos só no SaaS sintético. Na UX, o modelo tende a classificar como "média" e a repetir problemas do layout compartilhado; o prompt já pede para não repetir, mas a calibração em produto real é pendente. Os casos do Excel ainda não entram na pasta `fluxos/` do relatório do `explore`.
 
 1. Execução contra a **SauceDemo real**. Os textos de mensagens e os preços do Excel sintético foram escritos de memória; confira e ajuste a coluna "Resultado esperado" se divergirem.
 2. Qualidade das ações geradas pelo **Claude real** contra a SauceDemo e contra a aplicação interna. Verificado contra o **app local** (`npm run test-app`) com `claude-opus-5-5`: os 12 casos do Excel sintético rodaram em ~2 min com 30 chamadas (~84 mil tokens de entrada, ~7 mil de saída, perto de US$ 0,50) e 11 coincidiram com o esperado; o TC-011 (botão inexistente) saiu em `needs-review` em vez de `fail`, porque o modelo informa que não encontra o elemento. Uma 2ª execução faz 0 chamadas (cache). O Healer com o modelo real ainda não foi exercitado (nenhum passo precisou de autocorreção); nos testes automatizados o LLM é um provedor determinístico.
@@ -78,6 +94,8 @@ Passos corrigidos pelo Healer aparecem como `healed`. O Healer só troca ações
 
 ```
 src/
+  explore/ analyze/ docs/           modo SaaS: crawler, guarda somente leitura, analisadores, Markdown
+  flows/ publish/                   fluxos-objetivo, PR e issues
   cli/ config/ reader/ vars/        entrada e configuração
   compiler/ runner/ healer/ judge/  núcleo do pipeline
   llm/ masking/ auth/               provedor de LLM, mascaramento e sessão SSO
@@ -85,15 +103,17 @@ src/
 test/                               unitários, integração e aceitação (com app local em test/app)
 fixtures/                           casos-sinteticos.xlsx e .env.example
 docs/usage.md                       guia de uso
-docs/superpowers/                   spec de design e plano de implementação
+docs/superpowers/                   specs de design e planos de implementação
 .github/workflows/qa.yml            CI
 ```
 
 ## Documentação
 
+- [`docs/saas-explore.md`](docs/saas-explore.md): modo SaaS (explore, publish, issues).
 - [`docs/usage.md`](docs/usage.md): formato do Excel, aba `Config`, login SSO, segurança, relatório e CI.
 - [`docs/superpowers/specs/2026-10-16-qa-agent-design.md`](docs/superpowers/specs/2026-10-16-qa-agent-design.md): design aprovado.
 - [`docs/superpowers/plans/2026-10-16-qa-agent.md`](docs/superpowers/plans/2026-10-16-qa-agent.md): plano de implementação.
+- [`docs/superpowers/specs/2026-10-17-saas-qa-agent-design.md`](docs/superpowers/specs/2026-10-17-saas-qa-agent-design.md) e [plano](docs/superpowers/plans/2026-10-17-saas-qa-agent.md): modo SaaS.
 
 ## Desenvolvimento
 
