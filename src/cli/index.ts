@@ -10,6 +10,7 @@ import { interactiveLogin } from "../auth/index.js";
 import type { LLMProvider } from "../llm/provider.js";
 import { AnthropicProvider } from "../llm/anthropic.js";
 import { runAll } from "../run/run-all.js";
+import { issuesCommand, publishCommand, type PublishCliOptions } from "./publish.js";
 import { exploreCommand, UsageError as ExploreUsageError, type ExploreCliOptions } from "./explore.js";
 import { writeReport } from "../reporter/write.js";
 import type { EvidenceMode } from "../reporter/render.js";
@@ -22,6 +23,8 @@ export interface CliIO {
   env: Record<string, string | undefined>;
   /** Provedor de LLM injetável (testes); padrão: AnthropicProvider. */
   provider?: LLMProvider;
+  /** Cliente do GitHub injetável (testes); padrão: HttpGitHubClient com GITHUB_TOKEN. */
+  github?: import("../publish/github.js").GitHubClient;
   runsDir?: string;
 }
 
@@ -144,6 +147,30 @@ export async function main(argv: string[], io: CliIO): Promise<number> {
     .option("--headed", "abre o navegador visível")
     .action(async (url: string, opts: ExploreCliOptions & { semUx?: boolean }) => {
       code = await exploreCommand(url, { ...opts, ux: !opts.semUx }, io);
+    });
+
+  program
+    .command("publish <runId>")
+    .description("Publica o relatório de QA em uma branch qa/<runId> e abre o PR para revisão (não faz merge)")
+    .requiredOption("--pr", "cria a branch e o pull request")
+    .option("--repo <dono/nome>", "repositório de destino (padrão: publicar.repo do config)")
+    .option("--base <branch>", "branch base do PR (padrão: a padrão do repositório)")
+    .option("--out-dir <dir>", "pasta dos relatórios", "qa-report")
+    .option("--config <path>", "arquivo de configuração yaml")
+    .option("--env-file <path>", "arquivo .env", ".env")
+    .action(async (runId: string, opts: PublishCliOptions) => {
+      code = await publishCommand(runId, opts, io);
+    });
+
+  program
+    .command("issues <runId>")
+    .description("Abre issues para os achados marcados [x] em achados.md no PR (sem duplicar)")
+    .option("--repo <dono/nome>", "repositório de destino (padrão: publicar.repo do config)")
+    .option("--out-dir <dir>", "pasta dos relatórios", "qa-report")
+    .option("--config <path>", "arquivo de configuração yaml")
+    .option("--env-file <path>", "arquivo .env", ".env")
+    .action(async (runId: string, opts: PublishCliOptions) => {
+      code = await issuesCommand(runId, opts, io);
     });
 
   program
