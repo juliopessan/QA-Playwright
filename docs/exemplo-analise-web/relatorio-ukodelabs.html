@@ -1,0 +1,185 @@
+<!doctype html>
+<html lang="pt-BR"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Relatório de análise · ukodelabs.com.br</title>
+<meta name="description" content="Relatório de análise do QA Agent para ukodelabs.com.br">
+<style>
+:root{--paper:#F1EEE5;--paper2:#E7E3D7;--ink:#17140F;--soft:#5C564B;--line:#CFC9BA;--orange:#A8460F;--mint:#2F7454}
+*{box-sizing:border-box}
+@page{size:A4;margin:18mm 16mm 20mm;@bottom-left{content:"QA Agent · Relatório de análise";font:8pt "IBM Plex Mono",Menlo,monospace;color:#5C564B}@bottom-right{content:"Página " counter(page) " de " counter(pages);font:8pt "IBM Plex Mono",Menlo,monospace;color:#5C564B}}
+html{-webkit-print-color-adjust:exact;print-color-adjust:exact}
+body{margin:0;background:var(--paper);color:var(--ink);font:10.5pt/1.5 Archivo,"Helvetica Neue",Arial,sans-serif}
+main{max-width:190mm;margin:0 auto;padding:12mm 8mm}
+@media print{body{background:var(--paper)}main{max-width:none;padding:0}}
+h1,h2,h3,h4{line-height:1.2;margin:0;break-after:avoid}
+h2{font-size:17pt;margin:0 0 4mm;padding-top:3mm;border-top:1.2pt solid var(--ink)}
+h3{font-size:11.5pt;margin:0 0 2mm}h4{font-size:9pt;font-family:"IBM Plex Mono",Menlo,monospace;text-transform:uppercase;letter-spacing:.04em;color:var(--soft);margin:3mm 0 1mm}
+p{margin:0 0 2.5mm}.soft{color:var(--soft)}.mono,code{font-family:"IBM Plex Mono",Menlo,monospace;font-size:8.5pt}
+section{margin:0 0 9mm}
+#evidencias{break-before:auto}#evidencias h2{break-after:avoid}
+.cover{min-height:245mm;display:flex;flex-direction:column;justify-content:space-between;break-after:page;padding-bottom:6mm}
+.cover .brand{display:flex;align-items:center;gap:3mm;font:600 9pt "IBM Plex Mono",Menlo,monospace;letter-spacing:.14em;text-transform:uppercase}
+.cover .mark{width:9mm;height:9mm;background:var(--ink);color:var(--paper);display:grid;place-items:center;font:800 14pt Archivo,Arial,sans-serif;letter-spacing:0}
+.cover h1{font-size:34pt;letter-spacing:-.02em;margin:0 0 4mm}.cover h1 i{display:block;font:italic 400 28pt "Instrument Serif",Georgia,serif;letter-spacing:0}
+.cover .lede{font-size:12pt;max-width:150mm;color:var(--soft)}
+.meta-grid{display:grid;grid-template-columns:repeat(2,1fr);border:1pt solid var(--ink);margin-top:8mm}
+.meta-grid div{padding:3mm 4mm;border-right:1pt solid var(--line);border-bottom:1pt solid var(--line)}.meta-grid div:nth-child(2n){border-right:0}
+.meta-grid b{display:block;font:500 7.5pt "IBM Plex Mono",Menlo,monospace;text-transform:uppercase;letter-spacing:.05em;color:var(--soft);margin-bottom:.5mm}
+.kpis{display:grid;grid-template-columns:repeat(4,1fr);border:1pt solid var(--ink);margin:4mm 0}
+.kpis div{padding:3mm 4mm;border-right:1pt solid var(--line)}.kpis div:last-child{border-right:0}
+.kpis b{display:block;font:800 22pt Archivo,Arial,sans-serif;font-variant-numeric:tabular-nums;letter-spacing:-.02em}.kpis span{font-size:8.5pt;color:var(--soft)}
+table{border-collapse:collapse;width:100%;font-size:9pt;margin:2mm 0 4mm}
+th{background:var(--paper2);text-align:left;font:500 7.5pt "IBM Plex Mono",Menlo,monospace;text-transform:uppercase;letter-spacing:.04em;color:var(--soft)}
+th,td{padding:1.8mm 2.4mm;border:.6pt solid var(--line);vertical-align:top;overflow-wrap:anywhere}
+tr{break-inside:avoid}
+.nw{white-space:nowrap;overflow-wrap:normal}
+.sev{display:inline-block;padding:.3mm 2mm;border:1pt solid var(--ink);font:600 7.5pt "IBM Plex Mono",Menlo,monospace}
+.sev--high{border-color:var(--orange);color:var(--orange)}.sev--low{color:var(--soft);border-color:var(--line)}
+.tag{display:inline-block;padding:.3mm 2mm;background:var(--paper2);font:500 7.5pt "IBM Plex Mono",Menlo,monospace;color:var(--soft)}
+.f{border:.8pt solid var(--line);padding:3.5mm 4mm;margin:0 0 3mm;break-inside:avoid;background:#F7F5EE}
+.f header{display:flex;flex-wrap:wrap;gap:2mm;align-items:center;margin-bottom:2mm}.f header .id{margin-left:auto}
+.ev{font-family:"IBM Plex Mono",Menlo,monospace;font-size:8.5pt;background:var(--paper2);padding:1.5mm 2.5mm;border-left:2pt solid var(--ink);overflow-wrap:anywhere;margin:1mm 0 2mm}
+.fix{border-left:2pt solid var(--mint);padding-left:2.5mm}
+.shot{break-inside:avoid;margin:0 0 6mm}.shot .row{display:flex;gap:4mm;align-items:flex-start}
+.shot img{display:block;border:.8pt solid var(--line);max-width:100%;max-height:196mm;width:auto;height:auto}.shot .d{flex:1 1 0;min-width:0}.shot .m{flex:0 0 auto;max-width:50mm}
+.shot figcaption{font-size:8.5pt;color:var(--soft);margin-top:1.5mm;overflow-wrap:anywhere}
+.check li{list-style:none;margin:0 0 1.5mm;padding-left:0;display:flex;gap:2.5mm}.check{padding:0;margin:0}.check .box{flex:none;width:3.4mm;height:3.4mm;border:1pt solid var(--ink);margin-top:1mm}
+.legend{display:grid;grid-template-columns:1fr 1fr;gap:4mm}.legend>div{border:.8pt solid var(--line);padding:3mm 4mm}
+ul{margin:0 0 3mm;padding-left:5mm}
+.note{border:1pt solid var(--mint);padding:2.5mm 3.5mm;margin:3mm 0;background:#F7F5EE;font-size:9pt}
+@media (prefers-color-scheme:dark) and (not print){:root{--paper:#151310;--paper2:#1F1C17;--ink:#EDE9DE;--soft:#B3AC9E;--line:#3A352D;--orange:#E07A3C;--mint:#7EC8A1}.f,.note{background:#1B1814}}
+</style></head><body><main>
+
+<section class="cover">
+  <div class="brand"><span class="mark">Q</span>QA Agent</div>
+  <div>
+    <p class="mono soft">Relatório de análise</p>
+    <h1>ukodelabs.com.br<i>evidências e achados</i></h1>
+    <p class="lede">O site comunica bem uma camada de governança para agentes de IA (política, aprovação, custo, auditoria), com tom técnico e provas verificáveis. O principal ponto a melhorar é a clareza para decisores não técnicos e sinais de confiança institucionais (clientes, equipe, contato).</p>
+    <div class="meta-grid">
+      <div><b>Site analisado</b>https://ukodelabs.com.br/</div>
+      <div><b>Data da análise</b>17 de outubro de 2026 às 16:55</div>
+      <div><b>Páginas analisadas</b>1</div>
+      <div><b>Achados</b>8 (1 altos, 3 médios, 4 baixos)</div>
+      <div><b>Resposta do HTML</b>0,8 s (HTTP 200)</div>
+      
+    </div>
+  </div>
+  <p class="mono soft">Análise somente leitura de páginas públicas. Medições são reproduzíveis; itens marcados como opinião do agente não são medições.</p>
+</section>
+
+<section id="resumo">
+  <h2>1. Resumo executivo</h2>
+  <div class="kpis"><div><b>8</b><span>achados</span></div><div><b>1</b><span>gravidade alta</span></div><div><b>5</b><span>medidos</span></div><div><b>3</b><span>opinião do agente</span></div></div>
+  <p>O site comunica bem uma camada de governança para agentes de IA (política, aprovação, custo, auditoria), com tom técnico e provas verificáveis. O principal ponto a melhorar é a clareza para decisores não técnicos e sinais de confiança institucionais (clientes, equipe, contato).</p>
+  <h4>Prioridades</h4><ol><li><b>Acessibilidade: Elements must meet minimum color contrast ratio thresholds</b> <span class="mono soft">(A-01 · Alta)</span></li><li><b>Prova social apoiada só em repositório pessoal</b> <span class="mono soft">(A-02 · Média)</span></li><li><b>Métrica &#39;00 frameworks&#39; confusa</b> <span class="mono soft">(A-03 · Média)</span></li></ol>
+  <h4>Achados por categoria</h4><table><tr><th>Segurança</th><th>Acessibilidade</th><th>Conteúdo</th><th>Confiança</th></tr><tr><td>4</td><td>2</td><td>1</td><td>1</td></tr></table>
+  <h4>Todos os achados</h4><table><tr><th class="nw">#</th><th class="nw">Gravidade</th><th class="nw">Categoria</th><th class="nw">Origem</th><th>Achado</th></tr><tr><td class="mono nw">A-01</td><td class="nw">Alta</td><td class="nw">Acessibilidade</td><td class="nw">medido</td><td>Acessibilidade: Elements must meet minimum color contrast ratio thresholds</td></tr><tr><td class="mono nw">A-02</td><td class="nw">Média</td><td class="nw">Confiança</td><td class="nw">opinião</td><td>Prova social apoiada só em repositório pessoal</td></tr><tr><td class="mono nw">A-03</td><td class="nw">Média</td><td class="nw">Conteúdo</td><td class="nw">opinião</td><td>Métrica &#39;00 frameworks&#39; confusa</td></tr><tr><td class="mono nw">A-04</td><td class="nw">Média</td><td class="nw">Segurança</td><td class="nw">medido</td><td>Falta o cabeçalho Strict-Transport-Security (HSTS)</td></tr><tr><td class="mono nw">A-05</td><td class="nw">Baixa</td><td class="nw">Acessibilidade</td><td class="nw">opinião</td><td>Carrossel com texto borrado</td></tr><tr><td class="mono nw">A-06</td><td class="nw">Baixa</td><td class="nw">Segurança</td><td class="nw">medido</td><td>A página pode ser embutida em iframes de outros sites</td></tr><tr><td class="mono nw">A-07</td><td class="nw">Baixa</td><td class="nw">Segurança</td><td class="nw">medido</td><td>Sem X-Content-Type-Options: nosniff</td></tr><tr><td class="mono nw">A-08</td><td class="nw">Baixa</td><td class="nw">Segurança</td><td class="nw">medido</td><td>Sem Content-Security-Policy</td></tr></table>
+</section>
+
+<section id="metodo">
+  <h2>2. Escopo e método</h2>
+  <p>A análise visita o site como um visitante anônimo. Não faz login, não envia formulários e não clica em botões: o navegador só realiza leituras (GET) e bloqueia qualquer outra requisição, além de acessos a redes privadas.</p>
+  <div class="legend">
+    <div><h3>Medido</h3><ul><li><b>Navegador (Playwright):</b> screenshots, erros de console, recursos que falham, LCP, CLS, rolagem lateral no celular.</li><li><b>Acessibilidade (axe-core):</b> regras WCAG por página.</li><li><b>Visita direta:</b> status, tempo, HTTPS, cabeçalhos de segurança, título, descrição, idioma, viewport, h1 e imagens sem alt.</li></ul></div>
+    <div><h3>Opinião do agente</h3><ul><li><b>Leitura do conteúdo (Exa)</b> e revisão pelo Claude (claude-opus-5-5) com texto e screenshots.</li><li>Cada sugestão cita um trecho literal do site; as que não citam são descartadas.</li><li>Gravidade limitada a média; não é medição.</li></ul></div>
+  </div>
+  <h3 style="margin-top:4mm">Páginas analisadas</h3>
+  <table><tr><th>Página</th><th>Título</th><th>HTTP</th><th>Carga</th></tr>
+  <tr><td>https://ukodelabs.com.br/</td><td>UKode Labs</td><td>200</td><td>1,6 s</td></tr>
+  </table>
+</section>
+
+<section id="medidos">
+  <h2>3. Achados medidos (5)</h2>
+  <article class="f" id="f-80f4f871">
+  <header><span class="sev sev--high">Alta</span><span class="tag">Acessibilidade</span><span class="tag">medido</span><span class="mono id">A-01 · 80f4f871</span></header>
+  <h3>Acessibilidade: Elements must meet minimum color contrast ratio thresholds</h3>
+  <p>Ensure the contrast between foreground and background colors meets WCAG 2 AA minimum contrast ratio thresholds. Regra axe color-contrast.</p>
+  <h4>Evidência</h4><div class="ev">.hero-grid &gt; div &gt; .eyebrow | .hero-foot</div>
+  <h4>O que fazer</h4><p class="fix">Element has insufficient color contrast of 3.16 (foreground color: #8a867c, background color: #f2efe8, font size: 8.3pt (11px), font weight: normal). Expected contrast ratio of 4.5:1</p>
+  <p class="mono soft">Página: https://ukodelabs.com.br/</p>
+</article>
+<article class="f" id="f-cc588b2a">
+  <header><span class="sev sev--medium">Média</span><span class="tag">Segurança</span><span class="tag">medido</span><span class="mono id">A-04 · cc588b2a</span></header>
+  <h3>Falta o cabeçalho Strict-Transport-Security (HSTS)</h3>
+  
+  <h4>Evidência</h4><div class="ev">Cabeçalho strict-transport-security ausente na resposta</div>
+  <h4>O que fazer</h4><p class="fix">Adicione Strict-Transport-Security: max-age=31536000; includeSubDomains.</p>
+  <p class="mono soft">Página: https://ukodelabs.com.br/</p>
+</article>
+<article class="f" id="f-882d8213">
+  <header><span class="sev sev--low">Baixa</span><span class="tag">Segurança</span><span class="tag">medido</span><span class="mono id">A-06 · 882d8213</span></header>
+  <h3>A página pode ser embutida em iframes de outros sites</h3>
+  
+  <h4>Evidência</h4><div class="ev">Sem X-Frame-Options e sem frame-ancestors na CSP</div>
+  <h4>O que fazer</h4><p class="fix">Use frame-ancestors &#39;self&#39; na CSP (ou X-Frame-Options: SAMEORIGIN).</p>
+  <p class="mono soft">Página: https://ukodelabs.com.br/</p>
+</article>
+<article class="f" id="f-6c7f9b3b">
+  <header><span class="sev sev--low">Baixa</span><span class="tag">Segurança</span><span class="tag">medido</span><span class="mono id">A-07 · 6c7f9b3b</span></header>
+  <h3>Sem X-Content-Type-Options: nosniff</h3>
+  
+  <h4>Evidência</h4><div class="ev">Cabeçalho x-content-type-options ausente ou diferente de nosniff</div>
+  <h4>O que fazer</h4><p class="fix">Envie X-Content-Type-Options: nosniff.</p>
+  <p class="mono soft">Página: https://ukodelabs.com.br/</p>
+</article>
+<article class="f" id="f-0dca3831">
+  <header><span class="sev sev--low">Baixa</span><span class="tag">Segurança</span><span class="tag">medido</span><span class="mono id">A-08 · 0dca3831</span></header>
+  <h3>Sem Content-Security-Policy</h3>
+  
+  <h4>Evidência</h4><div class="ev">Cabeçalho content-security-policy ausente</div>
+  <h4>O que fazer</h4><p class="fix">Defina uma CSP para limitar scripts e origens externas.</p>
+  <p class="mono soft">Página: https://ukodelabs.com.br/</p>
+</article>
+</section>
+
+<section id="agente">
+  <h2>4. Opinião do agente (3)</h2>
+  <p class="note">Estas sugestões vêm da revisão do Claude sobre o texto e os screenshots do site. Cada uma cita um trecho real, mas são julgamentos e podem ser discordados pela equipe.</p>
+  <article class="f" id="f-5a778586">
+  <header><span class="sev sev--medium">Média</span><span class="tag">Confiança</span><span class="tag">opinião do agente · 75%</span><span class="mono id">A-02 · 5a778586</span></header>
+  <h3>Prova social apoiada só em repositório pessoal</h3>
+  <p>A prova de credibilidade é um repo de pessoa física e contagem de testes. Faltam clientes, cases e equipe.</p>
+  <h4>Evidência</h4><div class="ev">Clone `juliopessan/ukode-core`, rode `pytest` e confira.</div>
+  <h4>O que fazer</h4><p class="fix">Adicionar cases, logos, quem são os fundadores e CNPJ/contato.</p>
+  <p class="mono soft">Página: https://ukodelabs.com.br/</p>
+</article>
+<article class="f" id="f-f39e42fd">
+  <header><span class="sev sev--medium">Média</span><span class="tag">Conteúdo</span><span class="tag">opinião do agente · 80%</span><span class="mono id">A-03 · f39e42fd</span></header>
+  <h3>Métrica &#39;00 frameworks&#39; confusa</h3>
+  <p>Mostrar 00 num painel de métricas parece erro ou falha, não diferencial.</p>
+  <h4>Evidência</h4><div class="ev">00 frameworks de agente</div>
+  <h4>O que fazer</h4><p class="fix">Reescrever como &#39;Zero dependência de frameworks de agente&#39; ou explicar o significado.</p>
+  <p class="mono soft">Página: https://ukodelabs.com.br/</p>
+</article>
+<article class="f" id="f-95d50154">
+  <header><span class="sev sev--low">Baixa</span><span class="tag">Acessibilidade</span><span class="tag">opinião do agente · 60%</span><span class="mono id">A-05 · 95d50154</span></header>
+  <h3>Carrossel com texto borrado</h3>
+  <p>O bloco animado exibe linha desfocada e depende de tempo; quem lê rápido ou usa leitor de tela perde conteúdo.</p>
+  <h4>Evidência</h4><div class="ev">A POC impressionou todo mundo.</div>
+  <h4>O que fazer</h4><p class="fix">Oferecer versão estática e respeitar prefers-reduced-motion.</p>
+  <p class="mono soft">Página: https://ukodelabs.com.br/</p>
+</article>
+</section>
+
+<section id="evidencias">
+  <h2>5. Evidências visuais</h2>
+  <p class="soft">Sem screenshots nesta análise.</p>
+</section>
+
+<section id="limites">
+  <h2>6. Observações e limitações</h2>
+  <ul><li>5 sugestão(ões) do modelo descartada(s) por não citar um trecho real do site.</li></ul>
+  <ul>
+    <li>A análise cobre páginas públicas (até 4); telas autenticadas, abas, modais e fluxos exigem o CLI do QA Agent.</li>
+    <li>Métricas de desempenho vêm de uma única execução em ambiente de servidor e variam com rede e carga.</li>
+    <li>A varredura automática de acessibilidade encontra só parte dos problemas; não substitui teste com leitores de tela.</li>
+  </ul>
+</section>
+
+<section id="checklist">
+  <h2>7. Checklist para a equipe</h2>
+  <ul class="check"><li><span class="box"></span><span><b>Alta</b> · Acessibilidade: Elements must meet minimum color contrast ratio thresholds <span class="mono soft">A-01</span></span></li><li><span class="box"></span><span><b>Média</b> · Prova social apoiada só em repositório pessoal <span class="mono soft">A-02</span></span></li><li><span class="box"></span><span><b>Média</b> · Métrica &#39;00 frameworks&#39; confusa <span class="mono soft">A-03</span></span></li><li><span class="box"></span><span><b>Média</b> · Falta o cabeçalho Strict-Transport-Security (HSTS) <span class="mono soft">A-04</span></span></li><li><span class="box"></span><span><b>Baixa</b> · Carrossel com texto borrado <span class="mono soft">A-05</span></span></li><li><span class="box"></span><span><b>Baixa</b> · A página pode ser embutida em iframes de outros sites <span class="mono soft">A-06</span></span></li><li><span class="box"></span><span><b>Baixa</b> · Sem X-Content-Type-Options: nosniff <span class="mono soft">A-07</span></span></li><li><span class="box"></span><span><b>Baixa</b> · Sem Content-Security-Policy <span class="mono soft">A-08</span></span></li></ul>
+</section>
+
+</main></body></html>

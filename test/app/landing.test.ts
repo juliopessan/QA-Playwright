@@ -13,7 +13,7 @@ let app: Awaited<ReturnType<typeof startTestApp>>;
 
 beforeAll(async () => {
   const out = mkdtempSync(join(tmpdir(), "qa-landing-"));
-  buildSite({ outDir: out, creds, landing: "landing/index.html", example: "docs/exemplo-relatorio" });
+  buildSite({ outDir: out, creds, landing: "landing/index.html", example: "docs/exemplo-relatorio", analysisExample: "docs/exemplo-analise-web" });
   app = await startTestApp(0, out);
   browser = await chromium.launch();
 });
@@ -159,7 +159,7 @@ describe("análise pela landing", () => {
     await page.close();
   });
 
-  it("mostra os prints (desktop e celular), recusa imagem que não é JPEG em data URL e baixa o relatório em HTML único", async () => {
+  it("mostra os prints (desktop e celular) e recusa imagem que não é JPEG em data URL", async () => {
     const { page } = await open({ api: (r) => json(r, 200, report) });
     await page.getByLabel("URL do site").fill("ukodelabs.com.br");
     await page.getByRole("button", { name: "Analisar o site" }).click();
@@ -167,15 +167,45 @@ describe("análise pela landing", () => {
     const imgs = await page.locator("#az-shots img").evaluateAll((els) => els.map((e) => ({ alt: e.getAttribute("alt"), src: (e.getAttribute("src") ?? "").slice(0, 23) })));
     expect(imgs).toEqual([{ alt: "Screenshot de UKode Labs no desktop", src: "data:image/jpeg;base64," }, { alt: "Screenshot de UKode Labs no celular", src: "data:image/jpeg;base64," }]);
     await expect(page.locator("#az-shots figcaption").first().innerText()).resolves.toMatch(/UKode Labs[\s\S]*HTTP 200 · 1,8 s/);
-    const [download] = await Promise.all([page.waitForEvent("download"), page.getByRole("button", { name: "Baixar o relatório (HTML)" }).click()]);
-    expect(download.suggestedFilename()).toBe("relatorio-qa-agent.html");
-    const html = readFileSync((await download.path())!, "utf8");
-    expect(html).toContain("Relatório QA Agent · ukodelabs.com.br");
-    expect(html).toContain("data:image/jpeg;base64,");
-    expect(html).toContain("Falta o cabeçalho HSTS");
-    expect(html).toContain("CTA vago &lt;b&gt;x&lt;/b&gt;");
-    expect(html).not.toContain("javascript:");
-    expect(html).not.toContain("<b>x</b>");
+    await page.close();
+  });
+
+  it("baixa o relatório como documento: PDF e HTML pedem ao servidor o documento A4 com o resultado da análise", async () => {
+    const requests: any[] = [];
+    const { page } = await open({
+      api: (route) => {
+        const u = new URL(route.request().url());
+        if (u.pathname === "/api/analyze") return json(route, 200, report);
+        const body = route.request().postDataJSON();
+        requests.push(body);
+        return route.fulfill({ status: 200, headers: { "content-type": body.format === "pdf" ? "application/pdf" : "text/html", "content-disposition": `attachment; filename="relatorio-qa-agent-ukodelabs.com.br.${body.format}"` }, body: body.format === "pdf" ? "%PDF-1.4 fake" : "<html>documento</html>" });
+      },
+    });
+    await page.getByLabel("URL do site").fill("ukodelabs.com.br");
+    await page.getByRole("button", { name: "Analisar o site" }).click();
+    await expect.poll(() => page.locator("#az-result").isVisible()).toBe(true);
+
+    const [pdf] = await Promise.all([page.waitForEvent("download"), page.getByRole("button", { name: "Baixar o relatório (PDF)" }).click()]);
+    expect(pdf.suggestedFilename()).toBe("relatorio-qa-agent-ukodelabs.com.br.pdf");
+    expect(readFileSync((await pdf.path())!, "utf8")).toBe("%PDF-1.4 fake");
+    const [html] = await Promise.all([page.waitForEvent("download"), page.getByRole("button", { name: "Baixar em HTML" }).click()]);
+    expect(html.suggestedFilename()).toBe("relatorio-qa-agent-ukodelabs.com.br.html");
+    expect(requests.map((r) => r.format)).toEqual(["pdf", "html"]);
+    expect(requests[0].report.findings).toHaveLength(2);
+    expect(requests[0].report.shots[0].desktop).toMatch(/^data:image\/jpeg/);
+    await page.close();
+  });
+
+  it("falha ao gerar o documento aparece como aviso legível e o botão volta ao normal", async () => {
+    const { page } = await open({
+      api: (route) => (new URL(route.request().url()).pathname === "/api/analyze" ? json(route, 200, report) : json(route, 502, { error: "Não foi possível gerar o PDF agora. Baixe o HTML e use Imprimir → Salvar como PDF no navegador." })),
+    });
+    await page.getByLabel("URL do site").fill("ukodelabs.com.br");
+    await page.getByRole("button", { name: "Analisar o site" }).click();
+    await expect.poll(() => page.locator("#az-result").isVisible()).toBe(true);
+    await page.getByRole("button", { name: "Baixar o relatório (PDF)" }).click();
+    await expect.poll(() => page.locator("#toasts").innerText()).toMatch(/Baixe o HTML/);
+    await expect.poll(() => page.locator("#az-pdf").getAttribute("aria-busy")).toBeNull();
     await page.close();
   });
 
@@ -247,6 +277,21 @@ describe("relatório de exemplo", () => {
       if (r.status() !== 200 || body[0] !== 0xff || body[1] !== 0xd8) broken.push(src);
     }
     expect(broken).toEqual([]);
+    await page.close();
+  });
+});
+
+describe("relatório de exemplo da análise pela web", () => {
+  it("a landing oferece o PDF de exemplo, que é um documento A4 real, e o HTML; os JSONs de apoio não são publicados", async () => {
+    const { page } = await open();
+    const href = await page.getByRole("link", { name: "Ver um relatório de exemplo (PDF)" }).first().getAttribute("href");
+    expect(href).toBe("exemplo-analise/relatorio-app-de-teste.pdf");
+    const pdf = await page.request.get(`${app.url}/${href}`);
+    expect(pdf.status()).toBe(200);
+    expect((await pdf.body()).subarray(0, 5).toString()).toBe("%PDF-");
+    const html = await page.request.get(`${app.url}/exemplo-analise/relatorio-app-de-teste.html`);
+    expect(await html.text()).toContain("1. Resumo executivo");
+    expect((await page.request.get(`${app.url}/exemplo-analise/app-de-teste.json`)).status()).toBe(404);
     await page.close();
   });
 });

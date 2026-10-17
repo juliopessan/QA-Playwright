@@ -70,12 +70,16 @@ window.APP_CONFIG = {
  * e o relatório de exemplo do CLI em `exemplo/`.
  * O QA Agent testa o app em `<url>/demo/index.html`.
  */
-export function buildSite(opts: { outDir: string; creds: WebCredentials; landing: string; example?: string }): void {
+export function buildSite(opts: { outDir: string; creds: WebCredentials; landing: string; example?: string; analysisExample?: string }): void {
   rmSync(opts.outDir, { recursive: true, force: true });
   buildWeb({ outDir: join(opts.outDir, "demo"), creds: opts.creds });
   cpSync(opts.landing, join(opts.outDir, "index.html"));
   // Relatório real do CLI (prints e análises), publicado em /exemplo/relatorio.html.
   if (opts.example && existsSync(opts.example)) cpSync(opts.example, join(opts.outDir, "exemplo"), { recursive: true });
+  // Relatórios de exemplo da análise pela web (documentos HTML e PDF), em /exemplo-analise/.
+  if (opts.analysisExample && existsSync(opts.analysisExample)) {
+    cpSync(opts.analysisExample, join(opts.outDir, "exemplo-analise"), { recursive: true, filter: (src) => !src.endsWith(".json") });
+  }
   writeFileSync(join(opts.outDir, ".nojekyll"), "");
 }
 
