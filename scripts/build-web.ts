@@ -66,13 +66,16 @@ window.APP_CONFIG = {
 }
 
 /**
- * Site publicado: a landing page na raiz e o app de teste em `demo/` (o app só usa caminhos relativos).
+ * Site publicado: a landing page na raiz, o app de teste em `demo/` (o app só usa caminhos relativos)
+ * e o relatório de exemplo do CLI em `exemplo/`.
  * O QA Agent testa o app em `<url>/demo/index.html`.
  */
-export function buildSite(opts: { outDir: string; creds: WebCredentials; landing: string }): void {
+export function buildSite(opts: { outDir: string; creds: WebCredentials; landing: string; example?: string }): void {
   rmSync(opts.outDir, { recursive: true, force: true });
   buildWeb({ outDir: join(opts.outDir, "demo"), creds: opts.creds });
   cpSync(opts.landing, join(opts.outDir, "index.html"));
+  // Relatório real do CLI (prints e análises), publicado em /exemplo/relatorio.html.
+  if (opts.example && existsSync(opts.example)) cpSync(opts.example, join(opts.outDir, "exemplo"), { recursive: true });
   writeFileSync(join(opts.outDir, ".nojekyll"), "");
 }
 

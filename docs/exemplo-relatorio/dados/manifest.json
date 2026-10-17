@@ -1,0 +1,85 @@
+{
+  "runId": "20261017-185552-269d",
+  "baseUrl": "http://127.0.0.1:4020",
+  "startedAt": "2026-10-17T18:55:52.577Z",
+  "finishedAt": "2026-10-17T18:58:28.504Z",
+  "screens": [
+    {
+      "id": "dashboard",
+      "routePattern": "/dashboard",
+      "heading": "Painel",
+      "examples": 1,
+      "states": 0
+    },
+    {
+      "id": "projects",
+      "routePattern": "/projects",
+      "heading": "Projetos",
+      "examples": 1,
+      "states": 0
+    },
+    {
+      "id": "team",
+      "routePattern": "/team",
+      "heading": "Equipe",
+      "examples": 1,
+      "states": 3
+    },
+    {
+      "id": "billing",
+      "routePattern": "/billing",
+      "heading": "Faturas",
+      "examples": 1,
+      "states": 0
+    },
+    {
+      "id": "reports",
+      "routePattern": "/reports",
+      "heading": "Relatórios · Acme SaaS",
+      "examples": 1,
+      "states": 0
+    },
+    {
+      "id": "settings",
+      "routePattern": "/settings",
+      "heading": "Configurações",
+      "examples": 1,
+      "states": 0
+    },
+    {
+      "id": "projects-id",
+      "routePattern": "/projects/:id",
+      "heading": "Projeto 1",
+      "examples": 3,
+      "states": 0
+    },
+    {
+      "id": "help",
+      "routePattern": "/help",
+      "heading": "Página não encontrada",
+      "examples": 1,
+      "states": 0
+    }
+  ],
+  "flows": [
+    {
+      "id": "ver-os-detalhes-da-equipe",
+      "title": "Ver os detalhes da equipe",
+      "status": "pass"
+    }
+  ],
+  "counts": {
+    "screens": 8,
+    "findings": 38,
+    "blocked": 1
+  },
+  "limitsHit": [],
+  "llm": {
+    "calls": 23,
+    "inputTokens": 49316,
+    "outputTokens": 11646,
+    "notes": [
+      "LLM indisponível (UX): Resposta do LLM inválida após retentativa: ["
+    ]
+  }
+}
