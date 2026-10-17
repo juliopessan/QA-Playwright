@@ -121,7 +121,7 @@ export async function startSaas(
       }
       if (url.pathname === "/settings") {
         return html(200, layout("Configurações", "Configurações",
-          `<img src="/logo.svg" width="40" height="40"><form onsubmit="return false"><input name="nome" placeholder="Nome da empresa"><button type="submit">Salvar</button></form>`));
+          `<img src="/logo.svg" width="40" height="40"><form onsubmit="return false"><input name="nome"><button type="submit">Salvar</button></form>`));
       }
       return html(404, "<h1>Página não encontrada</h1>");
     });
