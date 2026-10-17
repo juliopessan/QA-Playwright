@@ -25,6 +25,8 @@ npm run test-saas                                   # SaaS sintético com proble
 
 Detalhes, formato do relatório, configuração e limitações em [`docs/saas-explore.md`](docs/saas-explore.md).
 
+**Pela web:** a landing page publicada tem um formulário em que se cola a URL do site e o QA Agent roda a análise completa no GitHub Actions, com o relatório voltando para a página. Configuração e segurança em [`docs/web-analise.md`](docs/web-analise.md).
+
 ## Status
 
 | Item | Situação |

@@ -14,7 +14,9 @@ const MIME: Record<string, string> = {
 export async function startTestApp(port = 0, root = PUBLIC): Promise<{ url: string; close(): Promise<void> }> {
   const server = createServer(async (req, res) => {
     const path = new URL(req.url ?? "/", "http://x").pathname;
-    const rel = path === "/" ? "index.html" : normalize(path).replace(/^([/\\])+/, "");
+    const clean = normalize(path).replace(/^([/\\])+/, "");
+    // Diretórios servem o index.html, como a Vercel e o GitHub Pages (ex.: /demo/).
+    const rel = path.endsWith("/") ? `${clean}index.html` : clean;
     if (rel.includes("..")) {
       res.writeHead(400).end();
       return;

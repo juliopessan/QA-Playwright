@@ -32,6 +32,12 @@
 @media (max-width:900px){.two{grid-template-columns:1fr;gap:32px}}
 .source{margin-top:12px}
 .tree{white-space:pre}
+#az-panel .list li{color:var(--panel-text-soft)}
+#az-panel .list li.is-on{color:var(--panel-text)}
+#az-panel .list li.is-done{color:var(--panel-text)}
+#az-panel .list li.is-done .i{color:var(--mint)}
+#az-panel .btn{background:var(--panel-text);color:var(--panel)}
+#az-status{color:var(--panel-text)}
 /* A palavra que entra cobre a que sai: sem fundo, as duas apareciam sobrepostas durante a troca. */
 .roll__w{background:var(--paper)}
 @media (max-width:560px){.mast__nav a:nth-child(-n+3){display:none}}
@@ -46,7 +52,7 @@
 <div class="wrap">
   <header class="mast reveal" style="--d:.05s">
     <a class="brand" href="#top" aria-label="QA Agent, início"><span class="brand__mark">Q</span><span class="brand__name">QA Agent</span></a>
-    <nav class="mast__nav" aria-label="Principal"><a href="#seguranca">Segurança</a><a href="#entrega">O que entrega</a><a href="#custo">Custo</a><a href="#comecar">Começar</a><a href="demo/">App de teste</a></nav>
+    <nav class="mast__nav" aria-label="Principal"><a href="#seguranca">Segurança</a><a href="#entrega">O que entrega</a><a href="#custo">Custo</a><a href="#analisar">Analisar</a><a href="demo/">App de teste</a></nav>
     <span class="badge"><span class="dot dot--pulse"></span>CLI · TypeScript</span>
   </header>
 
@@ -55,9 +61,9 @@
       <div>
         <p class="eyebrow reveal" style="--d:.05s">QA agêntico para SaaS</p>
         <h1 class="display reveal" style="--d:.16s" tabindex="-1"><span class="roll" data-roll="Explore|Meça|Documente">Explore</span><i class="wipe">seu SaaS inteiro, sem alterar um único dado.</i></h1>
-        <p class="lede reveal" style="--d:.27s">Dê uma URL e um login. O QA Agent descobre as telas, fotografa cada uma, mede erros, acessibilidade e desempenho e entrega uma pasta de evidências que sua engenharia revisa num pull request. Na execução de amostra ao lado, ele mapeou 8 de 8 telas e nenhuma requisição de escrita chegou ao servidor.</p>
+        <p class="lede reveal" style="--d:.27s">Cole a URL e o login logo abaixo. O QA Agent descobre as telas, fotografa cada uma, mede erros, acessibilidade e desempenho e entrega uma pasta de evidências que sua engenharia revisa num pull request. Na execução de amostra ao lado, ele mapeou 8 de 8 telas e nenhuma requisição de escrita chegou ao servidor.</p>
         <div class="row reveal" style="--d:.38s">
-          <a class="btn" href="#comecar">Rodar a primeira exploração</a>
+          <a class="btn" href="#analisar">Analisar meu site</a>
           <a class="link" href="#entrega">Ver o que sai no relatório <svg class="i i--16" aria-hidden="true"><use href="#i-arrow-right"/></svg></a>
         </div>
       </div>
@@ -71,6 +77,44 @@
         <p class="note"><span class="flag" aria-hidden="true">✓</span><span>Execução real contra um SaaS sintético com problemas plantados. Não é um benchmark em produto real.</span></p>
         <div class="panel__foot"><span>23 chamadas ao modelo</span><span>3 subestados</span></div>
       </aside>
+    </section>
+
+
+    <section class="section section--rule" id="analisar">
+      <div class="two">
+        <div class="stack" data-reveal>
+          <p class="eyebrow">Analisar agora</p><h2 class="h2">Cole a URL.<i>Receba o relatório.</i></h2>
+          <p class="soft" style="max-width:56ch">O agente roda a análise completa: descobre as telas em modo somente leitura, mede erros, acessibilidade e desempenho, avalia a UX com o Claude e monta o relatório com screenshots. Leva de 5 a 20 minutos, conforme o tamanho do site.</p>
+          <form id="analyzeForm" class="gstack" style="gap:16px;margin-top:16px" novalidate>
+            <div class="field"><label for="az-url">URL do site</label><input class="input" id="az-url" name="url" type="url" inputmode="url" autocomplete="url" autocapitalize="none" spellcheck="false" placeholder="https://app.exemplo.com" aria-describedby="az-url-err" required><p class="field-error" id="az-url-err"><svg class="i i--16" aria-hidden="true"><use href="#i-error"/></svg><span>Informe a URL completa, como https://app.exemplo.com.</span></p></div>
+            <div class="cells cells--2" style="border:0;background:none;gap:16px">
+              <div class="field" style="padding:0"><label for="az-user">Usuário do site</label><input class="input" id="az-user" name="user" autocomplete="off" autocapitalize="none" spellcheck="false" placeholder="qa@empresa.com" aria-describedby="az-cred-hint az-user-err"><p class="field-error" id="az-user-err"><svg class="i i--16" aria-hidden="true"><use href="#i-error"/></svg><span>Usuário inválido.</span></p></div>
+              <div class="field" style="padding:0"><label for="az-pass">Senha do site</label><div class="input-wrap"><input class="input" id="az-pass" name="pass" type="password" autocomplete="off" aria-describedby="az-cred-hint az-pass-err"><button class="icon-btn" type="button" data-toggle-pw="#az-pass" aria-label="Mostrar senha" aria-pressed="false"><svg class="i" aria-hidden="true"><use href="#i-eye"/></svg></button></div><p class="field-error" id="az-pass-err"><svg class="i i--16" aria-hidden="true"><use href="#i-error"/></svg><span>Senha inválida.</span></p></div>
+            </div>
+            <p class="hint" id="az-cred-hint">Deixe em branco se o site não tem login. Prefira um usuário de teste num ambiente de homologação.</p>
+            <div class="field"><label for="az-code">Código de acesso</label><input class="input" id="az-code" name="code" autocomplete="off" autocapitalize="characters" spellcheck="false" aria-describedby="az-code-hint az-code-err" required><p class="hint" id="az-code-hint">Cada análise usa o Claude e um navegador na nuvem; o código controla quem pode rodar.</p><p class="field-error" id="az-code-err"><svg class="i i--16" aria-hidden="true"><use href="#i-error"/></svg><span>Informe o código de acesso que você recebeu.</span></p></div>
+            <div class="field"><label class="check" for="az-auth"><input type="checkbox" id="az-auth" name="authorized" aria-describedby="az-auth-err"> Tenho autorização para testar este site.</label><p class="field-error" id="az-auth-err"><svg class="i i--16" aria-hidden="true"><use href="#i-error"/></svg><span>Confirme que você tem autorização para testar este site.</span></p></div>
+            <p class="field-error" id="az-form-err" role="alert" style="display:none"><svg class="i i--16" aria-hidden="true"><use href="#i-error"/></svg><span></span></p>
+            <div class="row"><button class="btn" type="submit" id="az-submit">Analisar o site</button></div>
+          </form>
+        </div>
+        <aside class="panel" data-reveal aria-label="Andamento da análise" aria-live="polite" id="az-panel">
+          <div class="panel__head"><span class="dot" id="az-dot"></span><span class="title">Análise</span><span class="meta" id="az-host">nenhuma em andamento</span></div>
+          <div class="panel__body" id="az-body">
+            <p id="az-idle" style="margin:0;color:var(--panel-text-soft)">O andamento aparece aqui depois do envio. Você pode deixar esta aba aberta enquanto o agente trabalha.</p>
+            <p id="az-status" style="margin:0" hidden></p>
+            <ol id="az-steps" class="list" style="margin:0" hidden>
+              <li data-step="queued"><svg class="i i--16" aria-hidden="true"><use href="#i-calendar"/></svg><span>Na fila do GitHub Actions</span></li>
+              <li data-step="running"><svg class="i i--16" aria-hidden="true"><use href="#i-agent"/></svg><span>Explorando e analisando as telas</span></li>
+              <li data-step="done"><svg class="i i--16" aria-hidden="true"><use href="#i-receipt"/></svg><span>Relatório pronto</span></li>
+            </ol>
+          </div>
+          <div class="stats" id="az-summary" hidden><div><div class="stat__n" id="az-screens">0</div><div class="stat__l">telas</div></div><div><div class="stat__n" id="az-findings">0</div><div class="stat__l">achados</div></div></div>
+          <div class="panel__body" id="az-actions" hidden><a class="btn" id="az-report" href="#" target="_blank" rel="noopener">Abrir o relatório</a></div>
+          <p class="note"><span class="flag" aria-hidden="true">✓</span><span>As credenciais seguem cifradas para a execução, ficam mascaradas nos logs e não são gravadas. O relatório fica disponível por 7 dias, só para quem tem o link.</span></p>
+          <div class="panel__foot"><span>somente leitura</span><span id="az-elapsed">—</span></div>
+        </aside>
+      </div>
     </section>
 
     <section class="section section--rule">
@@ -191,7 +235,7 @@ node dist/cli/index.js publish &lt;runId&gt; --pr --repo dono/repo</pre><button 
 
     <section class="section section--rule">
       <div class="stack" data-reveal><h2 class="h2">Pare de caçar tela por tela.<i>Revise evidências.</i></h2>
-        <div class="row" style="margin-top:28px"><a class="btn" href="#comecar">Rodar a primeira exploração</a><a class="link" href="https://github.com/juliopessan/QA-Playwright" target="_blank" rel="noopener">Ver o código no GitHub <svg class="i i--16" aria-hidden="true"><use href="#i-arrow-up-right"/></svg></a></div></div>
+        <div class="row" style="margin-top:28px"><a class="btn" href="#analisar">Analisar meu site</a><a class="link" href="https://github.com/juliopessan/QA-Playwright" target="_blank" rel="noopener">Ver o código no GitHub <svg class="i i--16" aria-hidden="true"><use href="#i-arrow-up-right"/></svg></a></div></div>
     </section>
   </main>
 
@@ -213,6 +257,104 @@ node dist/cli/index.js publish &lt;runId&gt; --pr --repo dono/repo</pre><button 
     try { navigator.clipboard.writeText(text).then(function () { done(true); }, function () { done(false); }); } catch (e) { done(false); }
   });
   document.querySelectorAll('a[href^="#"]').forEach(function (a) { a.addEventListener('click', function (e) { var id = a.getAttribute('href').slice(1); var t = id && document.getElementById(id); if (t) { e.preventDefault(); t.scrollIntoView({ behavior: 'smooth' }); } }); });
+})();
+
+/* Análise pela web: /api/analyze dispara, /api/status acompanha, /api/report mostra o resultado. */
+(function () {
+  'use strict';
+  var L = window.Ledger, D = document;
+  var $ = function (s) { return D.querySelector(s); };
+  var form = $('#analyzeForm'); if (!form) return;
+  var KEY = 'qa-agent-analise';
+  var VERBS = [['Explorando', 'Explorado'], ['Fotografando', 'Fotografado'], ['Medindo', 'Medido'], ['Analisando', 'Analisado'], ['Documentando', 'Documentado']];
+  var poll = null, run = null, started = 0, tick = null;
+
+  function store(v) { try { if (v) sessionStorage.setItem(KEY, JSON.stringify(v)); else sessionStorage.removeItem(KEY); } catch (e) {} }
+  function load() { try { return JSON.parse(sessionStorage.getItem(KEY) || 'null'); } catch (e) { return null; } }
+  function field(id, on) { var el = $('#' + id); var f = el.closest('.field'); if (on) f.setAttribute('data-invalid', ''); else f.removeAttribute('data-invalid'); el.setAttribute('aria-invalid', on ? 'true' : 'false'); return on; }
+  function formError(msg) { var e = $('#az-form-err'); e.style.display = msg ? 'flex' : 'none'; e.lastElementChild.textContent = msg || ''; }
+  var FIELD = { url: 'az-url', user: 'az-user', pass: 'az-pass', code: 'az-code', authorized: 'az-auth' };
+
+  function validate() {
+    var bad = [];
+    ['az-url', 'az-code', 'az-auth', 'az-user', 'az-pass'].forEach(function (id) { field(id, false); });
+    var u = $('#az-url').value.trim();
+    if (field('az-url', !/^https?:\/\/[^\s/]+\.[^\s]+/i.test(u))) bad.push('az-url');
+    if (field('az-code', !$('#az-code').value.trim())) bad.push('az-code');
+    if (field('az-auth', !$('#az-auth').checked)) bad.push('az-auth');
+    formError(bad.length ? 'Corrija ' + bad.length + (bad.length > 1 ? ' campos' : ' campo') + ' para continuar.' : '');
+    if (bad.length) $('#' + bad[0]).focus();
+    return !bad.length;
+  }
+
+  function show(state, info) {
+    info = info || {};
+    $('#az-idle').hidden = true; $('#az-steps').hidden = false; $('#az-status').hidden = false;
+    var order = ['queued', 'running', 'done'];
+    var at = state === 'failed' ? -1 : order.indexOf(state);
+    D.querySelectorAll('#az-steps li').forEach(function (li, i) { li.classList.toggle('is-done', at > i || state === 'done'); li.classList.toggle('is-on', at === i && state !== 'done'); });
+    $('#az-dot').className = state === 'done' || state === 'failed' ? 'dot' : 'dot dot--pulse';
+    if (info.host) $('#az-host').textContent = info.host;
+    if (state === 'done') {
+      if (info.summary) { $('#az-screens').textContent = info.summary.screens; $('#az-findings').textContent = info.summary.findings; $('#az-summary').hidden = false; }
+      $('#az-report').href = info.reportUrl; $('#az-actions').hidden = false;
+    }
+  }
+
+  function clock() { if (!started) return; var s = Math.round((Date.now() - started) / 1000); $('#az-elapsed').textContent = Math.floor(s / 60) + ' min ' + (s % 60) + ' s'; }
+
+  function finish() { clearTimeout(poll); clearInterval(tick); poll = null; $('#az-submit').removeAttribute('aria-disabled'); }
+
+  function check(job, delay) {
+    poll = setTimeout(function () {
+      fetch('/api/status?id=' + encodeURIComponent(job.id) + '&t=' + encodeURIComponent(job.token)).then(function (r) {
+        return r.json().then(function (b) { return { ok: r.ok, b: b }; });
+      }).then(function (x) {
+        if (!x.ok) { check(job, 15000); return; }
+        var b = x.b;
+        if (b.state === 'done') {
+          finish(); show('done', { summary: b.summary, reportUrl: b.reportUrl });
+          if (run) run.done('Relatório pronto'); L.tab.set({ state: 'idle' }); store(null);
+          L.toast('Análise concluída. Abra o relatório.', { kind: 'ok' });
+        } else if (b.state === 'failed') {
+          finish(); show('failed'); if (run) run.fail(b.error); L.tab.set({ state: 'error' }); store(null);
+        } else { show(b.state); check(job, 10000); }
+      }).catch(function () { check(job, 15000); });
+    }, delay);
+  }
+
+  function follow(job) {
+    started = job.startedAt || Date.now(); clock(); clearInterval(tick); tick = setInterval(clock, 1000);
+    show('queued', { host: job.host });
+    $('#az-submit').setAttribute('aria-disabled', 'true');
+    L.tab.set({ title: 'Analisando ' + job.host, state: 'live' });
+    run = L.verbs.start($('#az-status'), { set: VERBS, label: 'Análise em andamento', elapsed: false, keep: true });
+    check(job, 4000);
+  }
+
+  form.addEventListener('submit', function (e) {
+    e.preventDefault();
+    if (poll || $('#az-submit').getAttribute('aria-disabled') === 'true') return;
+    if (!validate()) return;
+    var body = { url: $('#az-url').value.trim(), user: $('#az-user').value, pass: $('#az-pass').value, code: $('#az-code').value.trim(), authorized: $('#az-auth').checked };
+    var req = fetch('/api/analyze', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) })
+      .then(function (r) { return r.json().catch(function () { return {}; }).then(function (b) { return { status: r.status, b: b }; }); });
+    L.verbs.button($('#az-submit'), req, { set: [['Enviando', 'Enviado']] }).then(function () {
+      return req.then(function (x) {
+        if (x.status !== 202) {
+          if (x.b.field && FIELD[x.b.field]) { field(FIELD[x.b.field], true); $('#' + FIELD[x.b.field]).focus(); }
+          formError(x.b.error || 'Não foi possível iniciar a análise. Tente de novo.');
+          return;
+        }
+        $('#az-pass').value = '';
+        var host = ''; try { host = new URL(x.b.url).host; } catch (er) {}
+        var job = { id: x.b.id, token: x.b.token, host: host, startedAt: Date.now() };
+        store(job); follow(job);
+      });
+    }).catch(function () { formError('Sem conexão com o servidor. Confira a internet e tente de novo.'); });
+  });
+
+  var saved = load(); if (saved && saved.id && saved.token) follow(saved);
 })();
 </script>
 </body>
