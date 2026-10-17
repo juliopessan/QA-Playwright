@@ -5,6 +5,8 @@
   "buildCommand": "npm run build:web",
   "outputDirectory": "web-dist",
   "functions": {
-    "api/*.js": { "maxDuration": 60 }
+    "api/*.js": {
+      "maxDuration": 120
+    }
   }
 }

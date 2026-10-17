@@ -110,73 +110,62 @@ describe("landing page publicada", () => {
 });
 
 describe("análise pela landing", () => {
-  it("valida no envio: aponta os campos e não chama a API", async () => {
+  const report = {
+    url: "https://ukodelabs.com.br/", finalUrl: "https://ukodelabs.com.br/", analyzedAt: "2026-10-17T16:00:00Z", durationMs: 31000, status: 200, responseMs: 420,
+    pages: [{ url: "https://ukodelabs.com.br/", title: "Ukode" }, { url: "https://ukodelabs.com.br/servicos", title: "Serviços" }],
+    summary: "Site claro, mas sem chamada principal.",
+    findings: [
+      { origin: "measured", category: "seguranca", severity: "medium", title: "Falta o cabeçalho HSTS", evidence: "strict-transport-security ausente", suggestion: "Adicione HSTS.", page: "https://ukodelabs.com.br/" },
+      { origin: "agent", category: "ux", severity: "low", title: "CTA vago <b>x</b>", description: "d", evidence: "Fale conosco", suggestion: "Diga o que acontece.", page: "https://ukodelabs.com.br/", confidence: 0.7 },
+    ],
+    counts: { high: 0, medium: 1, low: 1 }, notes: ["1 sugestão(ões) do modelo descartada(s) por não citar um trecho real do site."],
+  };
+
+  it("o formulário pede só a URL", async () => {
+    const { page } = await open();
+    const fields = await page.locator("#analyzeForm input").evaluateAll((els) => els.map((e) => (e as HTMLInputElement).name));
+    expect(fields).toEqual(["url"]);
+    await page.close();
+  });
+
+  it("URL vazia ou inválida: aponta o campo e não chama a API", async () => {
     let called = 0;
     const { page } = await open({ api: (r) => { called++; return json(r, 500, {}); } });
     await page.getByRole("button", { name: "Analisar o site" }).click();
-    await expect(page.locator("#az-form-err").innerText()).resolves.toMatch(/Corrija 3 campos/);
     await expect(page.locator("#az-url").getAttribute("aria-invalid")).resolves.toBe("true");
     await expect(page.evaluate(() => document.activeElement?.id)).resolves.toBe("az-url");
     expect(called).toBe(0);
     await page.close();
   });
 
-  it("envia, acompanha fila → execução → pronto e mostra o resumo e o link do relatório", async () => {
+  it("envia só a URL e monta o relatório: resumo, números, achados medidos e do agente, sem interpretar HTML", async () => {
     let sent: any;
-    let polls = 0;
-    const { page, errors } = await open({
-      api: (route) => {
-        const u = new URL(route.request().url());
-        if (u.pathname === "/api/analyze") {
-          sent = route.request().postDataJSON();
-          return json(route, 202, { id: "3f2b8c1e-9a4d-4e6f-8b2a-1c3d5e7f9a0b", token: "1.sig", url: "https://app.exemplo.com/" });
-        }
-        polls++;
-        if (polls === 1) return json(route, 200, { state: "running" });
-        return json(route, 200, { state: "done", summary: { screens: 8, findings: 41, blocked: 1 }, reportUrl: "/api/report?id=x&t=1.sig" });
-      },
-    });
-    await page.clock.install();
-    await fillForm(page);
+    const { page, errors } = await open({ api: (route) => { sent = route.request().postDataJSON(); return json(route, 200, report); } });
+    await page.getByLabel("URL do site").fill("ukodelabs.com.br");
     await page.getByRole("button", { name: "Analisar o site" }).click();
-    await expect.poll(() => sent).toBeTruthy();
-    expect(sent).toEqual({ url: "https://app.exemplo.com", user: "qa@empresa.com", pass: "s3gr3do!", code: "TIME-QA-2026", authorized: true });
-    await expect.poll(() => page.locator("#az-host").innerText()).toBe("app.exemplo.com");
-    await expect(page.getByLabel("Senha do site").inputValue()).resolves.toBe("");
-    await page.clock.runFor(5000);
-    await expect.poll(() => page.locator('#az-steps li[data-step="running"]').getAttribute("class")).toContain("is-on");
-    await page.clock.runFor(11000);
-    await expect.poll(() => page.locator("#az-actions").isVisible()).toBe(true);
-    await expect(page.getByRole("link", { name: "Abrir o relatório" }).getAttribute("href")).resolves.toBe("/api/report?id=x&t=1.sig");
-    await expect(page.locator("#az-findings").innerText()).resolves.toBe("41");
+    await expect.poll(() => page.locator("#az-result").isVisible()).toBe(true);
+    expect(sent).toEqual({ url: "ukodelabs.com.br" });
+    await expect(page.locator("#az-result-h").innerText()).resolves.toBe("Análise de ukodelabs.com.br");
+    await expect(page.locator("#az-summary").innerText()).resolves.toBe("Site claro, mas sem chamada principal.");
+    await expect(page.locator("#az-kpis").innerText()).resolves.toMatch(/Páginas lidas\s*2[\s\S]*Achados\s*2[\s\S]*0,4 s/);
+    const items = page.locator("#az-findings article");
+    await expect(items.count()).resolves.toBe(2);
+    await expect(items.nth(0).innerText()).resolves.toMatch(/Média[\s\S]*Segurança[\s\S]*medido/);
+    await expect(items.nth(1).innerText()).resolves.toMatch(/opinião do agente[\s\S]*CTA vago <b>x<\/b>/);
+    await expect(page.locator("#az-findings h4 b").count()).resolves.toBe(0);
+    await expect(page.locator("#az-notes").innerText()).resolves.toMatch(/descartada/);
     expect(errors).toEqual([]);
     await page.close();
   });
 
-  it("erro da API marca o campo certo e mostra a mensagem", async () => {
-    const { page } = await open({ api: (r) => json(r, 401, { error: "Código de acesso inválido. Confira o código que você recebeu.", field: "code" }) });
-    await fillForm(page, { code: "ERRADO-123" });
+  it("erro da API aparece no campo e no painel", async () => {
+    const { page } = await open({ api: (r) => json(r, 400, { error: "Só é possível analisar sites públicos, pelo nome de domínio.", field: "url" }) });
+    await page.getByLabel("URL do site").fill("http://intranet.local");
     await page.getByRole("button", { name: "Analisar o site" }).click();
-    await expect.poll(() => page.locator("#az-form-err").innerText()).toMatch(/Código de acesso inválido/);
-    await expect(page.locator("#az-code").getAttribute("aria-invalid")).resolves.toBe("true");
-    await expect(page.locator("#az-idle").isVisible()).resolves.toBe(true);
-    await page.close();
-  });
-
-  it("falha da análise aparece no painel com o motivo", async () => {
-    const { page } = await open({
-      api: (route) =>
-        new URL(route.request().url()).pathname === "/api/analyze"
-          ? json(route, 202, { id: "3f2b8c1e-9a4d-4e6f-8b2a-1c3d5e7f9a0b", token: "1.sig", url: "https://app.exemplo.com/" })
-          : json(route, 200, { state: "failed", error: "Login falhou: credenciais recusadas" }),
-    });
-    await page.clock.install();
-    await fillForm(page);
-    await page.getByRole("button", { name: "Analisar o site" }).click();
-    await expect.poll(() => page.locator("#az-host").innerText()).toBe("app.exemplo.com");
-    await page.clock.runFor(5000);
-    await expect.poll(() => page.locator("#az-status").innerText()).toMatch(/Login falhou/);
-    await expect(page.locator("#az-actions").isVisible()).resolves.toBe(false);
+    await expect.poll(() => page.locator("#az-url").getAttribute("aria-invalid")).toBe("true");
+    await expect(page.locator("#az-url-err").innerText()).resolves.toMatch(/sites públicos/);
+    await expect.poll(() => page.locator("#az-status").innerText()).toMatch(/sites públicos/);
+    await expect(page.locator("#az-result").isVisible()).resolves.toBe(false);
     await page.close();
   });
 });

@@ -24,7 +24,6 @@
     "@axe-core/playwright": "^4.10.0",
     "commander": "^12.1.0",
     "exceljs": "^4.4.0",
-    "fflate": "^0.8.2",
     "playwright": "1.56.1",
     "yaml": "^2.6.0",
     "zod": "^4.1.0"

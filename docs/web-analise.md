@@ -1,71 +1,44 @@
 # Análise pela landing page
 
-A landing page publicada na Vercel tem um formulário em que a pessoa cola a URL de um site, o login (opcional) e um código de acesso. O QA Agent roda a análise completa no GitHub Actions e o relatório volta para a própria página.
+A landing page publicada na Vercel tem um formulário com um único campo: a URL do site. Em menos de um minuto, a página mostra o relatório com o resumo, os números e cada achado com evidência e sugestão.
 
 ```
-Landing (#analisar) ─▶ /api/analyze ─▶ GitHub Actions: explore-web.yml ─▶ artefato qa-report-<id>
-        ▲                (Vercel)        explore somente leitura,            │
-        └──── /api/status e /api/report ◀── todas as análises ───────────────┘
+Landing (#analisar) ─▶ POST /api/analyze { url }
+                         ├─ Exa /contents: página inicial + até 6 páginas internas (texto)
+                         ├─ visita direta: status, tempo, cabeçalhos e HTML da página inicial
+                         └─ Claude: revisão do conteúdo (achados só com trecho literal do site)
 ```
 
-## Como funciona
+## O que é analisado
 
-1. **`/api/analyze`** (Vercel) confere o código de acesso, aceita só URLs públicas em http(s) (recusa localhost, IPs privados e nomes internos), exige a confirmação de autorização, aplica o limite diário e dispara o workflow `explore-web.yml`. As credenciais do site vão **cifradas** (AES-256-GCM com `QA_INPUT_KEY`) no input do workflow, que fica visível para quem tem acesso ao repositório.
-2. **`explore-web.yml`** (GitHub Actions) decifra as credenciais, as **mascara** no log, roda `qa-agent explore` com até 25 telas e 150 chamadas ao modelo e publica a pasta do relatório como artefato por 7 dias. Em falha, publica `erro.txt`, sem usuário e senha.
-3. **`/api/status`** acompanha a execução (fila, em andamento, pronto ou falha). **`/api/report`** serve o `relatorio.html` e as imagens do artefato com uma CSP que **proíbe scripts**, porque o conteúdo vem do site analisado. O acesso ao andamento e ao relatório exige o token assinado devolvido no envio, válido por 3 dias.
-
-As análises entram numa fila única (uma por vez). Sem configuração, as funções respondem que a análise pela web não está configurada, e o resto da landing funciona normalmente.
-
-## Configuração (uma vez)
-
-### 1. Chave compartilhada
-
-Gere uma chave e use **o mesmo valor** na Vercel e no GitHub:
-
-```bash
-openssl rand -base64 32
-```
-
-### 2. GitHub: secrets do repositório
-
-Em Settings → Secrets and variables → Actions → New repository secret:
-
-| Secret | Valor |
+| Origem | Checagens |
 |---|---|
-| `ANTHROPIC_API_KEY` | chave da API da Anthropic |
-| `QA_INPUT_KEY` | a chave do passo 1 |
+| **Medido** (visita direta) | Erro HTTP, HTTPS, HSTS, Content-Security-Policy, X-Content-Type-Options, proteção contra iframe, tempo e peso do HTML, `<title>`, meta description, idioma (`lang`), meta viewport, h1, imagens sem `alt` |
+| **Opinião do agente** (Claude sobre o texto lido pelo Exa) | Clareza, navegação, conteúdo, SEO, acessibilidade percebida e sinais de confiança. Até 8 achados, gravidade no máximo média, e **só entram os que citam um trecho que existe de fato no site** (o resto é descartado e a página avisa quantos) |
 
-### 3. GitHub: token para a Vercel disparar o workflow
+Não há login, envio de formulário nem clique: a análise é somente leitura e cobre páginas públicas. Para explorar telas autenticadas, com screenshots e acessibilidade pelo axe, use o CLI (`qa-agent explore`).
 
-Crie um *fine-grained personal access token* (Settings → Developer settings) com acesso **só a este repositório** e a permissão **Actions: Read and write** (o resto como "No access").
+## Configuração
 
-### 4. Vercel: variáveis de ambiente do projeto
+Variáveis de ambiente do projeto na Vercel (Settings → Environment Variables), depois um redeploy:
 
-Em Project → Settings → Environment Variables (ambiente Production):
+| Variável | Obrigatória | Uso |
+|---|---|---|
+| `EXA_API_KEY` | sim | Leitura das páginas pela API do Exa |
+| `ANTHROPIC_API_KEY` | recomendada | Revisão do conteúdo pelo Claude; sem ela a análise traz só as medições |
+| `QA_WEB_MODEL` | não | Modelo da revisão (padrão `claude-opus-5-5`, com esforço baixo e fallback do servidor em caso de recusa) |
 
-| Variável | Valor |
-|---|---|
-| `QA_GITHUB_TOKEN` | o token do passo 3 |
-| `QA_GITHUB_REPO` | `juliopessan/QA-Playwright` |
-| `QA_INPUT_KEY` | a chave do passo 1 |
-| `QA_ACCESS_CODES` | códigos de acesso separados por vírgula (mínimo 6 caracteres cada), por exemplo `TIME-QA-2026` |
-| `QA_DAILY_LIMIT` | opcional: análises por 24 horas (padrão 10) |
-| `QA_GITHUB_REF` | opcional: branch do workflow (padrão `main`) |
+Sem `EXA_API_KEY`, o formulário responde que a análise ainda não foi configurada.
 
-Depois de salvar, faça um *redeploy* para as funções lerem as variáveis.
+## Segurança e custo
 
-## Segurança e limites
-
-- **Somente leitura:** a exploração usa as duas travas do QA Agent (elemento e rede). Fluxos com escrita (`objetivos.md`) não estão disponíveis pela web.
-- **Quem pode rodar:** só quem tem um código de acesso. Revogue um código tirando-o de `QA_ACCESS_CODES` e fazendo redeploy.
-- **Custo:** cada análise consome minutos do GitHub Actions e chamadas ao Claude (até 150). O limite diário vale para todo o site.
-- **Credenciais:** não são gravadas. Saem do navegador por HTTPS para a função, seguem cifradas até o workflow e ficam mascaradas no log. Recomende usuários de teste em homologação.
-- **Relatório:** fica no artefato por 7 dias e só abre com o link assinado. Ele contém screenshots do site analisado, com campos de senha cobertos.
-- **Autorização:** a pessoa confirma que pode testar o site. A análise só aceita sites públicos na internet.
+- **Só sites públicos:** a URL precisa ser um nome de domínio (nada de IP, localhost ou nomes internos), e a visita direta confere que o domínio e cada redirecionamento resolvem apenas para IPs públicos.
+- **Conteúdo não confiável:** o texto do site vai ao modelo delimitado e marcado como dado, nunca como instrução; a página monta o relatório só com `textContent`, sem interpretar HTML vindo da análise.
+- **Limite de uso:** 5 análises a cada 10 minutos por IP, em memória de cada instância da função. É uma proteção básica; para tráfego público, configure também limites de gasto no Exa e na Anthropic e, se precisar, o firewall da Vercel.
+- **Custo por análise:** uma chamada ao Exa (página inicial + até 6 páginas) e uma ao Claude com até ~35 mil caracteres de texto.
 
 ## Desenvolvimento
 
-- Funções: `api/analyze.js`, `api/status.js`, `api/report.js` e `api/_lib/` (JavaScript puro, sem build).
-- Workflow: `.github/workflows/explore-web.yml`, com `scripts/open-input.mjs` e `scripts/redact-file.mjs`.
-- Landing: `landing/index.src.html` (fonte) e `landing/index.html` (gerado com o Ledger); o build do site (`npm run build:web`) coloca a landing na raiz e o app de teste em `/demo/`.
-- Testes: `test/web/` (funções e scripts, com GitHub simulado), `test/ci/workflow.test.ts` (estrutura do workflow) e `test/app/landing.test.ts` (landing no navegador com a API simulada).
+- Função: `api/analyze.js`; módulos em `api/_lib/` (`core`, `probe`, `exa`, `review`), em JavaScript puro, sem build.
+- Landing: `landing/index.src.html` (fonte) e `landing/index.html` (gerado com o Ledger). O build do site (`npm run build:web`) põe a landing na raiz e o app de teste em `/demo/`.
+- Testes: `test/web/` (validação, proteção de rede, checagens, Exa, revisão e a função completa com dependências simuladas) e `test/app/landing.test.ts` (o formulário e o relatório no navegador, com a API simulada).
