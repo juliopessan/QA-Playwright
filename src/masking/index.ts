@@ -38,5 +38,5 @@ export function redactText(text: string, extraPatterns: string[] = []): string {
 
 /** Relê um print salvo por `maskedScreenshot` (evidência já mascarada) para enviá-lo ao Judge. */
 export async function loadMaskedEvidence(file: string): Promise<MaskedImage> {
-  return brandMaskedImage(await readFile(file));
+  return brandMaskedImage(await readFile(file), /\.jpe?g$/i.test(file) ? "image/jpeg" : "image/png");
 }

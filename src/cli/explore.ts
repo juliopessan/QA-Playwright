@@ -10,6 +10,8 @@ import { DiskCache } from "../explore/cache.js";
 import { loadExploreConfig } from "../explore/config.js";
 import { explore } from "../explore/crawler.js";
 import { makeScreenHook } from "../explore/llm-hook.js";
+import { parseObjectives, type Objective } from "../flows/parse.js";
+import { runFlows } from "../flows/run-flows.js";
 import { newRunId } from "../run/manifest.js";
 import type { Finding } from "../explore/types.js";
 import type { CliIO } from "./index.js";
@@ -20,6 +22,7 @@ export interface ExploreCliOptions {
   estabilidadeMs?: string;
   ux: boolean;
   maxLlmCalls?: string;
+  objetivos?: string;
   config?: string;
   envFile: string;
   headed?: boolean;
@@ -65,6 +68,13 @@ export async function exploreCommand(url: string, opts: ExploreCliOptions, io: C
     ux: opts.ux ? undefined : false,
   });
 
+  let objectives: Objective[] = [];
+  if (opts.objetivos) {
+    if (!existsSync(opts.objetivos)) throw new UsageError(`arquivo de objetivos não encontrado: ${opts.objetivos}`);
+    const parsed = parseObjectives(readFileSync(opts.objetivos, "utf8"));
+    if (parsed.errors.length) throw new UsageError(`objetivos inválidos:\n- ${parsed.errors.join("\n- ")}`);
+    objectives = parsed.objectives;
+  }
   const maxCalls = posIntOpt(opts.maxLlmCalls, "--max-llm-calls");
   let provider: LLMProvider | undefined = io.provider ?? (env.ANTHROPIC_API_KEY ? new AnthropicProvider({ apiKey: env.ANTHROPIC_API_KEY }) : undefined);
   if (provider && maxCalls !== undefined) provider = new BudgetedProvider(provider, maxCalls);
@@ -106,6 +116,29 @@ export async function exploreCommand(url: string, opts: ExploreCliOptions, io: C
     throw new UsageError(msg.startsWith("Login falhou") ? msg : `exploração falhou: ${msg}`);
   }
 
+  if (objectives.length) {
+    if (!provider) {
+      result.llm.notes.push(`Fluxos-objetivo não executados (${objectives.length}): sem ANTHROPIC_API_KEY.`);
+    } else {
+      try {
+        await runFlows(
+          objectives,
+          {
+            baseUrl: url, user: env.APP_USER ?? "", pass: env.APP_PASS ?? "", storageState: env.APP_USER ? undefined : storageState,
+            runDir, provider, env, perf: cfg.perf, headed: opts.headed,
+          },
+          result,
+        );
+      } catch (e) {
+        result.llm.notes.push(`Fluxos-objetivo interrompidos: ${(e as Error).message.split("\n")[0]}`);
+      }
+      if (provider instanceof BudgetedProvider) {
+        result.llm.calls = provider.usage.calls;
+        result.llm.inputTokens = provider.usage.inputTokens;
+        result.llm.outputTokens = provider.usage.outputTokens;
+      }
+    }
+  }
   if (!provider) {
     result.llm.notes.push("Sem ANTHROPIC_API_KEY: o Aprofundador (abas e modais) e a análise de UX não rodaram; só crawler e análises objetivas.");
   }
@@ -120,6 +153,8 @@ export async function exploreCommand(url: string, opts: ExploreCliOptions, io: C
     io.err("Sessão expirada durante a exploração: o relatório é parcial. Rode `qa-agent login` e tente de novo.");
     return 3;
   }
+  const flows = result.flows ?? [];
+  if (flows.length) io.out(`Fluxos: ${flows.map((f) => `${f.title} → ${f.status}`).join("; ")}`);
   if (result.limitsHit.length) io.out(`Limites atingidos: ${result.limitsHit.join(", ")}`);
-  return 0;
+  return flows.some((f) => f.status === "fail" || f.status === "blocked") ? 1 : 0;
 }

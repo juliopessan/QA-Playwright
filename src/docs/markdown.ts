@@ -1,11 +1,13 @@
 import { mkdirSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
 import { compareRuns, severityRank } from "../explore/findings.js";
-import type { BlockedAttempt, Category, ExploreResult, Finding, Screen, Severity } from "../explore/types.js";
+import type { BlockedAttempt, Category, ExploreResult, Finding, FlowRecord, Screen, Severity } from "../explore/types.js";
 
 const SEV_LABEL: Record<Severity, string> = { critical: "Crítica", high: "Alta", medium: "Média", low: "Baixa" };
 const SEV_TAG: Record<Severity, string> = { critical: "CRÍTICA", high: "ALTA", medium: "MÉDIA", low: "BAIXA" };
 const CAT_LABEL: Record<Category, string> = { technical: "Técnico", accessibility: "Acessibilidade", performance: "Desempenho", ux: "UX", coverage: "Cobertura" };
+
+const STATUS_LABEL: Record<FlowRecord["status"], string> = { pass: "Aprovado", fail: "Reprovado", "needs-review": "Requer revisão", blocked: "Bloqueado" };
 
 const oneLine = (s: string) => s.replace(/\s+/g, " ").trim();
 const cell = (s: string) => oneLine(s).replace(/\|/g, "\\|");
@@ -55,12 +57,18 @@ function readme(r: ExploreResult, findings: Finding[], previous?: Finding[]): st
     list("Resolvidos", c.resolved);
   }
 
+  if (r.flows?.length) {
+    L.push("## Fluxos-objetivo", "", "| Fluxo | Resultado |", "|---|---|");
+    for (const f of r.flows) L.push(`| [${cell(f.title)}](fluxos/${f.id}.md) | ${STATUS_LABEL[f.status]} |`);
+    L.push("");
+  }
+
   if (findings.length) {
     L.push("## Principais achados", "");
     for (const f of sorted(findings).slice(0, 10)) L.push(`- **${SEV_TAG[f.severity]}** · ${oneLine(f.title)} · [detalhes](${link(f, r.screens)})`);
     L.push("");
   }
-  L.push("## Arquivos", "", "- [`achados.md`](achados.md): todos os achados, com checkbox de aprovação para virar issue", "- [`mapa.md`](mapa.md): mapa de telas e navegação", "- [`cobertura.md`](cobertura.md): o que foi e o que não foi explorado", "- `telas/`: uma página por tela, com screenshots e análises", "- `dados/`: `achados.json` e `manifest.json`", "");
+  L.push("## Arquivos", "", "- [`achados.md`](achados.md): todos os achados, com checkbox de aprovação para virar issue", "- [`mapa.md`](mapa.md): mapa de telas e navegação", "- [`cobertura.md`](cobertura.md): o que foi e o que não foi explorado", "- `telas/`: uma página por tela, com screenshots e análises", "- `fluxos/`: passo a passo de cada fluxo-objetivo (quando houver)", "- `dados/`: `achados.json` e `manifest.json`", "");
   return L.join("\n");
 }
 
@@ -101,6 +109,20 @@ function screenPage(s: Screen, findings: Finding[]): string {
   L.push(`## Achados (${mine.length})`, "");
   if (mine.length === 0) L.push("Nenhum achado nesta tela.", "");
   for (const f of mine) L.push(findingDetail(f));
+  return L.join("\n");
+}
+
+function flowPage(f: FlowRecord): string {
+  const L = [`# Fluxo: ${oneLine(f.title)}`, "", `**Resultado:** ${STATUS_LABEL[f.status]}`, "", `**Objetivo:** ${oneLine(f.goal)}`, "", `**Critério de sucesso:** ${oneLine(f.success)}`, "", `**Parecer:** ${oneLine(f.reasoning)}`, ""];
+  if (f.screenIds.length) L.push(`**Telas visitadas:** ${f.screenIds.map((id) => `[${id}](../telas/${id}.md)`).join(", ")}`, "");
+  L.push("## Passo a passo", "");
+  if (f.steps.length === 0) L.push("Nenhuma ação foi executada.", "");
+  for (const s of f.steps) {
+    L.push(`### ${s.stepIndex}. ${oneLine(s.text ?? "")} (${s.status})`, "");
+    if (s.error) L.push(`Erro: ${oneLine(s.error)}`, "");
+    if (s.screenshotBefore) L.push(`Antes: ![antes](../${s.screenshotBefore})`, "");
+    if (s.screenshotAfter) L.push(`Depois: ![depois](../${s.screenshotAfter})`, "");
+  }
   return L.join("\n");
 }
 
@@ -149,7 +171,7 @@ export interface WriteDocsOptions {
 
 /** Gera a pasta Markdown de revisão (README, achados, mapa, cobertura, telas e dados). */
 export function writeDocs(r: ExploreResult, outDir: string, opts: WriteDocsOptions = {}): void {
-  for (const d of ["telas", "dados", "img"]) mkdirSync(join(outDir, d), { recursive: true });
+  for (const d of ["telas", "dados", "img", ...(r.flows?.length ? ["fluxos"] : [])]) mkdirSync(join(outDir, d), { recursive: true });
   const issueById = new Map((opts.previous ?? []).filter((f) => f.issue !== undefined).map((f) => [f.id, f.issue!]));
   const findings = r.findings.map((f) => (issueById.has(f.id) ? { ...f, issue: issueById.get(f.id) } : f));
 
@@ -159,6 +181,7 @@ export function writeDocs(r: ExploreResult, outDir: string, opts: WriteDocsOptio
   put("mapa.md", mapa(r));
   put("cobertura.md", cobertura(r));
   for (const s of r.screens) put(`telas/${s.id}.md`, screenPage(s, findings));
+  for (const f of r.flows ?? []) put(`fluxos/${f.id}.md`, flowPage(f));
   put("dados/achados.json", JSON.stringify(sorted(findings), null, 2));
   put(
     "dados/manifest.json",
@@ -166,6 +189,7 @@ export function writeDocs(r: ExploreResult, outDir: string, opts: WriteDocsOptio
       {
         runId: r.runId, baseUrl: r.baseUrl, startedAt: r.startedAt, finishedAt: r.finishedAt,
         screens: r.screens.map((s) => ({ id: s.id, routePattern: s.routePattern, heading: s.heading, examples: s.exampleUrls.length, states: s.states.length })),
+        flows: (r.flows ?? []).map((f) => ({ id: f.id, title: f.title, status: f.status })),
         counts: { screens: r.screens.length, findings: findings.length, blocked: r.blocked.length },
         limitsHit: r.limitsHit, llm: r.llm,
       },

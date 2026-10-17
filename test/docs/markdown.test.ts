@@ -160,4 +160,30 @@ describe("writeDocs", () => {
     writeDocs(result(), d);
     expect(readFileSync(join(d, "img", "dashboard.jpg"), "utf8")).toBe("x");
   });
+
+  it("fluxos-objetivo ganham fluxos/<id>.md, tabela no README e entrada no manifest", () => {
+    const d = mkdtempSync(join(tmpdir(), "qa-docs-"));
+    writeDocs(
+      result({
+        flows: [{
+          id: "convidar", title: "Convidar usuário", goal: "Convidar alguém.", success: "Convite enviado.", status: "pass",
+          reasoning: "Aprovado pelo Judge: botão visível.", screenIds: ["dashboard"],
+          steps: [{ stepIndex: 1, text: "Clicar em Convidar", status: "pass", durationMs: 1, screenshotBefore: "img/fluxos/convidar/01-antes.jpg", screenshotAfter: "img/fluxos/convidar/01-depois.jpg" }],
+        }],
+      }),
+      d,
+    );
+    const page = readFileSync(join(d, "fluxos/convidar.md"), "utf8");
+    expect(page).toContain("Aprovado pelo Judge");
+    expect(page).toContain("../img/fluxos/convidar/01-depois.jpg");
+    expect(page).toContain("../telas/dashboard.md");
+    expect(readFileSync(join(d, "README.md"), "utf8")).toMatch(/Fluxos-objetivo[\s\S]*\[Convidar usuário\]\(fluxos\/convidar\.md\) \| Aprovado/);
+    expect(JSON.parse(readFileSync(join(d, "dados/manifest.json"), "utf8")).flows).toEqual([{ id: "convidar", title: "Convidar usuário", status: "pass" }]);
+  });
+
+  it("sem fluxos não cria a pasta fluxos", () => {
+    const d = mkdtempSync(join(tmpdir(), "qa-docs-"));
+    writeDocs(result(), d);
+    expect(existsSync(join(d, "fluxos"))).toBe(false);
+  });
 });

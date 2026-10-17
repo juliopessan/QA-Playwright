@@ -137,6 +137,7 @@ export async function main(argv: string[], io: CliIO): Promise<number> {
     .option("--max-telas <n>", "número máximo de telas")
     .option("--estabilidade-ms <n>", "tempo sem mudanças no DOM para considerar a tela estável")
     .option("--sem-ux", "desliga a análise de UX pelo LLM")
+    .option("--objetivos <arquivo>", "objetivos.md com fluxos de negócio a executar (escrita permitida)")
     .option("--max-llm-calls <n>", "orçamento de chamadas ao LLM na exploração")
     .option("--config <path>", "arquivo de configuração yaml")
     .option("--env-file <path>", "arquivo .env com APP_USER, APP_PASS e ANTHROPIC_API_KEY", ".env")

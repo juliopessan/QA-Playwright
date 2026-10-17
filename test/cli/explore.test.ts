@@ -1,5 +1,5 @@
 import { describe, it, expect, beforeAll, afterAll } from "vitest";
-import { existsSync, mkdtempSync, readFileSync } from "node:fs";
+import { existsSync, mkdtempSync, readFileSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { startSaas, SAAS_USER, SAAS_PASS } from "../saas/server.js";
@@ -89,4 +89,33 @@ describe("qa-agent explore", () => {
     const runId = /(\d{8}-\d{6}-[0-9a-f]{4})/.exec(t.out.join("\n"))![1];
     expect(readFileSync(join(outDir, runId, "cobertura.md"), "utf8")).toMatch(/ANTHROPIC_API_KEY/);
   }, 120_000);
+
+  it("--objetivos executa o fluxo, documenta em fluxos/ e sai com 1 se o fluxo falhar", async () => {
+    const outDir = mkdtempSync(join(tmpdir(), "qa-cli-"));
+    const obj = join(outDir, "objetivos.md");
+    writeFileSync(obj, "## Clicar no impossível\nClicar em algo.\n**Sucesso:** algo acontece.\n");
+    const t = io();
+    t.cli.provider = new FakeLLMProvider((req) =>
+      req.task === "flow"
+        ? { done: false, giveUp: false, reason: "", action: { kind: "click", locator: { role: "button", name: "Inexistente" }, description: "Clicar no inexistente" } }
+        : req.task === "deepen" ? { elements: [] } : { findings: [] },
+    );
+    const args = ["--max-telas", "2", "--estabilidade-ms", "200", "--sem-ux", "--config", "/nao/existe.yaml", "--env-file", "/nao/existe.env", "--objetivos", obj];
+    const code = await main(["explore", saas.url, "--out-dir", outDir, ...args], t.cli);
+    expect(code).toBe(1);
+    expect(t.out.join("\n")).toMatch(/Fluxos: Clicar no impossível → fail/);
+    const runId = /(\d{8}-\d{6}-[0-9a-f]{4})/.exec(t.out.join("\n"))![1];
+    expect(existsSync(join(outDir, runId, "fluxos/clicar-no-impossivel.md"))).toBe(true);
+  }, 120_000);
+
+  it("--objetivos com arquivo inexistente ou inválido sai com 2", async () => {
+    const outDir = mkdtempSync(join(tmpdir(), "qa-cli-"));
+    const t = io();
+    expect(await main(["explore", saas.url, "--out-dir", outDir, ...FAST, "--objetivos", "/nao/existe.md"], t.cli)).toBe(2);
+    const bad = join(outDir, "ruim.md");
+    writeFileSync(bad, "## Sem critério\nfaz algo\n");
+    const t2 = io();
+    expect(await main(["explore", saas.url, "--out-dir", outDir, ...FAST, "--objetivos", bad], t2.cli)).toBe(2);
+    expect(t2.err.join("\n")).toMatch(/critério de sucesso/);
+  }, 60_000);
 });

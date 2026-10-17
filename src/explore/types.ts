@@ -49,6 +49,17 @@ export interface BlockedAttempt {
   screenId?: string;
 }
 
+export interface FlowRecord {
+  id: string;
+  title: string;
+  goal: string;
+  success: string;
+  status: "pass" | "fail" | "needs-review" | "blocked";
+  reasoning: string;
+  steps: import("../types/index.js").StepResult[];
+  screenIds: string[];
+}
+
 export interface ExploreResult {
   runId: string;
   baseUrl: string;
@@ -62,4 +73,6 @@ export interface ExploreResult {
   limitsHit: string[];
   skipped: Array<{ url: string; reason: string }>;
   llm: { calls: number; inputTokens: number; outputTokens: number; notes: string[] };
+  /** Fluxos-objetivo executados (com escrita permitida). */
+  flows?: FlowRecord[];
 }
