@@ -10,6 +10,7 @@ import { interactiveLogin } from "../auth/index.js";
 import type { LLMProvider } from "../llm/provider.js";
 import { AnthropicProvider } from "../llm/anthropic.js";
 import { runAll } from "../run/run-all.js";
+import { exploreCommand, UsageError as ExploreUsageError, type ExploreCliOptions } from "./explore.js";
 import { writeReport } from "../reporter/write.js";
 import type { EvidenceMode } from "../reporter/render.js";
 
@@ -130,6 +131,20 @@ export async function main(argv: string[], io: CliIO): Promise<number> {
     });
 
   program
+    .command("explore <url>")
+    .description("Explora um SaaS (somente leitura), analisa cada tela e gera a documentação para revisão")
+    .option("--out-dir <dir>", "pasta dos relatórios", "qa-report")
+    .option("--max-telas <n>", "número máximo de telas")
+    .option("--estabilidade-ms <n>", "tempo sem mudanças no DOM para considerar a tela estável")
+    .option("--sem-ux", "desliga a análise de UX pelo LLM")
+    .option("--config <path>", "arquivo de configuração yaml")
+    .option("--env-file <path>", "arquivo .env com APP_USER e APP_PASS", ".env")
+    .option("--headed", "abre o navegador visível")
+    .action(async (url: string, opts: ExploreCliOptions & { semUx?: boolean }) => {
+      code = await exploreCommand(url, { ...opts, ux: !opts.semUx }, io);
+    });
+
+  program
     .command("report")
     .description("Gera/reabre o relatório HTML do último run (ou do indicado)")
     .option("--run <runId>", "run a usar (padrão: o mais recente)")
@@ -146,7 +161,7 @@ export async function main(argv: string[], io: CliIO): Promise<number> {
     return code;
   } catch (e) {
     if (e instanceof CommanderError) return e.exitCode === 0 ? 0 : 2;
-    if (e instanceof UsageError || e instanceof Error) {
+    if (e instanceof UsageError || e instanceof ExploreUsageError || e instanceof Error) {
       io.err(e.message);
       return 2;
     }
