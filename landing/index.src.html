@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>QA Agent</title>
-<meta name="description" content="QA agêntico para SaaS: explora em modo somente leitura, fotografa cada tela, mede erros, acessibilidade e desempenho, e entrega a documentação num PR.">
+<meta name="description" content="Cole a URL de um site público: o QA Agent lê as páginas com o Exa, mede segurança, desempenho, SEO e acessibilidade e revisa o conteúdo com o Claude, citando trechos reais.">
 <meta name="ledger:letter" content="Q">
 <meta name="ledger:product" content="QA Agent">
 <meta name="theme-color" content="#F1EEE5" media="(prefers-color-scheme: light)">
@@ -37,7 +37,15 @@
 #az-panel .list li.is-done{color:var(--panel-text)}
 #az-panel .list li.is-done .i{color:var(--mint)}
 #az-panel .btn{background:var(--panel-text);color:var(--panel)}
-#az-status{color:var(--panel-text)}
+.az-form{margin-top:28px}
+.az-row{display:flex;gap:8px;flex-wrap:wrap}
+.az-row .input{flex:1 1 260px;min-width:0}
+.az-row .btn{flex:none}
+.az-live{margin:12px 0 0;min-height:22px;color:var(--ink)}
+.az-live .verb__t{margin-left:4px}
+.az-live .verb__text{min-width:0}
+.hero .display i{text-wrap:balance}
+#az-panel .list b{font-weight:600;color:var(--panel-text)}
 .af{border-top:1px solid var(--line-strong);padding:20px 0;display:grid;grid-template-columns:120px minmax(0,1fr);gap:8px 24px}
 .af:last-child{border-bottom:1px solid var(--line-strong)}
 .af__sev{font:500 12px/1.4 var(--f-mono);display:flex;flex-direction:column;gap:6px}
@@ -49,7 +57,7 @@
 @media (max-width:640px){.af{grid-template-columns:1fr}}
 /* A palavra que entra cobre a que sai: sem fundo, as duas apareciam sobrepostas durante a troca. */
 .roll__w{background:var(--paper)}
-@media (max-width:560px){.mast__nav a:nth-child(-n+3){display:none}}
+@media (max-width:560px){.mast__nav a:nth-child(-n+4){display:none}}
 </style>
 </head>
 <body>
@@ -61,166 +69,88 @@
 <div class="wrap">
   <header class="mast reveal" style="--d:.05s">
     <a class="brand" href="#top" aria-label="QA Agent, início"><span class="brand__mark">Q</span><span class="brand__name">QA Agent</span></a>
-    <nav class="mast__nav" aria-label="Principal"><a href="#seguranca">Segurança</a><a href="#entrega">O que entrega</a><a href="#custo">Custo</a><a href="#analisar">Analisar</a><a href="demo/">App de teste</a></nav>
-    <span class="badge"><span class="dot dot--pulse"></span>CLI · TypeScript</span>
+    <nav class="mast__nav" aria-label="Principal"><a href="#como">Como funciona</a><a href="#seguranca">Segurança</a><a href="#cli">CLI</a><a href="#faq">Perguntas</a><a href="#top">Analisar</a></nav>
+    <span class="badge"><span class="dot dot--pulse"></span>Beta · Exa + Claude</span>
   </header>
 
   <main id="main">
     <section class="hero split" id="top">
       <div>
-        <p class="eyebrow reveal" style="--d:.05s">QA agêntico para SaaS</p>
-        <h1 class="display reveal" style="--d:.16s" tabindex="-1"><span class="roll" data-roll="Explore|Meça|Documente">Explore</span><i class="wipe">seu SaaS inteiro, sem alterar um único dado.</i></h1>
-        <p class="lede reveal" style="--d:.27s">Cole a URL logo abaixo para uma análise em menos de um minuto. Para ir fundo, o CLI descobre todas as telas, fotografa cada uma, mede erros, acessibilidade e desempenho e entrega uma pasta de evidências que sua engenharia revisa num pull request. Na execução de amostra ao lado, ele mapeou 8 de 8 telas e nenhuma requisição de escrita chegou ao servidor.</p>
-        <div class="row reveal" style="--d:.38s">
-          <a class="btn" href="#analisar">Analisar meu site</a>
-          <a class="link" href="#entrega">Ver o que sai no relatório <svg class="i i--16" aria-hidden="true"><use href="#i-arrow-right"/></svg></a>
-        </div>
+        <p class="eyebrow reveal" style="--d:.05s">QA agêntico para qualquer site</p>
+        <h1 class="display reveal" style="--d:.16s" tabindex="-1"><span class="roll" data-roll="Analise|Audite|Revise">Analise</span><i class="wipe">qualquer site só com a URL.</i></h1>
+        <p class="lede reveal" style="--d:.27s">Cole o endereço. O QA Agent lê a página inicial e as páginas internas, mede segurança, desempenho, SEO e acessibilidade e pede ao Claude uma revisão do conteúdo em que cada sugestão cita um trecho real do site. Sem login, sem formulários, sem tocar em nada.</p>
+        <form id="analyzeForm" class="az-form reveal" style="--d:.38s" novalidate>
+          <div class="field"><label for="az-url">URL do site</label>
+            <div class="az-row"><input class="input" id="az-url" name="url" type="text" inputmode="url" autocomplete="url" autocapitalize="none" spellcheck="false" placeholder="https://seusite.com.br" aria-describedby="az-url-hint az-url-err" required><button class="btn" type="submit" id="az-submit">Analisar o site</button></div>
+            <p class="hint" id="az-url-hint">Só sites públicos. A análise é somente leitura.</p>
+            <p class="field-error" id="az-url-err"><svg class="i i--16" aria-hidden="true"><use href="#i-error"/></svg><span>Informe a URL do site, como https://seusite.com.br.</span></p></div>
+          <p class="az-live" id="az-live" role="status" aria-live="polite"></p>
+        </form>
       </div>
-      <aside class="panel reveal" style="--d:.3s" data-parallax="-0.05" data-tilt aria-label="Resultado de uma execução de amostra">
-        <div class="panel__head"><span class="dot dot--pulse"></span><span class="title">Execução de amostra</span><span class="meta">SaaS sintético</span></div>
+      <aside class="panel reveal" style="--d:.3s" aria-label="Etapas da análise" id="az-panel">
+        <div class="panel__head"><span class="dot" id="az-dot"></span><span class="title">Análise</span><span class="meta" id="az-host">aguardando URL</span></div>
         <div class="panel__body">
-          <div class="bar bar--cost"><span class="bar__label">Telas no app de teste</span><span class="bar__val">8</span><div class="bar__track"><span class="bar__fill" style="--w:100%"></span></div></div>
-          <div class="bar bar--save"><span class="bar__label">Telas mapeadas e documentadas</span><span class="bar__val">8</span><div class="bar__track"><span class="bar__fill" style="--w:100%"></span></div></div>
+          <ol id="az-steps" class="list" style="margin:0">
+            <li data-step="1"><svg class="i i--16" aria-hidden="true"><use href="#i-search"/></svg><span><b>Ler</b> · o Exa busca a página inicial e até 6 páginas internas</span></li>
+            <li data-step="2"><svg class="i i--16" aria-hidden="true"><use href="#i-shield"/></svg><span><b>Medir</b> · status, tempo, cabeçalhos de segurança, SEO e acessibilidade</span></li>
+            <li data-step="3"><svg class="i i--16" aria-hidden="true"><use href="#i-agent"/></svg><span><b>Revisar</b> · o Claude aponta problemas de conteúdo e UX</span></li>
+          </ol>
         </div>
-        <div class="stats"><div><div class="stat__n">8/8</div><div class="stat__l">telas cobertas</div></div><div><div class="stat__n">0</div><div class="stat__l">escritas no servidor</div></div></div>
-        <p class="note"><span class="flag" aria-hidden="true">✓</span><span>Execução real contra um SaaS sintético com problemas plantados. Não é um benchmark em produto real.</span></p>
-        <div class="panel__foot"><span>23 chamadas ao modelo</span><span>3 subestados</span></div>
+        <div class="stats"><div><div class="stat__n">7</div><div class="stat__l">páginas lidas, no máximo</div></div><div><div class="stat__n">0</div><div class="stat__l">formulários enviados</div></div></div>
+        <p class="note"><span class="flag" aria-hidden="true">✓</span><span>Sugestão do Claude sem trecho real do site é descartada antes de chegar ao relatório.</span></p>
+        <div class="panel__foot"><span>somente leitura</span><span id="az-elapsed">—</span></div>
       </aside>
     </section>
 
-
-    <section class="section section--rule" id="analisar">
-      <div class="two">
-        <div class="stack" data-reveal>
-          <p class="eyebrow">Analisar agora</p><h2 class="h2">Cole a URL.<i>Receba a análise.</i></h2>
-          <p class="soft" style="max-width:56ch">O agente lê a página inicial e as páginas internas, mede segurança, desempenho, SEO e acessibilidade e revisa o conteúdo com o Claude. Leva menos de um minuto e não envia formulários nem faz login.</p>
-          <form id="analyzeForm" class="gstack" style="gap:16px;margin-top:16px" novalidate>
-            <div class="field"><label for="az-url">URL do site</label><input class="input" id="az-url" name="url" type="text" inputmode="url" autocomplete="url" autocapitalize="none" spellcheck="false" placeholder="https://seusite.com.br" aria-describedby="az-url-hint az-url-err" required><p class="hint" id="az-url-hint">Só sites públicos. A análise é somente leitura.</p><p class="field-error" id="az-url-err" role="alert"><svg class="i i--16" aria-hidden="true"><use href="#i-error"/></svg><span>Informe a URL do site, como https://seusite.com.br.</span></p></div>
-            <div class="row"><button class="btn" type="submit" id="az-submit">Analisar o site</button></div>
-          </form>
-        </div>
-        <aside class="panel" data-reveal aria-label="Andamento da análise" id="az-panel">
-          <div class="panel__head"><span class="dot" id="az-dot"></span><span class="title">Análise</span><span class="meta" id="az-host">aguardando URL</span></div>
-          <div class="panel__body">
-            <p id="az-idle" style="margin:0;color:var(--panel-text-soft)">O resultado aparece logo abaixo do formulário.</p>
-            <p id="az-status" style="margin:0" aria-live="polite" hidden></p>
-            <ol id="az-steps" class="list" style="margin:0" hidden>
-              <li data-step="1"><svg class="i i--16" aria-hidden="true"><use href="#i-search"/></svg><span>Lendo as páginas com o Exa</span></li>
-              <li data-step="2"><svg class="i i--16" aria-hidden="true"><use href="#i-shield"/></svg><span>Medindo segurança, desempenho e acessibilidade</span></li>
-              <li data-step="3"><svg class="i i--16" aria-hidden="true"><use href="#i-agent"/></svg><span>Revisando o conteúdo com o Claude</span></li>
-            </ol>
-          </div>
-          <p class="note"><span class="flag" aria-hidden="true">✓</span><span>Medições objetivas e opinião do agente aparecem separadas. Cada sugestão do Claude cita um trecho real do site.</span></p>
-          <div class="panel__foot"><span>somente leitura</span><span id="az-elapsed">—</span></div>
-        </aside>
-      </div>
-      <div id="az-result" class="gstack" style="margin-top:40px;gap:24px" hidden tabindex="-1" aria-labelledby="az-result-h">
-        <div class="stack"><p class="eyebrow">Resultado</p><h3 class="h2" id="az-result-h" style="font-size:clamp(24px,3vw,32px)"></h3><p class="soft" id="az-summary" style="max-width:70ch"></p></div>
-        <div class="cells cells--4" id="az-kpis"></div>
-        <div id="az-findings" class="gstack" style="gap:0"></div>
-        <div id="az-pages" class="meta"></div>
-        <ul id="az-notes" class="list meta" style="margin:0"></ul>
-      </div>
+    <section class="section section--rule" id="az-result" hidden tabindex="-1" aria-labelledby="az-result-h">
+      <div class="stack"><p class="eyebrow">Resultado</p><h2 class="h2" id="az-result-h"></h2><p class="lede" id="az-summary" style="max-width:70ch"></p></div>
+      <div class="cells cells--4" id="az-kpis" style="margin-top:32px"></div>
+      <div id="az-findings" class="gstack" style="gap:0;margin-top:32px"></div>
+      <p id="az-pages" class="meta" style="margin-top:16px"></p>
+      <ul id="az-notes" class="list meta" style="margin:8px 0 0"></ul>
+      <div class="row" style="margin-top:24px"><a class="link" href="#top" id="az-again">Analisar outro site <svg class="i i--16" aria-hidden="true"><use href="#i-arrow-up-right"/></svg></a></div>
     </section>
 
-    <section class="section section--rule">
-      <div class="stack" data-reveal><p class="eyebrow">O que ele faz</p><h2 class="h2">Do link ao relatório,<i>sem roteiro manual.</i></h2></div>
+    <section class="section section--rule" id="como">
+      <div class="stack" data-reveal><p class="eyebrow">Como funciona</p><h2 class="h2">Ler, medir, revisar.<i>Em uma chamada.</i></h2></div>
       <div class="cells cells--3" data-reveal-group style="margin-top:40px">
-        <div class="pillar"><span class="tile tile--ink">E</span><span class="pillar__role">Explorar</span><h3 class="h3">Descobre o produto sozinho</h3><p class="soft">Um crawler percorre menus e links com limites de telas, profundidade e tempo. O Claude abre as abas e os modais de leitura que um crawler comum não enxerga.</p></div>
-        <div class="pillar"><span class="tile tile--ink">M</span><span class="pillar__role">Medir</span><h3 class="h3">Mede em vez de opinar</h3><p class="soft">Erros de console, respostas 4xx e 5xx, violações de acessibilidade pelo axe e tempos de carregamento, LCP e CLS, tela por tela.</p></div>
-        <div class="pillar"><span class="tile tile--ink">D</span><span class="pillar__role">Documentar</span><h3 class="h3">Entrega pronto para revisar</h3><p class="soft">Markdown com screenshots, mapa de telas, reprodução de cada achado e checkbox de aprovação. Só o que a engenharia marcar vira issue.</p></div>
+        <div class="pillar"><span class="tile tile--ink">L</span><span class="pillar__role">Ler</span><h3 class="h3">O site como o visitante vê</h3><p class="soft">O Exa busca a página inicial e até seis páginas internas e devolve o texto limpo, inclusive de sites que montam o conteúdo com JavaScript.</p></div>
+        <div class="pillar"><span class="tile tile--ink">M</span><span class="pillar__role">Medir</span><h3 class="h3">Fatos, não impressões</h3><p class="soft">Uma visita direta mede status, tempo e peso do HTML, HTTPS e cabeçalhos de segurança, título, descrição, idioma, viewport, h1 e imagens sem texto alternativo.</p></div>
+        <div class="pillar"><span class="tile tile--ink">R</span><span class="pillar__role">Revisar</span><h3 class="h3">Opinião com prova</h3><p class="soft">O Claude revisa clareza, navegação, conteúdo e sinais de confiança. Cada sugestão traz o trecho do site que a sustenta e um caminho para corrigir.</p></div>
       </div>
     </section>
 
     <section class="section section--rule" id="seguranca">
-      <div class="stack" data-reveal><p class="eyebrow">Segurança</p><h2 class="h2">Somente leitura,<i>garantido em duas camadas.</i></h2>
-        <p class="lede" style="max-width:62ch">Apontar um robô para um sistema real assusta com razão. Aqui, a exploração não depende da boa vontade do modelo: duas travas independentes impedem a escrita, e um teste confere que nada chegou ao servidor.</p></div>
+      <div class="stack" data-reveal><p class="eyebrow">Segurança</p><h2 class="h2">Só leitura,<i>só sites públicos.</i></h2>
+        <p class="lede" style="max-width:62ch">A análise olha o site do lado de fora, como um visitante anônimo. Nada é enviado, nenhuma conta é usada e o servidor não segue o site para dentro de redes privadas.</p></div>
       <div class="cells cells--2" data-reveal-group style="margin-top:40px">
-        <div class="pillar"><span class="tile tile--ink">1</span><span class="pillar__role">Camada de elemento</span><h3 class="h3">Na dúvida, não clica</h3>
-          <ul class="list"><li><svg class="i i--16" aria-hidden="true"><use href="#i-check"/></svg>Só segue link, aba e item de menu.</li><li><svg class="i i--16" aria-hidden="true"><use href="#i-check"/></svg>Nunca aperta envio, botão dentro de formulário nem verbo de escrita, em português e inglês: excluir, convidar, pagar, delete, invite.</li><li><svg class="i i--16" aria-hidden="true"><use href="#i-check"/></svg>Sugestão do modelo passa pela mesma trava.</li></ul></div>
-        <div class="pillar"><span class="tile tile--ink">2</span><span class="pillar__role">Camada de rede</span><h3 class="h3">O navegador não deixa passar</h3>
-          <ul class="list"><li><svg class="i i--16" aria-hidden="true"><use href="#i-check"/></svg>PUT, PATCH e DELETE são sempre bloqueados.</li><li><svg class="i i--16" aria-hidden="true"><use href="#i-check"/></svg>POST só nos prefixos que você liberar, como busca e telemetria.</li><li><svg class="i i--16" aria-hidden="true"><use href="#i-check"/></svg>GraphQL: consulta passa, mutação é bloqueada, inclusive em lote.</li></ul></div>
-      </div>
-      <p class="meta source" data-reveal>Cada tentativa bloqueada vira uma linha em cobertura.md, com a tela e o motivo. Fluxos que precisam escrever ficam separados, em objetivos.md.</p>
-    </section>
-
-    <section class="section section--rule" id="entrega">
-      <div class="two">
-        <div class="stack" data-reveal>
-          <p class="eyebrow">O que entrega</p><h2 class="h2">Uma pasta que a engenharia<i>consegue auditar.</i></h2>
-          <p class="soft" style="max-width:56ch">Cada achado tem um id estável: o mesmo problema mantém o id entre execuções, e o README mostra o que é novo, o que persiste e o que foi resolvido desde o último run. O mesmo erro em várias telas vira um achado só, com a lista de telas afetadas.</p>
-          <ul class="list"><li><svg class="i i--16" aria-hidden="true"><use href="#i-check"/></svg>Onde está, evidência e como reproduzir.</li><li><svg class="i i--16" aria-hidden="true"><use href="#i-check"/></svg>Gravidade por achado, de crítica a baixa.</li><li><svg class="i i--16" aria-hidden="true"><use href="#i-check"/></svg>Mapa de navegação em Mermaid, direto no PR.</li></ul>
-        </div>
-        <div class="codewrap" data-reveal><pre class="code tree" aria-label="Estrutura da pasta qa-report">qa-report/&lt;runId&gt;/
-├─ README.md        <span class="c">resumo e o que mudou desde o último run</span>
-├─ achados.md       <span class="c">por gravidade, com [ ] de aprovação</span>
-├─ mapa.md          <span class="c">diagrama das telas e da navegação</span>
-├─ cobertura.md     <span class="c">o que foi e o que não foi explorado</span>
-├─ telas/           <span class="c">uma página por tela, com prints</span>
-├─ fluxos/          <span class="c">passo a passo de cada objetivo</span>
-├─ img/             <span class="c">screenshots em JPEG</span>
-└─ dados/           <span class="c">achados.json e manifest.json</span></pre></div>
-      </div>
-    </section>
-
-    <section class="section section--rule">
-      <div class="stack" data-reveal><p class="eyebrow">Como começa</p><h2 class="h2">Da exploração<i>à issue certa.</i></h2></div>
-      <div class="rail" data-reveal-group style="margin-top:48px">
-        <div class="rail__step"><span class="rail__n">1</span><h3 class="h3">Explorar</h3><p class="soft">Rode <span class="mono">qa-agent explore</span> com a URL. O relatório sai na pasta qa-report.</p></div>
-        <div class="rail__step"><span class="rail__n">2</span><h3 class="h3">Revisar no PR</h3><p class="soft">O comando <span class="mono">publish</span> abre o PR numa branch própria. A equipe marca [x] nos achados que valem uma issue.</p></div>
-        <div class="rail__step"><span class="rail__n">3</span><h3 class="h3">Abrir só o aprovado</h3><p class="soft">O comando <span class="mono">issues</span> cria uma issue por achado marcado e não duplica, porque procura o id nas issues abertas.</p></div>
+        <div class="pillar"><span class="tile tile--ink">1</span><span class="pillar__role">O que ele nunca faz</span><h3 class="h3">Nenhuma ação no site</h3>
+          <ul class="list"><li><svg class="i i--16" aria-hidden="true"><use href="#i-check"/></svg>Não faz login nem pede senha.</li><li><svg class="i i--16" aria-hidden="true"><use href="#i-check"/></svg>Não envia formulários nem clica em botões.</li><li><svg class="i i--16" aria-hidden="true"><use href="#i-check"/></svg>Não guarda o conteúdo do site depois da análise.</li></ul></div>
+        <div class="pillar"><span class="tile tile--ink">2</span><span class="pillar__role">Como ele se protege</span><h3 class="h3">Travas no servidor</h3>
+          <ul class="list"><li><svg class="i i--16" aria-hidden="true"><use href="#i-check"/></svg>Aceita só nomes de domínio públicos; recusa IPs, localhost e nomes internos.</li><li><svg class="i i--16" aria-hidden="true"><use href="#i-check"/></svg>Confere cada redirecionamento e o IP de destino antes de visitar.</li><li><svg class="i i--16" aria-hidden="true"><use href="#i-check"/></svg>O texto do site vai ao modelo marcado como não confiável, nunca como instrução.</li></ul></div>
       </div>
     </section>
 
     <section class="section section--rule">
       <div class="stack" data-reveal><p class="eyebrow">Transparência</p><h2 class="h2">O que foi medido,<i>o que é opinião.</i></h2>
-        <p class="lede" style="max-width:62ch">Relatório de QA que mistura fato e palpite perde a confiança do time. Aqui os dois vêm separados e rotulados.</p></div>
+        <p class="lede" style="max-width:62ch">Relatório que mistura fato e palpite perde a confiança do time. Aqui cada achado diz de onde veio.</p></div>
       <div class="cmp" data-reveal style="margin-top:40px">
-        <div><span class="badge badge--ok">Medido</span><h3 class="h3" style="margin-top:12px">Técnico, acessibilidade, desempenho</h3>
-          <ul><li><svg class="i i--16" aria-hidden="true"><use href="#i-check"/></svg>Vem de console, rede, axe e métricas do navegador.</li><li><svg class="i i--16" aria-hidden="true"><use href="#i-check"/></svg>Limites de desempenho configuráveis: LCP, CLS e carregamento.</li><li><svg class="i i--16" aria-hidden="true"><use href="#i-check"/></svg>Reproduzível: mesma tela, mesmo resultado.</li></ul></div>
-        <div><span class="badge">Opinião do agente</span><h3 class="h3" style="margin-top:12px">UX pelo Claude</h3>
-          <ul><li><svg class="i i--16" aria-hidden="true"><use href="#i-check"/></svg>Só vale com evidência visível citada, como o texto exato do botão.</li><li><svg class="i i--16" aria-hidden="true"><use href="#i-check"/></svg>No máximo 5 por tela e gravidade limitada a média.</li><li><svg class="i i--16" aria-hidden="true"><use href="#i-check"/></svg>Sempre marcado, com a confiança do modelo.</li></ul></div>
+        <div><span class="badge badge--ok">Medido</span><h3 class="h3" style="margin-top:12px">Segurança, desempenho, SEO e acessibilidade</h3>
+          <ul><li><svg class="i i--16" aria-hidden="true"><use href="#i-check"/></svg>Vem da resposta do servidor e do HTML da página inicial.</li><li><svg class="i i--16" aria-hidden="true"><use href="#i-check"/></svg>Reproduzível: mesma página, mesmo resultado.</li><li><svg class="i i--16" aria-hidden="true"><use href="#i-check"/></svg>Gravidade de baixa a alta, com a correção sugerida.</li></ul></div>
+        <div><span class="badge">Opinião do agente</span><h3 class="h3" style="margin-top:12px">Conteúdo e UX pelo Claude</h3>
+          <ul><li><svg class="i i--16" aria-hidden="true"><use href="#i-check"/></svg>Só entra com um trecho que existe de fato no site.</li><li><svg class="i i--16" aria-hidden="true"><use href="#i-check"/></svg>No máximo 8 sugestões, com gravidade limitada a média.</li><li><svg class="i i--16" aria-hidden="true"><use href="#i-check"/></svg>O relatório avisa quantas sugestões foram descartadas.</li></ul></div>
       </div>
     </section>
 
-    <section class="section section--rule">
+    <section class="section section--rule" id="cli">
       <div class="two">
         <div class="stack" data-reveal>
-          <p class="eyebrow">Fluxos de negócio</p><h2 class="h2">Descreva o objetivo.<i>Um juiz decide.</i></h2>
-          <p class="soft" style="max-width:56ch">Para o que precisa escrever, como convidar um usuário ou criar um projeto, você descreve o objetivo em linguagem natural. O agente age passo a passo, com print antes e depois de cada ação, e um avaliador independente decide se o critério de sucesso foi atingido. Sem evidência, o resultado é revisão humana, nunca aprovação.</p>
-          <ul class="list"><li><svg class="i i--16" aria-hidden="true"><use href="#i-check"/></svg>Limite de 15 passos por objetivo.</li><li><svg class="i i--16" aria-hidden="true"><use href="#i-check"/></svg>Navegação restrita ao domínio do SaaS.</li><li><svg class="i i--16" aria-hidden="true"><use href="#i-check"/></svg>Senhas entram como variável: o modelo nunca as vê.</li></ul>
+          <p class="eyebrow">Para ir além</p><h2 class="h2">Telas com login?<i>Use o CLI.</i></h2>
+          <p class="soft" style="max-width:56ch">A análise pela web cobre o que é público. Para sistemas internos, o CLI entra com o seu login, descobre todas as telas, fotografa cada uma, roda o axe e entrega uma pasta de evidências para a engenharia revisar num pull request, abrindo issues só do que for aprovado.</p>
+          <ul class="list"><li><svg class="i i--16" aria-hidden="true"><use href="#i-check"/></svg>Exploração somente leitura, travada em duas camadas e verificada por teste.</li><li><svg class="i i--16" aria-hidden="true"><use href="#i-check"/></svg>Fluxos de negócio descritos em linguagem natural, julgados com evidência.</li><li><svg class="i i--16" aria-hidden="true"><use href="#i-check"/></svg>Casos de teste do Excel com relatório de evidências por passo.</li></ul>
+          <div class="row" style="margin-top:8px"><a class="link" href="https://github.com/juliopessan/QA-Playwright" target="_blank" rel="noopener">Ver o código no GitHub <svg class="i i--16" aria-hidden="true"><use href="#i-arrow-up-right"/></svg></a><a class="link" href="demo/">Abrir o app de teste <svg class="i i--16" aria-hidden="true"><use href="#i-arrow-right"/></svg></a></div>
         </div>
-        <div class="codewrap" data-reveal><pre class="code" aria-label="Exemplo de objetivos.md">## Convidar um usuário
-Entrar na tela de equipe e convidar
-um novo usuário pelo botão correspondente.
-**Sucesso:** o convite aparece como enviado.
-
-<span class="c"># resultado possível</span>
-pass          <span class="c">o Judge cita a evidência</span>
-fail          <span class="c">uma ação falhou</span>
-needs-review  <span class="c">sem evidência ou sem caminho</span></pre></div>
-      </div>
-    </section>
-
-    <section class="section section--rule" id="custo">
-      <div class="stack" data-reveal><p class="eyebrow">Custo e prova</p><h2 class="h2">Números de execuções reais,<i>com a fonte ao lado.</i></h2></div>
-      <div class="cells cells--4" data-reveal-group style="margin-top:40px">
-        <div class="kpi kpi--save"><div class="kpi__label">Escritas no servidor</div><div class="kpi__n">0</div><div class="kpi__delta">conferido por teste de aceitação</div><div class="kpi__bar"><i style="--w:100%"></i></div></div>
-        <div class="kpi"><div class="kpi__label">Testes automatizados</div><div class="kpi__n">350+</div><div class="kpi__delta">41 arquivos, todos passando</div><div class="kpi__bar"><i style="--w:100%"></i></div></div>
-        <div class="kpi"><div class="kpi__label">12 casos de Excel</div><div class="kpi__n">≈ US$ 0,50</div><div class="kpi__delta">30 chamadas, 2 minutos, 1ª execução</div><div class="kpi__bar"><i style="--w:30%"></i></div></div>
-        <div class="kpi"><div class="kpi__label">Exploração de 8 telas</div><div class="kpi__n">23</div><div class="kpi__delta">chamadas ao modelo, ≈ 49 mil tokens de entrada</div><div class="kpi__bar"><i style="--w:23%"></i></div></div>
-      </div>
-      <p class="meta source" data-reveal>Fonte: execuções com claude-opus-5-5 contra apps de teste locais. A segunda execução dos mesmos casos faz 0 chamadas, porque os passos compilados ficam em cache. No Excel, 11 dos 12 casos coincidiram com o esperado e o restante saiu em revisão humana. Custos em escala de produto real ainda não foram medidos.</p>
-    </section>
-
-    <section class="section section--rule" id="comecar">
-      <div class="two">
-        <div class="stack" data-reveal>
-          <p class="eyebrow">Começar</p><h2 class="h2">Três comandos<i>e o primeiro relatório.</i></h2>
-          <p class="soft" style="max-width:52ch">Requer Node 20.12 ou superior. Sem chave de API, a exploração roda só com o crawler e as análises medidas, e o relatório avisa o que não rodou. Com SSO, salve a sessão uma vez com <span class="mono">qa-agent login</span>.</p>
-          <div class="row" style="margin-top:8px"><a class="btn" href="https://github.com/juliopessan/QA-Playwright" target="_blank" rel="noopener">Abrir no GitHub</a><a class="link" href="#faq">Perguntas frequentes <svg class="i i--16" aria-hidden="true"><use href="#i-arrow-right"/></svg></a></div>
-        </div>
-        <div class="codewrap" data-reveal><pre class="code" id="cmds" aria-label="Comandos de início rápido">npm install &amp;&amp; npm run build
+        <div class="codewrap" data-reveal><pre class="code" id="cmds" aria-label="Comandos do CLI">npm install &amp;&amp; npm run build
 <span class="c"># .env: APP_USER, APP_PASS, ANTHROPIC_API_KEY</span>
 node dist/cli/index.js explore https://app.exemplo.com
 node dist/cli/index.js publish &lt;runId&gt; --pr --repo dono/repo</pre><button class="btn btn--line btn--sm copy" type="button" id="copyBtn">Copiar</button></div>
@@ -228,24 +158,24 @@ node dist/cli/index.js publish &lt;runId&gt; --pr --repo dono/repo</pre><button 
     </section>
 
     <section class="section section--rule" id="faq">
-      <div class="stack" data-reveal><p class="eyebrow">Perguntas</p><h2 class="h2">Antes de apontar<i>para o seu SaaS.</i></h2></div>
+      <div class="stack" data-reveal><p class="eyebrow">Perguntas</p><h2 class="h2">Antes de colar<i>a sua URL.</i></h2></div>
       <div class="faq" data-reveal style="margin-top:32px">
-        <details><summary>Ele pode quebrar ou alterar dados em produção? <svg class="i" aria-hidden="true"><use href="#i-plus"/></svg></summary><p>Na exploração, não: as duas camadas bloqueiam escrita e um teste confere que nenhuma requisição de escrita chega ao servidor. O login é a única escrita permitida e acontece antes da trava entrar. Mesmo assim, prefira um ambiente de homologação para os fluxos de negócio, que escrevem de propósito.</p></details>
-        <details><summary>O que o modelo enxerga das minhas telas? <svg class="i" aria-hidden="true"><use href="#i-plus"/></svg></summary><p>Screenshots com campos de senha e seletores configurados cobertos, e texto da página com e-mails, CPFs e tokens redigidos. O conteúdo das páginas é tratado como dado não confiável, e nunca como instrução.</p></details>
-        <details><summary>Funciona com login corporativo (SSO)? <svg class="i" aria-hidden="true"><use href="#i-plus"/></svg></summary><p>Sim, por sessão salva: você faz o login uma vez com <span class="mono">qa-agent login</span> e o agente reutiliza a sessão. Login por formulário comum usa APP_USER e APP_PASS. MFA interativo no CI está fora do escopo.</p></details>
-        <details><summary>Posso usar outro modelo além do Claude? <svg class="i" aria-hidden="true"><use href="#i-plus"/></svg></summary><p>O modelo fica atrás de uma interface trocável, e o Claude é o padrão. Trocar exige escrever um adaptador pequeno para essa interface.</p></details>
-        <details><summary>Isso substitui o time de QA? <svg class="i" aria-hidden="true"><use href="#i-plus"/></svg></summary><p>Não. Ele faz a varredura repetitiva e entrega evidências organizadas; quem decide o que é um problema real e o que vira issue é a sua equipe, no PR. Em dúvida, o agente nunca aprova: marca para revisão humana.</p></details>
-        <details><summary>O que ainda não faz? <svg class="i" aria-hidden="true"><use href="#i-plus"/></svg></summary><p>Leituras via POST fora de GraphQL deixam a tela incompleta até a rota entrar na lista liberada, e o relatório aponta qual foi. O login heurístico pode falhar em telas incomuns. A qualidade da análise de UX foi vista só em um SaaS sintético, e o ponto de partida é um app de teste, não um produto real. Teste de carga, execução paralela e Jira ou Linear estão fora do escopo.</p></details>
+        <details><summary>A análise pode mudar algo no meu site? <svg class="i" aria-hidden="true"><use href="#i-plus"/></svg></summary><p>Não. Ela só lê páginas públicas, como um visitante anônimo: não faz login, não envia formulários e não clica em nada.</p></details>
+        <details><summary>Quanto tempo leva? <svg class="i" aria-hidden="true"><use href="#i-plus"/></svg></summary><p>Depende do site. A leitura, as medições e a revisão rodam numa única etapa, com limite de dois minutos. O andamento aparece logo abaixo do botão.</p></details>
+        <details><summary>O que o Claude recebe? <svg class="i" aria-hidden="true"><use href="#i-plus"/></svg></summary><p>O texto público das páginas lidas e alguns fatos medidos da página inicial. Nenhum dado de quem faz a análise.</p></details>
+        <details><summary>Por que algumas sugestões somem? <svg class="i" aria-hidden="true"><use href="#i-plus"/></svg></summary><p>Toda sugestão do Claude precisa citar um trecho que existe no site. As que não citam são descartadas, e o relatório diz quantas foram.</p></details>
+        <details><summary>Funciona em sistemas com login? <svg class="i" aria-hidden="true"><use href="#i-plus"/></svg></summary><p>Não pela web. Para telas autenticadas, use o CLI, que roda no seu ambiente com o seu usuário de teste.</p></details>
+        <details><summary>Há limite de uso? <svg class="i" aria-hidden="true"><use href="#i-plus"/></svg></summary><p>Sim: algumas análises a cada dez minutos por endereço de rede, para manter o serviço disponível para todos.</p></details>
       </div>
     </section>
 
     <section class="section section--rule">
-      <div class="stack" data-reveal><h2 class="h2">Pare de caçar tela por tela.<i>Revise evidências.</i></h2>
-        <div class="row" style="margin-top:28px"><a class="btn" href="#analisar">Analisar meu site</a><a class="link" href="https://github.com/juliopessan/QA-Playwright" target="_blank" rel="noopener">Ver o código no GitHub <svg class="i i--16" aria-hidden="true"><use href="#i-arrow-up-right"/></svg></a></div></div>
+      <div class="stack" data-reveal><h2 class="h2">Descubra o que seu site<i>está dizendo de verdade.</i></h2>
+        <div class="row" style="margin-top:28px"><a class="btn" href="#top" data-focus-url>Analisar meu site</a><a class="link" href="#como">Ver como funciona <svg class="i i--16" aria-hidden="true"><use href="#i-arrow-right"/></svg></a></div></div>
     </section>
   </main>
 
-  <footer class="foot"><span class="meta">© 2026 QA Agent. Números de execuções de teste, com fonte indicada na página.</span>
+  <footer class="foot"><span class="meta">© 2026 QA Agent · Análise somente leitura de páginas públicas.</span>
     <nav aria-label="Rodapé"><a href="demo/">App de teste</a><a href="#seguranca">Segurança</a><a href="#faq">Perguntas</a><button class="icon-btn" type="button" data-theme-toggle aria-label="Tema: automático. Alterar tema"><svg class="i" aria-hidden="true"><use href="#i-contrast"/></svg></button></nav></footer>
 </div>
 
@@ -265,16 +195,17 @@ node dist/cli/index.js publish &lt;runId&gt; --pr --repo dono/repo</pre><button 
   document.querySelectorAll('a[href^="#"]').forEach(function (a) { a.addEventListener('click', function (e) { var id = a.getAttribute('href').slice(1); var t = id && document.getElementById(id); if (t) { e.preventDefault(); t.scrollIntoView({ behavior: 'smooth' }); } }); });
 })();
 
-/* Análise pela web: POST /api/analyze com a URL; o relatório é montado nesta página. */
+/* Análise pela web: POST /api/analyze com a URL; o andamento aparece logo abaixo do botão e o relatório é montado nesta página. */
 (function () {
   'use strict';
   var L = window.Ledger, D = document;
   var $ = function (s) { return D.querySelector(s); };
   var form = $('#analyzeForm'); if (!form) return;
-  var VERBS = [['Lendo', 'Lido'], ['Medindo', 'Medido'], ['Revisando', 'Revisado'], ['Conferindo', 'Conferido']];
+  var VERBS = [['Lendo as páginas', 'Páginas lidas'], ['Medindo a resposta', 'Resposta medida'], ['Conferindo a segurança', 'Segurança conferida'], ['Revisando o conteúdo', 'Conteúdo revisado'], ['Montando o relatório', 'Relatório montado']];
+  var MIN_VISIBLE = 900;
   var SEV = { high: 'Alta', medium: 'Média', low: 'Baixa' };
   var CAT = { tecnico: 'Técnico', seguranca: 'Segurança', desempenho: 'Desempenho', seo: 'SEO', acessibilidade: 'Acessibilidade', ux: 'UX', conteudo: 'Conteúdo', confianca: 'Confiança' };
-  var busy = false, tick = null, started = 0;
+  var busy = false;
 
   function el(tag, cls, text) { var n = D.createElement(tag); if (cls) n.className = cls; if (text != null) n.textContent = text; return n; }
   function invalid(on, msg) {
@@ -282,13 +213,8 @@ node dist/cli/index.js publish &lt;runId&gt; --pr --repo dono/repo</pre><button 
     if (on) { f.setAttribute('data-invalid', ''); if (msg) $('#az-url-err').lastElementChild.textContent = msg; } else f.removeAttribute('data-invalid');
     $('#az-url').setAttribute('aria-invalid', on ? 'true' : 'false');
   }
-  function steps(n) {
-    $('#az-idle').hidden = true; $('#az-steps').hidden = false; $('#az-status').hidden = false;
-    D.querySelectorAll('#az-steps li').forEach(function (li, i) { li.classList.toggle('is-done', i < n); li.classList.toggle('is-on', i === n); });
-  }
-  function clock() { var s = Math.round((Date.now() - started) / 1000); $('#az-elapsed').textContent = s + ' s'; }
-  /* Respostas rápidas (ex.: URL recusada) chegam antes do verbo aparecer: o erro é escrito direto. */
-  function fail(run, msg) { try { run.stop(); } catch (e) {} var st = $('#az-status'); st.hidden = false; st.textContent = msg; L.tab.set({ state: 'error' }); }
+  function steps(n) { D.querySelectorAll('#az-steps li').forEach(function (li, i) { li.classList.toggle('is-done', i < n); li.classList.toggle('is-on', i === n); }); }
+  function wait(ms) { return new Promise(function (r) { setTimeout(r, ms); }); }
 
   function render(r) {
     var host = ''; try { host = new URL(r.finalUrl || r.url).host; } catch (e) {}
@@ -313,7 +239,9 @@ node dist/cli/index.js publish &lt;runId&gt; --pr --repo dono/repo</pre><button 
     $('#az-pages').textContent = r.pages.length ? 'Páginas lidas: ' + r.pages.map(function (p) { return p.url; }).join(' · ') : '';
     var n = $('#az-notes'); n.textContent = '';
     (r.notes || []).forEach(function (t) { n.appendChild(el('li', null, t)); });
-    $('#az-result').hidden = false; $('#az-result').focus({ preventScroll: true }); $('#az-result').scrollIntoView({ behavior: 'smooth', block: 'start' });
+    var box = $('#az-result'); box.hidden = false; L.motion && L.motion.scan && L.motion.scan(box);
+    box.querySelectorAll('[data-reveal]').forEach(function (x) { x.classList.add('is-in'); });
+    box.focus({ preventScroll: true }); box.scrollIntoView({ behavior: 'smooth', block: 'start' });
   }
 
   form.addEventListener('submit', function (e) {
@@ -322,29 +250,37 @@ node dist/cli/index.js publish &lt;runId&gt; --pr --repo dono/repo</pre><button 
     var url = $('#az-url').value.trim();
     invalid(false);
     if (!/^(https?:\/\/)?[^\s\/]+\.[^\s]{2,}/i.test(url)) { invalid(true, 'Informe a URL do site, como https://seusite.com.br.'); $('#az-url').focus(); return; }
-    busy = true; started = Date.now(); clock(); tick = setInterval(clock, 1000);
+    busy = true;
+    var t0 = Date.now();
     var host = url.replace(/^https?:\/\//i, '').split('/')[0];
     $('#az-host').textContent = host; $('#az-dot').className = 'dot dot--pulse'; $('#az-result').hidden = true;
     steps(0);
-    var stepTimers = [setTimeout(function () { steps(1); }, 6000), setTimeout(function () { steps(2); }, 14000)];
+    var tick = setInterval(function () { $('#az-elapsed').textContent = Math.round((Date.now() - t0) / 1000) + ' s'; }, 1000);
+    var stepTimers = [setTimeout(function () { steps(1); }, 5000), setTimeout(function () { steps(2); }, 12000)];
     L.tab.set({ title: 'Analisando ' + host, state: 'live' });
-    var run = L.verbs.start($('#az-status'), { set: VERBS, label: 'Análise em andamento', elapsed: false, keep: true });
+    /* O andamento começa na hora (sem atraso) e fica visível por um tempo mínimo, mesmo se a resposta for rápida. */
+    var live = L.verbs.start($('#az-live'), { set: VERBS, first: 'Lendo as páginas', delay: 0, minShow: MIN_VISIBLE, cycle: 2200, keep: true, label: 'Análise em andamento' });
     var req = fetch('/api/analyze', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ url: url }) })
-      .then(function (r) { return r.json().catch(function () { return {}; }).then(function (b) { return { status: r.status, b: b }; }); });
-    L.verbs.button($('#az-submit'), req, { set: [['Analisando', 'Analisado']] }).catch(function () {});
-    req.then(function (x) {
+      .then(function (r) { return r.json().catch(function () { return {}; }).then(function (b) { return { status: r.status, b: b }; }); })
+      .catch(function () { return { status: 0, b: { error: 'Sem conexão com o servidor. Confira a internet e tente de novo.' } }; });
+    L.verbs.button($('#az-submit'), Promise.all([req, wait(MIN_VISIBLE)]), { set: [['Analisando', 'Analisado']] }).catch(function () {});
+    Promise.all([req, wait(MIN_VISIBLE)]).then(function (all) {
+      var x = all[0];
       stepTimers.forEach(clearTimeout); clearInterval(tick); busy = false; $('#az-dot').className = 'dot';
       if (x.status !== 200) {
         var msg = x.b.error || 'Não foi possível analisar o site agora. Tente de novo.';
         if (x.b.field === 'url') invalid(true, msg);
-        fail(run, msg); return;
+        steps(-1); live.fail(msg); L.tab.set({ state: 'error' }); return;
       }
-      steps(3); run.done('Análise pronta'); L.tab.set({ title: 'QA Agent', state: 'idle' });
+      steps(3); live.done('Análise pronta em ' + Math.round((Date.now() - t0) / 1000) + ' s'); L.tab.set({ title: 'QA Agent', state: 'idle' });
       render(x.b);
-    }).catch(function () {
-      stepTimers.forEach(clearTimeout); clearInterval(tick); busy = false; $('#az-dot').className = 'dot';
-      fail(run, 'Sem conexão com o servidor. Confira a internet e tente de novo.');
     });
+  });
+
+  D.addEventListener('click', function (e) {
+    var a = e.target.closest && e.target.closest('[data-focus-url], #az-again');
+    if (!a) return;
+    setTimeout(function () { $('#az-url').focus({ preventScroll: true }); }, 400);
   });
 })();
 </script>

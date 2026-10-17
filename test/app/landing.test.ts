@@ -51,7 +51,7 @@ describe("landing page publicada", () => {
   it("abre na raiz com o título e o argumento principal, sem erros de script", async () => {
     const { page, errors } = await open();
     await expect(page.title()).resolves.toBe("QA Agent");
-    await expect(page.locator("h1").innerText()).resolves.toMatch(/seu SaaS inteiro, sem alterar um único dado/);
+    await expect(page.locator("h1").innerText()).resolves.toMatch(/qualquer site só com a URL/);
     await page.waitForTimeout(800);
     expect(errors).toEqual([]);
     await page.close();
@@ -164,9 +164,48 @@ describe("análise pela landing", () => {
     await page.getByRole("button", { name: "Analisar o site" }).click();
     await expect.poll(() => page.locator("#az-url").getAttribute("aria-invalid")).toBe("true");
     await expect(page.locator("#az-url-err").innerText()).resolves.toMatch(/sites públicos/);
-    await expect.poll(() => page.locator("#az-status").innerText()).toMatch(/sites públicos/);
+    await expect.poll(() => page.locator("#az-live").innerText()).toMatch(/sites públicos/);
     await expect(page.locator("#az-result").isVisible()).resolves.toBe(false);
     await page.close();
+  });
+
+  it("o andamento começa no clique: verbo visível já nos primeiros 300 ms, etapas avançam e o relatório aparece no fim", async () => {
+    let release!: () => void;
+    const gate = new Promise<void>((r) => (release = r));
+    const { page } = await open({ api: async (route) => { await gate; return json(route, 200, report); } });
+    await page.getByLabel("URL do site").fill("ukodelabs.com.br");
+    await page.getByRole("button", { name: "Analisar o site" }).click();
+    await page.waitForTimeout(300);
+    const live = page.locator("#az-live");
+    await expect(live.getAttribute("class")).resolves.toContain("verb--run");
+    await expect(live.locator(".verb__text").innerText()).resolves.toMatch(/Lendo as páginas/);
+    await expect(live.isVisible()).resolves.toBe(true);
+    await expect(page.locator("#az-submit").getAttribute("aria-busy")).resolves.toBe("true");
+    await expect(page.locator('#az-steps li[data-step="1"]').getAttribute("class")).resolves.toContain("is-on");
+    await expect(page.locator("#az-host").innerText()).resolves.toBe("ukodelabs.com.br");
+    release();
+    await expect.poll(() => page.locator("#az-result").isVisible()).toBe(true);
+    await expect.poll(() => live.innerText()).toMatch(/Análise pronta em \d+ s/);
+    await page.close();
+  });
+
+  it("erro rápido (ex.: análise não configurada) aparece depois do verbo, legível nos dois temas", async () => {
+    for (const scheme of ["light", "dark"] as const) {
+      const { page } = await open({ scheme, api: (r) => json(r, 503, { error: "A análise ainda não foi configurada neste site." }) });
+      await page.getByLabel("URL do site").fill("ukodelabs.com.br");
+      await page.getByRole("button", { name: "Analisar o site" }).click();
+      await page.waitForTimeout(200);
+      await expect(page.locator("#az-live").getAttribute("class")).resolves.toContain("verb--run");
+      await expect.poll(() => page.locator("#az-live").innerText()).toMatch(/não foi configurada/);
+      const c = await page.locator("#az-live").evaluate((el) => {
+        const lum = (rgb: string) => { const [r, g, b] = rgb.match(/\d+/g)!.map(Number).map((v) => v / 255).map((v) => (v <= 0.03928 ? v / 12.92 : ((v + 0.055) / 1.055) ** 2.4)); return 0.2126 * r + 0.7152 * g + 0.0722 * b; };
+        const fg = lum(getComputedStyle(el).color), bg = lum(getComputedStyle(document.body).backgroundColor);
+        return (Math.max(fg, bg) + 0.05) / (Math.min(fg, bg) + 0.05);
+      });
+      expect(c, scheme).toBeGreaterThan(4.5);
+      await expect.poll(() => page.locator("#az-submit").getAttribute("aria-busy")).toBeNull();
+      await page.close();
+    }
   });
 });
 
