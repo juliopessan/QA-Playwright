@@ -3,7 +3,7 @@ import type { MaskedImage } from "../masking/image.js";
 import type { Usage } from "../types/index.js";
 
 export interface LLMRequest<T> {
-  task: "compile" | "heal" | "judge";
+  task: "compile" | "heal" | "judge" | "deepen" | "ux" | "flow";
   system: string;
   prompt: string;
   /** Só imagens já mascaradas chegam ao modelo. */

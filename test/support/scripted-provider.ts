@@ -12,6 +12,9 @@ const DEFAULTS: Record<string, unknown> = {
   compile: { kind: "action", actions: [], confidence: 0, subjective: false },
   heal: { actions: [], note: "sem solução" },
   judge: { verdict: "uncertain", evidence: "" },
+  deepen: { elements: [] },
+  ux: { findings: [] },
+  flow: { done: false, giveUp: true, reason: "sem regra" },
 };
 
 /** Provedor falso dirigido por regras: determinístico e sem rede. */
