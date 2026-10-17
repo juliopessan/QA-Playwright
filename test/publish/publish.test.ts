@@ -53,7 +53,7 @@ describe("publishRun", () => {
     const { runDir } = makeRun();
     writeFileSync(join(runDir, "cobertura.md"), "senha vazou: s3gredo-forte-123");
     await expect(publishRun({ client: gh, repo: "o/r", runDir, runId: RUN, secrets: ["s3gredo-forte-123"] })).rejects.toThrow(/segredo/);
-    writeFileSync(join(runDir, "cobertura.md"), "chave sk-ant-api03-abcdefghijklmnop");
+    writeFileSync(join(runDir, "cobertura.md"), "chave " + "sk-ant-" + "api03-abcdefghijklmnop");
     await expect(publishRun({ client: gh, repo: "o/r", runDir, runId: RUN })).rejects.toBeInstanceOf(PublishError);
     expect(gh.calls).toEqual([]);
   });

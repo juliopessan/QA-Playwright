@@ -96,6 +96,13 @@ describe("Aprofundador", () => {
   }, 120_000);
 });
 
+describe("Aprofundador: só o que revela conteúdo na própria tela", () => {
+  it("links sugeridos pelo modelo são ignorados (o crawler os visita), sem criar subestados", async () => {
+    const r = await explore(opts(hookWith(provider({ deepen: () => ({ elements: [{ role: "link", name: "Projetos", reason: "navegar" }] }) })), { limits: { maxScreens: 2, maxDepth: 1, timeBudgetMs: 60_000, examplesPerRoute: 1 } }));
+    expect(r.screens.every((s) => s.states.length === 0)).toBe(true);
+  }, 120_000);
+});
+
 describe("análise de UX", () => {
   const ux = {
     findings: [
@@ -123,6 +130,20 @@ describe("análise de UX", () => {
     expect(call.images![0].mediaType).toBe("image/jpeg");
     expect(call.prompt).toContain("<tela-nao-confiavel>");
     expect(r.findings.filter((f) => f.category === "ux")).toHaveLength(5);
+  }, 120_000);
+
+  it("não repete achados já reportados e descarta confiança baixa", async () => {
+    const seq = { findings: [
+      { title: "Menu sem item ativo", description: "d", severity: "low", evidence: "menu lateral igual em todos os itens", confidence: 0.8 },
+      { title: "Palpite fraco", description: "d", severity: "low", evidence: "talvez", confidence: 0.3 },
+    ] };
+    const p = provider({ ux: seq });
+    const r = await explore(opts(hookWith(p, { ux: true }), { limits: { maxScreens: 3, maxDepth: 1, timeBudgetMs: 60_000, examplesPerRoute: 1 } }));
+    const calls = p.calls.filter((c) => c.task === "ux");
+    expect(calls.length).toBe(3);
+    expect(calls[0].prompt).toMatch(/<ja-reportados>\n\(nenhum\)/);
+    expect(calls[1].prompt).toContain("Menu sem item ativo");
+    expect(r.findings.some((f) => /Palpite fraco/.test(f.title))).toBe(false);
   }, 120_000);
 
   it("sem a opção ux, nenhuma chamada de UX é feita", async () => {

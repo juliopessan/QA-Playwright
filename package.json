@@ -13,6 +13,7 @@
     "typecheck": "tsc -p tsconfig.test.json",
     "demo": "vite-node scripts/demo.ts",
     "test-app": "vite-node scripts/serve-app.ts",
+    "test-saas": "vite-node scripts/serve-saas.ts",
     "build:web": "vite-node scripts/build-web-cli.ts"
   },
   "engines": {

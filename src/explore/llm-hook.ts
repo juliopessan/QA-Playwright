@@ -22,6 +22,7 @@ export function makeScreenHook(o: ScreenHookOptions): (ctx: ScreenContext) => Pr
   let disabled = false;
   let failures = 0;
   const noted = new Set<string>();
+  const reportedUx: string[] = [];
 
   return async (ctx) => {
     if (disabled || !ctx.first) return;
@@ -58,9 +59,10 @@ export function makeScreenHook(o: ScreenHookOptions): (ctx: ScreenContext) => Pr
 
     if (o.ux && !disabled) {
       try {
-        const { findings, usage: u } = await uxFindings(ctx.page, { id: ctx.screen.id, routePattern: ctx.screen.routePattern, path: ctx.screen.path, heading: ctx.screen.heading }, { provider: o.provider, maskSelectors: o.maskSelectors });
+        const { findings, usage: u } = await uxFindings(ctx.page, { id: ctx.screen.id, routePattern: ctx.screen.routePattern, path: ctx.screen.path, heading: ctx.screen.heading }, { provider: o.provider, maskSelectors: o.maskSelectors, alreadyReported: reportedUx });
         usage = addUsage(usage, u);
         out.findings.push(...findings);
+        reportedUx.push(...findings.map((f) => f.title));
         failures = 0;
       } catch (e) {
         fail(e, "UX");
