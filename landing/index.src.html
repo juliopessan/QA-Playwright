@@ -38,6 +38,15 @@
 #az-panel .list li.is-done .i{color:var(--mint)}
 #az-panel .btn{background:var(--panel-text);color:var(--panel)}
 #az-status{color:var(--panel-text)}
+.af{border-top:1px solid var(--line-strong);padding:20px 0;display:grid;grid-template-columns:120px minmax(0,1fr);gap:8px 24px}
+.af:last-child{border-bottom:1px solid var(--line-strong)}
+.af__sev{font:500 12px/1.4 var(--f-mono);display:flex;flex-direction:column;gap:6px}
+.af__sev b{display:inline-block;padding:2px 6px;border:1px solid var(--ink);font-weight:600;width:max-content}
+.af--high .af__sev b{border-color:var(--orange-ink);color:var(--orange-ink)}
+.af h4{margin:0 0 6px;font:600 17px/1.35 var(--f-grotesk)}
+.af p{margin:4px 0;overflow-wrap:anywhere}
+.af q{font-family:var(--f-mono);font-size:13px;background:var(--paper-2);padding:1px 4px}
+@media (max-width:640px){.af{grid-template-columns:1fr}}
 /* A palavra que entra cobre a que sai: sem fundo, as duas apareciam sobrepostas durante a troca. */
 .roll__w{background:var(--paper)}
 @media (max-width:560px){.mast__nav a:nth-child(-n+3){display:none}}
@@ -61,7 +70,7 @@
       <div>
         <p class="eyebrow reveal" style="--d:.05s">QA agêntico para SaaS</p>
         <h1 class="display reveal" style="--d:.16s" tabindex="-1"><span class="roll" data-roll="Explore|Meça|Documente">Explore</span><i class="wipe">seu SaaS inteiro, sem alterar um único dado.</i></h1>
-        <p class="lede reveal" style="--d:.27s">Cole a URL e o login logo abaixo. O QA Agent descobre as telas, fotografa cada uma, mede erros, acessibilidade e desempenho e entrega uma pasta de evidências que sua engenharia revisa num pull request. Na execução de amostra ao lado, ele mapeou 8 de 8 telas e nenhuma requisição de escrita chegou ao servidor.</p>
+        <p class="lede reveal" style="--d:.27s">Cole a URL logo abaixo para uma análise em menos de um minuto. Para ir fundo, o CLI descobre todas as telas, fotografa cada uma, mede erros, acessibilidade e desempenho e entrega uma pasta de evidências que sua engenharia revisa num pull request. Na execução de amostra ao lado, ele mapeou 8 de 8 telas e nenhuma requisição de escrita chegou ao servidor.</p>
         <div class="row reveal" style="--d:.38s">
           <a class="btn" href="#analisar">Analisar meu site</a>
           <a class="link" href="#entrega">Ver o que sai no relatório <svg class="i i--16" aria-hidden="true"><use href="#i-arrow-right"/></svg></a>
@@ -83,37 +92,34 @@
     <section class="section section--rule" id="analisar">
       <div class="two">
         <div class="stack" data-reveal>
-          <p class="eyebrow">Analisar agora</p><h2 class="h2">Cole a URL.<i>Receba o relatório.</i></h2>
-          <p class="soft" style="max-width:56ch">O agente roda a análise completa: descobre as telas em modo somente leitura, mede erros, acessibilidade e desempenho, avalia a UX com o Claude e monta o relatório com screenshots. Leva de 5 a 20 minutos, conforme o tamanho do site.</p>
+          <p class="eyebrow">Analisar agora</p><h2 class="h2">Cole a URL.<i>Receba a análise.</i></h2>
+          <p class="soft" style="max-width:56ch">O agente lê a página inicial e as páginas internas, mede segurança, desempenho, SEO e acessibilidade e revisa o conteúdo com o Claude. Leva menos de um minuto e não envia formulários nem faz login.</p>
           <form id="analyzeForm" class="gstack" style="gap:16px;margin-top:16px" novalidate>
-            <div class="field"><label for="az-url">URL do site</label><input class="input" id="az-url" name="url" type="url" inputmode="url" autocomplete="url" autocapitalize="none" spellcheck="false" placeholder="https://app.exemplo.com" aria-describedby="az-url-err" required><p class="field-error" id="az-url-err"><svg class="i i--16" aria-hidden="true"><use href="#i-error"/></svg><span>Informe a URL completa, como https://app.exemplo.com.</span></p></div>
-            <div class="cells cells--2" style="border:0;background:none;gap:16px">
-              <div class="field" style="padding:0"><label for="az-user">Usuário do site</label><input class="input" id="az-user" name="user" autocomplete="off" autocapitalize="none" spellcheck="false" placeholder="qa@empresa.com" aria-describedby="az-cred-hint az-user-err"><p class="field-error" id="az-user-err"><svg class="i i--16" aria-hidden="true"><use href="#i-error"/></svg><span>Usuário inválido.</span></p></div>
-              <div class="field" style="padding:0"><label for="az-pass">Senha do site</label><div class="input-wrap"><input class="input" id="az-pass" name="pass" type="password" autocomplete="off" aria-describedby="az-cred-hint az-pass-err"><button class="icon-btn" type="button" data-toggle-pw="#az-pass" aria-label="Mostrar senha" aria-pressed="false"><svg class="i" aria-hidden="true"><use href="#i-eye"/></svg></button></div><p class="field-error" id="az-pass-err"><svg class="i i--16" aria-hidden="true"><use href="#i-error"/></svg><span>Senha inválida.</span></p></div>
-            </div>
-            <p class="hint" id="az-cred-hint">Deixe em branco se o site não tem login. Prefira um usuário de teste num ambiente de homologação.</p>
-            <div class="field"><label for="az-code">Código de acesso</label><input class="input" id="az-code" name="code" autocomplete="off" autocapitalize="characters" spellcheck="false" aria-describedby="az-code-hint az-code-err" required><p class="hint" id="az-code-hint">Cada análise usa o Claude e um navegador na nuvem; o código controla quem pode rodar.</p><p class="field-error" id="az-code-err"><svg class="i i--16" aria-hidden="true"><use href="#i-error"/></svg><span>Informe o código de acesso que você recebeu.</span></p></div>
-            <div class="field"><label class="check" for="az-auth"><input type="checkbox" id="az-auth" name="authorized" aria-describedby="az-auth-err"> Tenho autorização para testar este site.</label><p class="field-error" id="az-auth-err"><svg class="i i--16" aria-hidden="true"><use href="#i-error"/></svg><span>Confirme que você tem autorização para testar este site.</span></p></div>
-            <p class="field-error" id="az-form-err" role="alert" style="display:none"><svg class="i i--16" aria-hidden="true"><use href="#i-error"/></svg><span></span></p>
+            <div class="field"><label for="az-url">URL do site</label><input class="input" id="az-url" name="url" type="text" inputmode="url" autocomplete="url" autocapitalize="none" spellcheck="false" placeholder="https://seusite.com.br" aria-describedby="az-url-hint az-url-err" required><p class="hint" id="az-url-hint">Só sites públicos. A análise é somente leitura.</p><p class="field-error" id="az-url-err" role="alert"><svg class="i i--16" aria-hidden="true"><use href="#i-error"/></svg><span>Informe a URL do site, como https://seusite.com.br.</span></p></div>
             <div class="row"><button class="btn" type="submit" id="az-submit">Analisar o site</button></div>
           </form>
         </div>
-        <aside class="panel" data-reveal aria-label="Andamento da análise" aria-live="polite" id="az-panel">
-          <div class="panel__head"><span class="dot" id="az-dot"></span><span class="title">Análise</span><span class="meta" id="az-host">nenhuma em andamento</span></div>
-          <div class="panel__body" id="az-body">
-            <p id="az-idle" style="margin:0;color:var(--panel-text-soft)">O andamento aparece aqui depois do envio. Você pode deixar esta aba aberta enquanto o agente trabalha.</p>
-            <p id="az-status" style="margin:0" hidden></p>
+        <aside class="panel" data-reveal aria-label="Andamento da análise" id="az-panel">
+          <div class="panel__head"><span class="dot" id="az-dot"></span><span class="title">Análise</span><span class="meta" id="az-host">aguardando URL</span></div>
+          <div class="panel__body">
+            <p id="az-idle" style="margin:0;color:var(--panel-text-soft)">O resultado aparece logo abaixo do formulário.</p>
+            <p id="az-status" style="margin:0" aria-live="polite" hidden></p>
             <ol id="az-steps" class="list" style="margin:0" hidden>
-              <li data-step="queued"><svg class="i i--16" aria-hidden="true"><use href="#i-calendar"/></svg><span>Na fila do GitHub Actions</span></li>
-              <li data-step="running"><svg class="i i--16" aria-hidden="true"><use href="#i-agent"/></svg><span>Explorando e analisando as telas</span></li>
-              <li data-step="done"><svg class="i i--16" aria-hidden="true"><use href="#i-receipt"/></svg><span>Relatório pronto</span></li>
+              <li data-step="1"><svg class="i i--16" aria-hidden="true"><use href="#i-search"/></svg><span>Lendo as páginas com o Exa</span></li>
+              <li data-step="2"><svg class="i i--16" aria-hidden="true"><use href="#i-shield"/></svg><span>Medindo segurança, desempenho e acessibilidade</span></li>
+              <li data-step="3"><svg class="i i--16" aria-hidden="true"><use href="#i-agent"/></svg><span>Revisando o conteúdo com o Claude</span></li>
             </ol>
           </div>
-          <div class="stats" id="az-summary" hidden><div><div class="stat__n" id="az-screens">0</div><div class="stat__l">telas</div></div><div><div class="stat__n" id="az-findings">0</div><div class="stat__l">achados</div></div></div>
-          <div class="panel__body" id="az-actions" hidden><a class="btn" id="az-report" href="#" target="_blank" rel="noopener">Abrir o relatório</a></div>
-          <p class="note"><span class="flag" aria-hidden="true">✓</span><span>As credenciais seguem cifradas para a execução, ficam mascaradas nos logs e não são gravadas. O relatório fica disponível por 7 dias, só para quem tem o link.</span></p>
+          <p class="note"><span class="flag" aria-hidden="true">✓</span><span>Medições objetivas e opinião do agente aparecem separadas. Cada sugestão do Claude cita um trecho real do site.</span></p>
           <div class="panel__foot"><span>somente leitura</span><span id="az-elapsed">—</span></div>
         </aside>
+      </div>
+      <div id="az-result" class="gstack" style="margin-top:40px;gap:24px" hidden tabindex="-1" aria-labelledby="az-result-h">
+        <div class="stack"><p class="eyebrow">Resultado</p><h3 class="h2" id="az-result-h" style="font-size:clamp(24px,3vw,32px)"></h3><p class="soft" id="az-summary" style="max-width:70ch"></p></div>
+        <div class="cells cells--4" id="az-kpis"></div>
+        <div id="az-findings" class="gstack" style="gap:0"></div>
+        <div id="az-pages" class="meta"></div>
+        <ul id="az-notes" class="list meta" style="margin:0"></ul>
       </div>
     </section>
 
@@ -259,102 +265,87 @@ node dist/cli/index.js publish &lt;runId&gt; --pr --repo dono/repo</pre><button 
   document.querySelectorAll('a[href^="#"]').forEach(function (a) { a.addEventListener('click', function (e) { var id = a.getAttribute('href').slice(1); var t = id && document.getElementById(id); if (t) { e.preventDefault(); t.scrollIntoView({ behavior: 'smooth' }); } }); });
 })();
 
-/* Análise pela web: /api/analyze dispara, /api/status acompanha, /api/report mostra o resultado. */
+/* Análise pela web: POST /api/analyze com a URL; o relatório é montado nesta página. */
 (function () {
   'use strict';
   var L = window.Ledger, D = document;
   var $ = function (s) { return D.querySelector(s); };
   var form = $('#analyzeForm'); if (!form) return;
-  var KEY = 'qa-agent-analise';
-  var VERBS = [['Explorando', 'Explorado'], ['Fotografando', 'Fotografado'], ['Medindo', 'Medido'], ['Analisando', 'Analisado'], ['Documentando', 'Documentado']];
-  var poll = null, run = null, started = 0, tick = null;
+  var VERBS = [['Lendo', 'Lido'], ['Medindo', 'Medido'], ['Revisando', 'Revisado'], ['Conferindo', 'Conferido']];
+  var SEV = { high: 'Alta', medium: 'Média', low: 'Baixa' };
+  var CAT = { tecnico: 'Técnico', seguranca: 'Segurança', desempenho: 'Desempenho', seo: 'SEO', acessibilidade: 'Acessibilidade', ux: 'UX', conteudo: 'Conteúdo', confianca: 'Confiança' };
+  var busy = false, tick = null, started = 0;
 
-  function store(v) { try { if (v) sessionStorage.setItem(KEY, JSON.stringify(v)); else sessionStorage.removeItem(KEY); } catch (e) {} }
-  function load() { try { return JSON.parse(sessionStorage.getItem(KEY) || 'null'); } catch (e) { return null; } }
-  function field(id, on) { var el = $('#' + id); var f = el.closest('.field'); if (on) f.setAttribute('data-invalid', ''); else f.removeAttribute('data-invalid'); el.setAttribute('aria-invalid', on ? 'true' : 'false'); return on; }
-  function formError(msg) { var e = $('#az-form-err'); e.style.display = msg ? 'flex' : 'none'; e.lastElementChild.textContent = msg || ''; }
-  var FIELD = { url: 'az-url', user: 'az-user', pass: 'az-pass', code: 'az-code', authorized: 'az-auth' };
-
-  function validate() {
-    var bad = [];
-    ['az-url', 'az-code', 'az-auth', 'az-user', 'az-pass'].forEach(function (id) { field(id, false); });
-    var u = $('#az-url').value.trim();
-    if (field('az-url', !/^https?:\/\/[^\s/]+\.[^\s]+/i.test(u))) bad.push('az-url');
-    if (field('az-code', !$('#az-code').value.trim())) bad.push('az-code');
-    if (field('az-auth', !$('#az-auth').checked)) bad.push('az-auth');
-    formError(bad.length ? 'Corrija ' + bad.length + (bad.length > 1 ? ' campos' : ' campo') + ' para continuar.' : '');
-    if (bad.length) $('#' + bad[0]).focus();
-    return !bad.length;
+  function el(tag, cls, text) { var n = D.createElement(tag); if (cls) n.className = cls; if (text != null) n.textContent = text; return n; }
+  function invalid(on, msg) {
+    var f = $('#az-url').closest('.field');
+    if (on) { f.setAttribute('data-invalid', ''); if (msg) $('#az-url-err').lastElementChild.textContent = msg; } else f.removeAttribute('data-invalid');
+    $('#az-url').setAttribute('aria-invalid', on ? 'true' : 'false');
   }
-
-  function show(state, info) {
-    info = info || {};
+  function steps(n) {
     $('#az-idle').hidden = true; $('#az-steps').hidden = false; $('#az-status').hidden = false;
-    var order = ['queued', 'running', 'done'];
-    var at = state === 'failed' ? -1 : order.indexOf(state);
-    D.querySelectorAll('#az-steps li').forEach(function (li, i) { li.classList.toggle('is-done', at > i || state === 'done'); li.classList.toggle('is-on', at === i && state !== 'done'); });
-    $('#az-dot').className = state === 'done' || state === 'failed' ? 'dot' : 'dot dot--pulse';
-    if (info.host) $('#az-host').textContent = info.host;
-    if (state === 'done') {
-      if (info.summary) { $('#az-screens').textContent = info.summary.screens; $('#az-findings').textContent = info.summary.findings; $('#az-summary').hidden = false; }
-      $('#az-report').href = info.reportUrl; $('#az-actions').hidden = false;
-    }
+    D.querySelectorAll('#az-steps li').forEach(function (li, i) { li.classList.toggle('is-done', i < n); li.classList.toggle('is-on', i === n); });
   }
+  function clock() { var s = Math.round((Date.now() - started) / 1000); $('#az-elapsed').textContent = s + ' s'; }
+  /* Respostas rápidas (ex.: URL recusada) chegam antes do verbo aparecer: o erro é escrito direto. */
+  function fail(run, msg) { try { run.stop(); } catch (e) {} var st = $('#az-status'); st.hidden = false; st.textContent = msg; L.tab.set({ state: 'error' }); }
 
-  function clock() { if (!started) return; var s = Math.round((Date.now() - started) / 1000); $('#az-elapsed').textContent = Math.floor(s / 60) + ' min ' + (s % 60) + ' s'; }
-
-  function finish() { clearTimeout(poll); clearInterval(tick); poll = null; $('#az-submit').removeAttribute('aria-disabled'); }
-
-  function check(job, delay) {
-    poll = setTimeout(function () {
-      fetch('/api/status?id=' + encodeURIComponent(job.id) + '&t=' + encodeURIComponent(job.token)).then(function (r) {
-        return r.json().then(function (b) { return { ok: r.ok, b: b }; });
-      }).then(function (x) {
-        if (!x.ok) { check(job, 15000); return; }
-        var b = x.b;
-        if (b.state === 'done') {
-          finish(); show('done', { summary: b.summary, reportUrl: b.reportUrl });
-          if (run) run.done('Relatório pronto'); L.tab.set({ state: 'idle' }); store(null);
-          L.toast('Análise concluída. Abra o relatório.', { kind: 'ok' });
-        } else if (b.state === 'failed') {
-          finish(); show('failed'); if (run) run.fail(b.error); L.tab.set({ state: 'error' }); store(null);
-        } else { show(b.state); check(job, 10000); }
-      }).catch(function () { check(job, 15000); });
-    }, delay);
-  }
-
-  function follow(job) {
-    started = job.startedAt || Date.now(); clock(); clearInterval(tick); tick = setInterval(clock, 1000);
-    show('queued', { host: job.host });
-    $('#az-submit').setAttribute('aria-disabled', 'true');
-    L.tab.set({ title: 'Analisando ' + job.host, state: 'live' });
-    run = L.verbs.start($('#az-status'), { set: VERBS, label: 'Análise em andamento', elapsed: false, keep: true });
-    check(job, 4000);
+  function render(r) {
+    var host = ''; try { host = new URL(r.finalUrl || r.url).host; } catch (e) {}
+    $('#az-result-h').textContent = 'Análise de ' + host;
+    $('#az-summary').textContent = r.summary || '';
+    var k = $('#az-kpis'); k.textContent = '';
+    [['Páginas lidas', String(r.pages.length)], ['Achados', String(r.findings.length)], ['Gravidade alta', String(r.counts.high)], ['Resposta do HTML', r.responseMs != null ? (r.responseMs / 1000).toFixed(1).replace('.', ',') + ' s' : '—']].forEach(function (x) {
+      var c = el('div', 'kpi'); c.appendChild(el('div', 'kpi__label', x[0])); c.appendChild(el('div', 'kpi__n', x[1])); k.appendChild(c);
+    });
+    var list = $('#az-findings'); list.textContent = '';
+    if (!r.findings.length) list.appendChild(el('p', 'soft', 'Nenhum problema encontrado nas checagens feitas.'));
+    r.findings.forEach(function (f) {
+      var a = el('article', 'af af--' + f.severity);
+      var side = el('div', 'af__sev'); side.appendChild(el('b', null, SEV[f.severity] || f.severity)); side.appendChild(el('span', null, CAT[f.category] || f.category)); side.appendChild(el('span', null, f.origin === 'agent' ? 'opinião do agente' : 'medido'));
+      var body = el('div'); body.appendChild(el('h4', null, f.title));
+      if (f.description) body.appendChild(el('p', 'soft', f.description));
+      var ev = el('p'); ev.appendChild(D.createTextNode('Evidência: ')); ev.appendChild(el('q', null, f.evidence)); body.appendChild(ev);
+      if (f.suggestion) body.appendChild(el('p', null, 'Sugestão: ' + f.suggestion));
+      if (f.page) body.appendChild(el('p', 'meta', f.page));
+      a.appendChild(side); a.appendChild(body); list.appendChild(a);
+    });
+    $('#az-pages').textContent = r.pages.length ? 'Páginas lidas: ' + r.pages.map(function (p) { return p.url; }).join(' · ') : '';
+    var n = $('#az-notes'); n.textContent = '';
+    (r.notes || []).forEach(function (t) { n.appendChild(el('li', null, t)); });
+    $('#az-result').hidden = false; $('#az-result').focus({ preventScroll: true }); $('#az-result').scrollIntoView({ behavior: 'smooth', block: 'start' });
   }
 
   form.addEventListener('submit', function (e) {
     e.preventDefault();
-    if (poll || $('#az-submit').getAttribute('aria-disabled') === 'true') return;
-    if (!validate()) return;
-    var body = { url: $('#az-url').value.trim(), user: $('#az-user').value, pass: $('#az-pass').value, code: $('#az-code').value.trim(), authorized: $('#az-auth').checked };
-    var req = fetch('/api/analyze', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) })
+    if (busy) return;
+    var url = $('#az-url').value.trim();
+    invalid(false);
+    if (!/^(https?:\/\/)?[^\s\/]+\.[^\s]{2,}/i.test(url)) { invalid(true, 'Informe a URL do site, como https://seusite.com.br.'); $('#az-url').focus(); return; }
+    busy = true; started = Date.now(); clock(); tick = setInterval(clock, 1000);
+    var host = url.replace(/^https?:\/\//i, '').split('/')[0];
+    $('#az-host').textContent = host; $('#az-dot').className = 'dot dot--pulse'; $('#az-result').hidden = true;
+    steps(0);
+    var stepTimers = [setTimeout(function () { steps(1); }, 6000), setTimeout(function () { steps(2); }, 14000)];
+    L.tab.set({ title: 'Analisando ' + host, state: 'live' });
+    var run = L.verbs.start($('#az-status'), { set: VERBS, label: 'Análise em andamento', elapsed: false, keep: true });
+    var req = fetch('/api/analyze', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ url: url }) })
       .then(function (r) { return r.json().catch(function () { return {}; }).then(function (b) { return { status: r.status, b: b }; }); });
-    L.verbs.button($('#az-submit'), req, { set: [['Enviando', 'Enviado']] }).then(function () {
-      return req.then(function (x) {
-        if (x.status !== 202) {
-          if (x.b.field && FIELD[x.b.field]) { field(FIELD[x.b.field], true); $('#' + FIELD[x.b.field]).focus(); }
-          formError(x.b.error || 'Não foi possível iniciar a análise. Tente de novo.');
-          return;
-        }
-        $('#az-pass').value = '';
-        var host = ''; try { host = new URL(x.b.url).host; } catch (er) {}
-        var job = { id: x.b.id, token: x.b.token, host: host, startedAt: Date.now() };
-        store(job); follow(job);
-      });
-    }).catch(function () { formError('Sem conexão com o servidor. Confira a internet e tente de novo.'); });
+    L.verbs.button($('#az-submit'), req, { set: [['Analisando', 'Analisado']] }).catch(function () {});
+    req.then(function (x) {
+      stepTimers.forEach(clearTimeout); clearInterval(tick); busy = false; $('#az-dot').className = 'dot';
+      if (x.status !== 200) {
+        var msg = x.b.error || 'Não foi possível analisar o site agora. Tente de novo.';
+        if (x.b.field === 'url') invalid(true, msg);
+        fail(run, msg); return;
+      }
+      steps(3); run.done('Análise pronta'); L.tab.set({ title: 'QA Agent', state: 'idle' });
+      render(x.b);
+    }).catch(function () {
+      stepTimers.forEach(clearTimeout); clearInterval(tick); busy = false; $('#az-dot').className = 'dot';
+      fail(run, 'Sem conexão com o servidor. Confira a internet e tente de novo.');
+    });
   });
-
-  var saved = load(); if (saved && saved.id && saved.token) follow(saved);
 })();
 </script>
 </body>
