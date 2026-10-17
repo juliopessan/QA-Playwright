@@ -4,7 +4,7 @@ import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { chromium, type Browser, type Page } from "playwright";
 import { startTestApp } from "./server.js";
-import { buildWeb, credentialsFromEnv, credentialsFromFile, generateCredentials, writeEnvWeb } from "../../scripts/build-web.js";
+import { buildSite, buildWeb, credentialsFromEnv, credentialsFromFile, generateCredentials, writeEnvWeb } from "../../scripts/build-web.js";
 
 let browser: Browser;
 beforeAll(async () => {
@@ -32,6 +32,30 @@ describe("generateCredentials", () => {
     expect(a.pass.length).toBeGreaterThanOrEqual(16);
     expect(a.pass).not.toEqual(b.pass);
   });
+});
+
+describe("buildSite", () => {
+  it("põe a landing na raiz e o app de teste em demo/, que funciona logado", async () => {
+    const out = mkdtempSync(join(tmpdir(), "qa-site-"));
+    buildSite({ outDir: out, creds, landing: "landing/index.html" });
+    const home = readFileSync(join(out, "index.html"), "utf8");
+    expect(home).toContain("<title>QA Agent</title>");
+    expect(home).toContain('href="demo/"');
+    expect(readFileSync(join(out, "demo/index.html"), "utf8")).toContain("<h1>QA Agent</h1>");
+    expect(readFileSync(join(out, "demo/config.js"), "utf8")).toContain(creds.user);
+    const app = await startTestApp(0, out);
+    try {
+      const page = await browser.newPage();
+      await page.goto(`${app.url}/index.html`);
+      await page.getByRole("link", { name: "App de teste" }).first().click();
+      await page.waitForURL("**/demo/");
+      await login(page, `${app.url}/demo/index.html`, creds.user, creds.pass);
+      await page.waitForURL("**/demo/inventory.html");
+      await page.close();
+    } finally {
+      await app.close();
+    }
+  }, 60_000);
 });
 
 describe("buildWeb", () => {

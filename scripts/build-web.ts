@@ -65,6 +65,17 @@ window.APP_CONFIG = {
   writeFileSync(join(opts.outDir, "config.js"), config);
 }
 
+/**
+ * Site publicado: a landing page na raiz e o app de teste em `demo/` (o app só usa caminhos relativos).
+ * O QA Agent testa o app em `<url>/demo/index.html`.
+ */
+export function buildSite(opts: { outDir: string; creds: WebCredentials; landing: string }): void {
+  rmSync(opts.outDir, { recursive: true, force: true });
+  buildWeb({ outDir: join(opts.outDir, "demo"), creds: opts.creds });
+  cpSync(opts.landing, join(opts.outDir, "index.html"));
+  writeFileSync(join(opts.outDir, ".nojekyll"), "");
+}
+
 export function writeEnvWeb(file: string, creds: WebCredentials, apiKey?: string): void {
   const lines = [
     "# Gerado por npm run build:web: credenciais do app de teste publicado. Não versionar.",
