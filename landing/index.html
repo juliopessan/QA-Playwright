@@ -1,0 +1,1029 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>QA Agent</title>
+<meta name="description" content="QA agêntico para SaaS: explora em modo somente leitura, fotografa cada tela, mede erros, acessibilidade e desempenho, e entrega a documentação num PR.">
+<meta name="ledger:letter" content="Q">
+<meta name="ledger:product" content="QA Agent">
+<meta name="theme-color" content="#F1EEE5" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#151310" media="(prefers-color-scheme: dark)">
+<link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 32 32%22%3E %3Cstyle%3E .bg%7Bfill:%2317140F%7D .fg%7Bfill:%23F1EEE5%7D %40media %28prefers-color-scheme: dark%29%7B.bg%7Bfill:%23EDE9DE%7D .fg%7Bfill:%23151310%7D%7D %3C/style%3E %3Crect class=%22bg%22 width=%2232%22 height=%2232%22/%3E %3Ctext class=%22fg%22 x=%2216%22 y=%2224%22 text-anchor=%22middle%22 font-family=%22Archivo%2C'Arial Black'%2CArial%2Csans-serif%22 font-weight=%22800%22 font-size=%2222%22%3EL%3C/text%3E %3C/svg%3E">
+<script>document.documentElement.classList.add('js');try{var t=localStorage.getItem('ledger-theme');if(t)document.documentElement.setAttribute('data-theme',t)}catch(e){}</script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Archivo:wght@400;600;800&family=Instrument+Serif:ital@1&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+/*! Ledger Design System v2 — base layer
+   Order: 1 tokens · 2 base · 3 type · 4 layout · 5 buttons · 6 forms · 7 badges/dots · 8 marketing components
+          9 proof panel · 10 app shell · 11 data components · 12 overlays · 13 verbs/roll/icons/url · 14 motion
+   Rules: square corners (the status dot is the one round thing) · no shadows except its pulse ring · no gradients · never an important-flag on an animated property
+          hidden pre-reveal states only under html.js AND prefers-reduced-motion: no-preference */
+
+/* ── 1. Tokens ─────────────────────────────────────────────────────────────── */
+:root {
+  color-scheme: light;
+  --paper: #F1EEE5; --paper-2: #E8E4D7; --ink: #17140F; --ink-soft: #5A5446;
+  --line: #CFC9B8; --line-strong: #17140F;
+  --orange: #C9591F; --orange-ink: #A8460F;   /* orange = cost / waste · -ink = the same hue, dark enough for text */
+  --mint: #4E9E78;   --mint-ink: #2F7454;     /* mint = savings / proof */
+  --lime: #B9CC3E;                            /* live-status dot only */
+  /* fixed dark surface (proof panel) — identical in both themes */
+  --panel: #100E0B; --panel-2: #1A1713; --panel-line: #38332B; --panel-text: #EDE9DE; --panel-text-soft: #A8A294;
+
+  --f-grotesk: "Archivo", Arial, Helvetica, sans-serif;
+  --f-serif: "Instrument Serif", Georgia, "Times New Roman", serif;
+  --f-mono: "IBM Plex Mono", Menlo, Consolas, monospace;
+
+  --s1: 4px; --s2: 8px; --s3: 16px; --s4: 24px; --s5: 32px; --s6: 48px; --s7: 64px; --s8: 96px;
+  --ease: cubic-bezier(.2, .7, .2, 1);
+  --shell-w: 232px; --top-h: 56px;
+
+  box-sizing: border-box;
+  padding-top: env(safe-area-inset-top, 0px);
+  padding-bottom: env(safe-area-inset-bottom, 0px);
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    color-scheme: dark;
+    --paper: #151310; --paper-2: #1D1A16; --ink: #EDE9DE; --ink-soft: #A8A294;
+    --line: #332E27; --line-strong: #EDE9DE;
+    --orange: #E07A3C; --orange-ink: #E07A3C; --mint: #7EC8A1; --mint-ink: #7EC8A1; --lime: #C9D95F;
+  }
+}
+:root[data-theme="dark"] {
+  color-scheme: dark;
+  --paper: #151310; --paper-2: #1D1A16; --ink: #EDE9DE; --ink-soft: #A8A294;
+  --line: #332E27; --line-strong: #EDE9DE;
+  --orange: #E07A3C; --orange-ink: #E07A3C; --mint: #7EC8A1; --mint-ink: #7EC8A1; --lime: #C9D95F;
+}
+
+/* ── 2. Base ───────────────────────────────────────────────────────────────── */
+*, *::before, *::after { box-sizing: border-box; border-radius: 0; }
+html { scroll-padding-top: env(safe-area-inset-top, 0px); -webkit-text-size-adjust: 100%; }
+body {
+  margin: 0; background: var(--paper); color: var(--ink);
+  font: 400 16px/1.55 var(--f-grotesk); -webkit-font-smoothing: antialiased; text-rendering: optimizeLegibility;
+}
+a { color: inherit; }
+img, svg { max-width: 100%; }
+button, input, select, textarea { font: inherit; color: inherit; }
+button { cursor: pointer; }
+h1, h2, h3, p { margin: 0; }
+:focus-visible { outline: 2px solid var(--orange); outline-offset: 3px; }
+[tabindex="-1"]:focus { outline: none; }   /* headings focused by the router for screen readers */
+::selection { background: var(--ink); color: var(--paper); }
+html [hidden] { display: none; }   /* html prefix: beats .check/.field display rules without an important-flag */
+.sr-only { position: absolute; width: 1px; height: 1px; margin: -1px; padding: 0; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; border: 0; }
+.skip { position: absolute; left: 12px; top: -60px; z-index: 200; padding: 10px 14px; background: var(--ink); color: var(--paper); font-weight: 600; text-decoration: none; }
+.skip:focus { top: 12px; }
+.tnum { font-variant-numeric: tabular-nums; }
+.mono { font-family: var(--f-mono); }
+.soft { color: var(--ink-soft); }
+
+/* ── 3. Type ───────────────────────────────────────────────────────────────── */
+.display { font: 800 clamp(38px, 5.4vw, 72px)/.98 var(--f-grotesk); letter-spacing: -.035em; }
+.display i, .h2 i { display: block; font: italic 400 1.06em/1.02 var(--f-serif); letter-spacing: -.01em; }
+.display i { font-size: .9em; }
+.h2 { font: 800 clamp(28px, 3.6vw, 44px)/1.02 var(--f-grotesk); letter-spacing: -.028em; max-width: 22ch; }
+.h3 { font: 800 20px/1.2 var(--f-grotesk); letter-spacing: -.01em; }
+.lede { font-size: clamp(17px, 1.6vw, 20px); line-height: 1.5; max-width: 56ch; }
+.eyebrow { display: flex; align-items: center; gap: 12px; font: 500 12px/1 var(--f-mono); letter-spacing: .04em; color: var(--ink-soft); }
+.eyebrow::before { content: ""; width: 34px; height: 1px; background: var(--ink); transform-origin: 0 50%; }
+.meta { font: 400 12px/1.4 var(--f-mono); color: var(--ink-soft); letter-spacing: .02em; }
+
+/* ── 4. Layout ─────────────────────────────────────────────────────────────── */
+.wrap { max-width: 1200px; margin: 0 auto; padding: 0 clamp(16px, 4vw, 40px); }
+.section { padding: clamp(56px, 9vw, 96px) 0; }
+.section--rule { border-top: 1px solid var(--line-strong); }
+.stack > * + * { margin-top: var(--s3); }
+.gstack { display: grid; gap: var(--s4); grid-template-columns: minmax(0, 1fr); }   /* grid stack that lets wide children (tables) scroll instead of stretching the column */
+.row { display: flex; align-items: center; gap: var(--s3); flex-wrap: wrap; }
+.cells { display: grid; gap: 1px; background: var(--line-strong); border: 1px solid var(--line-strong); }
+.cells > * { background: var(--paper); padding: var(--s4); min-width: 0; }
+.cells--2 { grid-template-columns: repeat(2, 1fr); }
+.cells--3 { grid-template-columns: repeat(3, 1fr); }
+.cells--4 { grid-template-columns: repeat(4, 1fr); }
+@media (max-width: 1000px) { .cells--4 { grid-template-columns: repeat(2, 1fr); } }
+@media (max-width: 820px)  { .cells--3, .cells--2 { grid-template-columns: 1fr; } }
+@media (max-width: 520px)  { .cells--4 { grid-template-columns: 1fr; } }
+.split { display: grid; grid-template-columns: minmax(0, 1.05fr) minmax(0, .95fr); gap: clamp(32px, 5vw, 72px); align-items: center; }
+@media (max-width: 900px) { .split { grid-template-columns: 1fr; } }
+
+/* ── 5. Buttons & links ────────────────────────────────────────────────────── */
+.btn {
+  display: inline-flex; align-items: center; justify-content: center; gap: 10px; min-height: 44px; padding: 0 20px;
+  background: var(--ink); color: var(--paper); border: 1px solid var(--ink);
+  font: 600 15px/1 var(--f-grotesk); text-decoration: none; white-space: nowrap;
+}
+.btn:hover { background: var(--orange-ink); border-color: var(--orange-ink); color: var(--paper); }
+.btn[disabled], .btn[aria-disabled="true"]:not([aria-busy="true"]) { opacity: .5; cursor: not-allowed; }
+.btn[aria-busy="true"] { cursor: progress; }
+.btn--line { background: transparent; color: var(--ink); }
+.btn--line:hover { background: var(--paper-2); border-color: var(--ink); color: var(--ink); }
+.btn--danger { background: transparent; color: var(--ink); border-color: var(--orange-ink); }
+.btn--danger:hover { background: var(--orange-ink); color: var(--paper); }
+.btn--sm { min-height: 36px; padding: 0 14px; font-size: 13px; }
+.btn--block { width: 100%; }
+.link {
+  display: inline-flex; align-items: center; gap: 8px; font-weight: 600; color: var(--ink);
+  text-decoration: underline; text-underline-offset: 4px; text-decoration-thickness: 1px; background: none; border: 0; padding: 0;
+}
+.link:hover { gap: 14px; }
+.icon-btn { display: inline-grid; place-items: center; width: 44px; height: 44px; background: transparent; border: 1px solid transparent; color: var(--ink); }
+.icon-btn:hover { border-color: var(--ink); background: var(--paper-2); }
+
+/* ── 6. Forms ──────────────────────────────────────────────────────────────── */
+.field { display: grid; gap: 8px; }
+.field > label, .label { font: 600 13px/1.2 var(--f-grotesk); }
+.hint { font-size: 13px; color: var(--ink-soft); }
+.input, .select, .textarea {
+  width: 100%; min-height: 44px; padding: 10px 12px; background: var(--paper); color: var(--ink);
+  border: 1px solid var(--ink); font: 400 16px/1.3 var(--f-grotesk); appearance: none;
+}
+.textarea { min-height: 96px; resize: vertical; }
+.input::placeholder { color: var(--ink-soft); }
+.input:focus, .select:focus, .textarea:focus { outline: 2px solid var(--orange); outline-offset: 2px; }
+.input[readonly] { background: var(--paper-2); }
+.input-wrap { position: relative; }
+.input-wrap .input { padding-right: 48px; }
+.input-wrap .icon-btn { position: absolute; right: 0; top: 0; height: 100%; }
+.field-error { display: none; align-items: flex-start; gap: 8px; font-size: 13px; color: var(--ink); }
+.field-error .i { color: var(--orange-ink); margin-top: 1px; }
+.field[data-invalid] .input, .field[data-invalid] .select { border-color: var(--orange-ink); border-left-width: 4px; }
+.field[data-invalid] .field-error { display: flex; }
+.check { display: flex; align-items: flex-start; gap: 10px; font-size: 14px; cursor: pointer; }
+.check input { appearance: none; flex: none; width: 20px; height: 20px; margin: 0; background: var(--paper); border: 1px solid var(--ink); display: grid; place-content: center; }
+.check input::after { content: ""; width: 12px; height: 10px; background: var(--ink); clip-path: polygon(14% 44%, 0 65%, 50% 100%, 100% 16%, 80% 0, 43% 62%); transform: scale(0); }
+.check input:checked::after { transform: scale(1); }
+.switch { appearance: none; position: relative; width: 44px; height: 24px; margin: 0; background: var(--paper); border: 1px solid var(--ink); }
+.switch::after { content: ""; position: absolute; top: 3px; left: 3px; width: 16px; height: 16px; background: var(--ink); }
+.switch:checked { background: var(--ink); }
+.switch:checked::after { background: var(--paper); transform: translateX(20px); }
+.seg { display: inline-flex; border: 1px solid var(--ink); }
+.seg button { padding: 8px 14px; background: transparent; color: var(--ink); border: 0; font: 600 13px/1.2 var(--f-grotesk); }
+.seg button + button { border-left: 1px solid var(--ink); }
+.seg button[aria-pressed="true"] { background: var(--ink); color: var(--paper); }
+.strength { display: grid; grid-template-columns: repeat(4, 1fr); gap: 4px; }
+.strength i { height: 4px; background: var(--line); }
+.strength[data-level="1"] i:nth-child(-n+1), .strength[data-level="2"] i:nth-child(-n+2),
+.strength[data-level="3"] i:nth-child(-n+3), .strength[data-level="4"] i:nth-child(-n+4) { background: var(--ink); }
+
+/* ── 7. Badges, dots, tiles ────────────────────────────────────────────────── */
+.badge { display: inline-flex; align-items: center; gap: 6px; padding: 3px 8px; border: 1px solid var(--ink); font: 500 11px/1.2 var(--f-mono); letter-spacing: .04em; color: var(--ink); white-space: nowrap; }
+.badge .i { width: 12px; height: 12px; }
+.badge--ok .i { color: var(--mint-ink); }
+.badge--err { border-color: var(--orange-ink); }
+.badge--err .i { color: var(--orange-ink); }
+.dot { display: inline-block; flex: none; width: 8px; height: 8px; background: var(--lime); border-radius: 50%; }   /* the one round element */
+.tile { display: inline-grid; place-items: center; flex: none; width: 24px; height: 24px; background: var(--paper-2); border: 1px solid var(--ink); font: 600 12px/1 var(--f-mono); text-transform: uppercase; }
+.tile--ink { background: var(--ink); color: var(--paper); }
+
+/* ── 8. Marketing components ───────────────────────────────────────────────── */
+.mast { display: flex; align-items: center; justify-content: space-between; gap: 24px; padding: 16px 0; border-bottom: 1px solid var(--line-strong); }
+.brand { display: inline-flex; align-items: center; gap: 12px; text-decoration: none; }
+.brand__mark { display: grid; place-items: center; width: 28px; height: 28px; background: var(--ink); color: var(--paper); font: 800 15px/1 var(--f-grotesk); }
+.brand__name { font: 600 13px/1 var(--f-grotesk); letter-spacing: .18em; text-transform: uppercase; }
+.mast__nav { display: flex; gap: 28px; font-size: 14px; }
+.mast__nav a { text-decoration: none; }
+.mast__nav a:hover { text-decoration: underline; text-underline-offset: 4px; }
+@media (max-width: 720px) { .mast__nav { gap: 18px; } }
+@media (max-width: 560px) { .mast .badge { display: none; } }
+.hero { padding: clamp(40px, 7vw, 88px) 0 clamp(48px, 8vw, 96px); }
+.hero .display { margin: 20px 0 24px; }
+.hero .lede { margin-bottom: 32px; }
+.pillar { display: grid; gap: 12px; align-content: start; }
+.pillar__role { font: 500 12px/1 var(--f-mono); letter-spacing: .04em; color: var(--ink-soft); }
+.rail { position: relative; display: grid; grid-template-columns: repeat(3, 1fr); gap: 32px; }
+.rail::before { content: ""; position: absolute; left: 0; right: 0; top: 19px; height: 1px; background: var(--ink); transform-origin: 0 50%; }
+.rail__step { position: relative; z-index: 1; display: grid; gap: 12px; align-content: start; }
+.rail__n { display: grid; place-items: center; width: 40px; height: 40px; background: var(--paper); border: 1px solid var(--ink); font: 600 14px/1 var(--f-mono); }
+@media (max-width: 720px) { .rail { grid-template-columns: 1fr; } .rail::before { display: none; } }
+.tier { display: grid; gap: 16px; align-content: start; }
+.tier--pick { background: var(--paper-2); }
+.tier__name { font: 600 13px/1 var(--f-mono); letter-spacing: .04em; display: flex; align-items: center; gap: 10px; }
+.tier__price { font: 800 44px/1 var(--f-grotesk); letter-spacing: -.03em; font-variant-numeric: tabular-nums; }
+.tier__price small { font: 400 14px/1 var(--f-grotesk); color: var(--ink-soft); letter-spacing: 0; margin-left: 4px; }
+.tier ul { list-style: none; margin: 0; padding: 0; display: grid; gap: 10px; font-size: 14px; }
+.tier li { display: flex; gap: 10px; align-items: flex-start; }
+.tier li .i { margin-top: 2px; }
+.faq { border-top: 1px solid var(--line-strong); }
+.faq details { border-bottom: 1px solid var(--line-strong); }
+.faq summary { display: flex; justify-content: space-between; align-items: center; gap: 16px; padding: 20px 0; font: 600 18px/1.3 var(--f-grotesk); list-style: none; cursor: pointer; }
+.faq summary::-webkit-details-marker { display: none; }
+.faq details[open] summary .i { transform: rotate(45deg); }
+.faq details p { padding: 0 0 20px; max-width: 62ch; color: var(--ink-soft); }
+.foot { display: flex; justify-content: space-between; gap: 24px; flex-wrap: wrap; padding: 32px 0 48px; border-top: 1px solid var(--line-strong); font-size: 14px; }
+.foot nav { display: flex; align-items: center; gap: 24px; }
+
+/* ── 9. Proof panel ────────────────────────────────────────────────────────── */
+.panel { background: var(--panel); color: var(--panel-text); border: 1px solid var(--panel-line); }
+.panel__head { display: flex; align-items: center; gap: 10px; padding: 14px 20px; border-bottom: 1px solid var(--panel-line); font: 500 12px/1 var(--f-mono); color: var(--panel-text-soft); }
+.panel__head .title { color: var(--panel-text); }
+.panel__head .meta { margin-left: auto; color: var(--panel-text-soft); }
+.panel__body { padding: 20px; }
+.bar { display: grid; grid-template-columns: 1fr auto; gap: 6px 16px; align-items: baseline; margin-bottom: 16px; }
+.bar__label { font: 400 12px/1.2 var(--f-mono); color: var(--panel-text-soft); }
+.bar__val { font: 800 22px/1 var(--f-grotesk); font-variant-numeric: tabular-nums; }
+.bar__track { grid-column: 1 / -1; height: 12px; background: var(--panel-2); }
+.bar__fill { display: block; height: 100%; width: var(--w, 0%); }
+.bar--cost .bar__fill { background: var(--orange); }
+.bar--save .bar__fill { background: var(--mint); --bd: .75s; }
+.stats { display: grid; grid-template-columns: 1fr 1fr; gap: 1px; background: var(--panel-line); border-top: 1px solid var(--panel-line); border-bottom: 1px solid var(--panel-line); }
+.stats > div { background: var(--panel); padding: 16px 20px; }
+.stat__n { font: 800 34px/1 var(--f-grotesk); letter-spacing: -.02em; font-variant-numeric: tabular-nums; }
+.stat__l { margin-top: 6px; font: 400 12px/1.2 var(--f-mono); color: var(--panel-text-soft); }
+.note { display: flex; gap: 10px; align-items: flex-start; margin: 16px 20px; padding: 12px 14px; border: 1px solid var(--mint); background: var(--panel-2); color: var(--panel-text); font-size: 13px; line-height: 1.45; }
+.flag { display: inline-grid; place-items: center; flex: none; width: 18px; height: 18px; background: var(--mint); color: #0C0A08; font: 700 12px/1 var(--f-grotesk); }
+.flag--err { background: var(--orange); }
+.panel__foot { display: flex; justify-content: space-between; gap: 12px; padding: 12px 20px; border-top: 1px solid var(--panel-line); font: 400 11px/1.2 var(--f-mono); color: var(--panel-text-soft); }
+
+/* ── 10. App shell ─────────────────────────────────────────────────────────── */
+.shell { display: grid; grid-template-columns: var(--shell-w) minmax(0, 1fr); min-height: 100vh; }
+.side { position: sticky; top: 0; height: 100vh; overflow: auto; display: flex; flex-direction: column; gap: 24px; padding: 16px 12px; border-right: 1px solid var(--line-strong); background: var(--paper); }
+.side .brand { padding: 4px 8px; }
+.side__nav { display: grid; gap: 2px; }
+.side__nav a { display: flex; align-items: center; gap: 12px; min-height: 40px; padding: 0 12px; border-left: 2px solid transparent; font: 600 14px/1 var(--f-grotesk); text-decoration: none; }
+.side__nav a:hover { background: var(--paper-2); }
+.side__nav a[aria-current="page"] { background: var(--paper-2); border-left-color: var(--ink); }
+.side__foot { margin-top: auto; display: grid; gap: 2px; padding-top: 16px; border-top: 1px solid var(--line); }
+.top { position: sticky; top: 0; z-index: 5; display: flex; align-items: center; gap: 16px; height: var(--top-h); padding: 0 clamp(16px, 3vw, 40px); background: var(--paper); border-bottom: 1px solid var(--line-strong); }
+.top__spacer { flex: 1; }
+.top [data-nav-toggle] { display: none; }
+.main { padding: 32px clamp(16px, 3vw, 40px) 64px; max-width: 1280px; }
+.page-head { display: flex; align-items: flex-end; justify-content: space-between; gap: 24px; flex-wrap: wrap; margin-bottom: 24px; }
+.page-title { font: 800 clamp(26px, 3vw, 34px)/1.05 var(--f-grotesk); letter-spacing: -.02em; }
+.shell__scrim { display: none; }
+@media (max-width: 860px) {
+  .shell { grid-template-columns: minmax(0, 1fr); }
+  .side { position: fixed; z-index: 30; inset: 0 auto 0 0; width: min(288px, 84vw); visibility: hidden; transform: translateX(-101%); }
+  .shell.is-nav-open .side { visibility: visible; transform: none; }
+  .shell.is-nav-open .shell__scrim { display: block; position: fixed; inset: 0; z-index: 20; background: rgb(23 20 15 / .5); }
+  .top [data-nav-toggle] { display: inline-grid; }
+}
+.auth { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); min-height: 100vh; }
+.auth__form { display: flex; flex-direction: column; padding: 24px clamp(20px, 5vw, 72px) 40px; }
+.auth__box { width: min(400px, 100%); margin: auto auto auto 0; display: grid; gap: 24px; padding: 40px 0; }
+.auth__aside { display: grid; place-items: center; padding: 40px; background: var(--paper-2); border-left: 1px solid var(--line-strong); }
+.auth__aside .panel { width: min(440px, 100%); }
+.or { display: flex; align-items: center; gap: 12px; font: 400 12px/1 var(--f-mono); color: var(--ink-soft); }
+.or::before, .or::after { content: ""; flex: 1; height: 1px; background: var(--line-strong); }
+@media (max-width: 900px) { .auth { grid-template-columns: 1fr; } .auth__aside { display: none; } }
+
+/* ── 11. Data components ───────────────────────────────────────────────────── */
+.kpi__label { font: 600 13px/1.2 var(--f-grotesk); color: var(--ink-soft); }
+.kpi__n { margin: 8px 0; font: 800 clamp(28px, 3vw, 38px)/1.05 var(--f-grotesk); letter-spacing: -.02em; font-variant-numeric: tabular-nums; }
+.kpi__delta { display: flex; align-items: center; gap: 6px; font: 500 12px/1.2 var(--f-mono); }
+.kpi__bar { height: 2px; margin-top: 14px; background: var(--line); }
+.kpi__bar > i { display: block; height: 100%; width: var(--w, 0%); background: var(--ink); }
+.kpi--cost .kpi__bar > i { background: var(--orange); }
+.kpi--save .kpi__bar > i { background: var(--mint); }
+.block { border: 1px solid var(--line-strong); }
+.block__head { display: flex; align-items: center; justify-content: space-between; gap: 16px; flex-wrap: wrap; padding: 16px 20px; border-bottom: 1px solid var(--line-strong); }
+.block__body { padding: 20px; }
+.legend { display: flex; gap: 20px; flex-wrap: wrap; font: 400 12px/1 var(--f-mono); color: var(--ink-soft); }
+.legend span { display: inline-flex; align-items: center; gap: 8px; }
+.legend i { width: 12px; height: 12px; }
+.legend .l-cost { background: var(--orange); }
+.legend .l-save { background: var(--mint); }
+.chart { display: block; width: 100%; height: 260px; }
+.chart .grid { stroke: var(--line); stroke-width: 1; }
+.chart .axis { stroke: var(--ink); stroke-width: 1; }
+.chart .mark { stroke: var(--ink); stroke-width: 1; stroke-dasharray: 3 3; }
+.chart text { font: 400 11px var(--f-mono); fill: var(--ink-soft); }
+.chart .s { fill: none; stroke-width: 2; stroke-linejoin: miter; }
+.chart .s-cost { stroke: var(--orange); }
+.chart .s-save { stroke: var(--mint); }
+.tabs { display: flex; gap: 24px; overflow-x: auto; border-bottom: 1px solid var(--line-strong); }
+.tabs [role="tab"] { margin-bottom: -1px; padding: 12px 0; background: none; border: 0; border-bottom: 2px solid transparent; color: var(--ink-soft); font: 600 14px/1.2 var(--f-grotesk); white-space: nowrap; }
+.tabs [role="tab"]:hover { color: var(--ink); }
+.tabs [role="tab"][aria-selected="true"] { color: var(--ink); border-bottom-color: var(--ink); }
+.tbl-wrap { overflow-x: auto; border: 1px solid var(--line-strong); }
+.tbl { width: 100%; min-width: 620px; border-collapse: collapse; font-size: 14px; }
+.tbl th { padding: 10px 16px; background: var(--paper-2); border-bottom: 1px solid var(--line-strong); text-align: left; white-space: nowrap; font: 500 12px/1.2 var(--f-mono); letter-spacing: .02em; color: var(--ink-soft); }
+.tbl td { padding: 12px 16px; border-bottom: 1px solid var(--line); vertical-align: middle; }
+.tbl tbody tr:last-child td { border-bottom: 0; }
+.tbl tbody tr:hover { background: var(--paper-2); }
+.tbl .num { text-align: right; font-family: var(--f-mono); font-variant-numeric: tabular-nums; }
+.tbl th.num { text-align: right; }
+.meter { height: 8px; background: var(--line); }
+.meter > i { display: block; height: 100%; width: var(--w, 0%); background: var(--ink); }
+.meter--hot > i { background: var(--orange); }
+.empty { display: grid; justify-items: start; gap: 12px; padding: clamp(24px, 5vw, 48px); border: 1px dashed var(--ink-soft); }
+.empty .i { width: 32px; height: 32px; }
+.empty p { max-width: 52ch; color: var(--ink-soft); }
+.sk { height: 12px; background: var(--line); }
+.zone { border: 1px solid var(--orange-ink); padding: 20px; display: flex; justify-content: space-between; gap: 16px; flex-wrap: wrap; align-items: center; }
+.keybox { display: flex; align-items: center; flex-wrap: wrap; gap: 8px; }
+.keybox code { flex: 1 1 220px; min-width: 0; padding: 10px 12px; background: var(--paper-2); border: 1px solid var(--ink); font: 500 14px/1.3 var(--f-mono); overflow-x: auto; white-space: nowrap; }
+
+/* ── 12. Overlays ──────────────────────────────────────────────────────────── */
+.modal { width: min(480px, calc(100vw - 32px)); padding: 0; background: var(--paper); color: var(--ink); border: 1px solid var(--ink); }
+.modal::backdrop { background: rgb(23 20 15 / .55); }
+.modal__head { padding: 20px 24px; border-bottom: 1px solid var(--line-strong); font: 800 18px/1.2 var(--f-grotesk); }
+.modal__body { padding: 24px; }
+.modal__foot { display: flex; justify-content: flex-end; gap: 12px; padding: 16px 24px; border-top: 1px solid var(--line); }
+#toasts { position: fixed; z-index: 60; right: 16px; bottom: max(16px, env(safe-area-inset-bottom, 0px)); display: grid; gap: 8px; width: min(360px, calc(100vw - 32px)); }
+.toast { display: flex; align-items: flex-start; gap: 12px; padding: 12px 14px; background: var(--ink); color: var(--paper); border: 1px solid var(--ink); border-left-width: 4px; font-size: 14px; line-height: 1.4; }
+.toast .i { margin-top: 2px; }
+.toast--ok { border-left-color: var(--mint); }
+.toast--err { border-left-color: var(--orange); }
+
+/* ── 13. Icons · verbs · roll · url chips ──────────────────────────────────── */
+.i { display: inline-block; flex: none; width: 20px; height: 20px; fill: none; stroke: currentColor; stroke-width: 1.5; stroke-linecap: butt; stroke-linejoin: miter; }
+.i--16 { width: 16px; height: 16px; } .i--24 { width: 24px; height: 24px; } .i--32 { width: 32px; height: 32px; }
+#ledger-sprite { position: absolute; width: 0; height: 0; overflow: hidden; }
+#ledger-sprite * { vector-effect: non-scaling-stroke; }
+
+.verb { display: inline-flex; align-items: center; gap: 10px; min-height: 20px; font: 500 13px/1 var(--f-mono); color: inherit; }
+.verb__sq { position: relative; flex: none; width: 12px; height: 12px; border: 1px solid currentColor; }
+.verb__sq::before { content: ""; position: absolute; top: 0; left: 0; width: 5px; height: 5px; background: currentColor; }
+.verb__text { display: inline-grid; overflow: hidden; height: 1.3em; line-height: 1.3em; min-width: var(--verb-w, 9ch); }
+.verb__text > span { grid-area: 1 / 1; white-space: nowrap; }
+.verb__lbl { display: inline-flex; align-items: baseline; }
+.verb__dots { display: inline-block; width: 3ch; overflow: hidden; vertical-align: bottom; }
+.verb__t { min-width: 3ch; opacity: .7; font-variant-numeric: tabular-nums; }
+.verb[data-pending] { opacity: 0; }
+.btn .verb[data-pending] { display: none; }
+.verb--btn { gap: 8px; }
+.verb__flag { display: inline-grid; place-items: center; flex: none; width: 16px; height: 16px; background: var(--mint); color: #0C0A08; font: 700 11px/1 var(--f-grotesk); }
+.verb--fail .verb__flag { background: var(--orange); }
+.verb--fail { color: var(--ink); }
+
+.roll { display: inline-grid; }
+.roll__w { grid-area: 1 / 1; white-space: nowrap; clip-path: inset(0 100% 0 0); }
+.roll__w.is-on { clip-path: inset(0); }
+
+.url { display: inline-flex; align-items: center; gap: 8px; max-width: 100%; font: 400 13px/1.2 var(--f-mono); text-decoration: none; }
+.url:hover .url__host { text-decoration: underline; text-underline-offset: 3px; }
+.url .tile { width: 20px; height: 20px; font-size: 11px; overflow: hidden; }
+.url .tile img { display: block; width: 100%; height: 100%; }
+.url__host { font-weight: 600; }
+.url__path { color: var(--ink-soft); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.url .i { width: 14px; height: 14px; color: var(--ink-soft); }
+
+/* ── 14. Motion — gated: nothing hides unless html.js AND reduced motion is not requested ── */
+@keyframes rise { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: none; } }
+@keyframes wipe { from { clip-path: inset(0 100% 0 0); } to { clip-path: inset(0); } }
+@keyframes growFill { from { width: 0; } to { width: var(--w, 0%); } }
+@keyframes pulse { 0% { box-shadow: 0 0 0 0 rgb(185 204 62 / .55); } 70%, 100% { box-shadow: 0 0 0 8px rgb(185 204 62 / 0); } }
+@keyframes tick { 0% { top: 0; left: 0; } 25% { top: 0; left: 5px; } 50% { top: 5px; left: 5px; } 75% { top: 5px; left: 0; } }
+@keyframes dots { 0% { clip-path: inset(0 100% 0 0); } 25% { clip-path: inset(0 66% 0 0); } 50% { clip-path: inset(0 33% 0 0); } 75%, 100% { clip-path: inset(0); } }
+@keyframes blink { 0% { opacity: 1; } 50% { opacity: .45; } 100% { opacity: 1; } }
+.progress { position: fixed; top: 0; left: 0; z-index: 100; width: 100%; height: 2px; background: var(--orange); transform: scaleX(0); transform-origin: 0 50%; pointer-events: none; }
+.revealed { animation: none; opacity: 1; }
+
+@media (prefers-reduced-motion: no-preference) {
+  html { scroll-behavior: smooth; }
+  .btn, .icon-btn { transition: background .15s, border-color .15s, color .15s, transform .15s; }
+  .btn:hover { transform: translateY(-1px); }
+  .link { transition: gap .18s var(--ease); }
+  .pillar, .tbl tbody tr, .side__nav a { transition: background .15s; }
+  .pillar .tile { transition: transform .2s var(--ease); }
+  .pillar:hover .tile { transform: rotate(-6deg) scale(1.08); }
+  .switch::after { transition: transform .15s var(--ease); }
+  .check input::after { transition: transform .12s var(--ease); }
+  .faq summary .i { transition: transform .2s var(--ease); }
+  .side { transition: transform .2s var(--ease), visibility 0s linear .2s; }
+  .shell.is-nav-open .side { transition-delay: 0s; }
+  .modal[open] { animation: rise .2s var(--ease); }
+  .toast { animation: rise .25s var(--ease); }
+  .dot--pulse { animation: pulse 2.4s infinite; }
+  .wipe { animation: wipe .75s var(--ease) .5s backwards; }
+  .bar__fill, .kpi__bar > i, .meter > i { animation: growFill 1s var(--ease) var(--bd, .55s) backwards; }
+  .verb--run .verb__sq::before { animation: tick 1s steps(1, end) infinite; }
+  .verb--run .verb__dots { animation: dots 1.2s steps(1, end) infinite; }
+  .sk { animation: blink 1.4s ease-in-out infinite; }
+  .roll__w.is-on.is-fresh { transition: clip-path .5s var(--ease); }
+  .chart-wrap.is-in .chart { animation: wipe 1.1s var(--ease) backwards; }
+
+  html.js .reveal { opacity: 0; transform: translateY(10px); animation: rise .6s var(--ease) var(--d, 0s) forwards; }
+  html.js .reveal.revealed { animation: none; opacity: 1; transform: none; }
+  html.js [data-reveal]:not(.is-in), html.js [data-reveal-group]:not(.is-in) > * { opacity: 0; transform: translateY(10px); }
+  html.js [data-reveal].is-in { opacity: 1; transform: none; transition: opacity .6s var(--ease), transform .6s var(--ease); }
+  html.js [data-reveal-group].is-in > * { opacity: 1; transform: none; transition: opacity .6s var(--ease), transform .6s var(--ease); }
+  html.js [data-reveal-group].is-in > *:nth-child(2) { transition-delay: .12s; }
+  html.js [data-reveal-group].is-in > *:nth-child(3) { transition-delay: .24s; }
+  html.js [data-reveal-group].is-in > *:nth-child(4) { transition-delay: .36s; }
+  html.js .eyebrow:not(.is-in)::before { transform: scaleX(0); }
+  html.js .eyebrow.is-in::before { transition: transform .7s var(--ease) .1s; }
+  html.js .rail:not(.is-in)::before { transform: scaleX(0); }
+  html.js .rail.is-in::before { transition: transform 1.1s var(--ease); }
+}
+
+</style>
+<style>
+.code{position:relative;margin:0;padding:20px 20px 20px;background:var(--paper-2);border:1px solid var(--line-strong);font:500 13px/1.7 var(--f-mono);overflow-x:auto;white-space:pre;color:var(--ink)}
+.code .c{color:var(--ink-soft)}
+.copy{position:absolute;top:8px;right:8px}
+.codewrap{position:relative;min-width:0}
+.cmp{display:grid;grid-template-columns:1fr 1fr;gap:1px;background:var(--line-strong);border:1px solid var(--line-strong)}
+.cmp>div{background:var(--paper);padding:24px;min-width:0}
+.cmp ul,.list{margin:12px 0 0;padding:0;list-style:none;display:grid;gap:10px}
+.cmp li,.list li{display:flex;gap:10px;align-items:flex-start}
+.cmp li .i,.list li .i{flex:none;margin-top:3px}
+@media (max-width:820px){.cmp{grid-template-columns:1fr}}
+.two{display:grid;grid-template-columns:1fr 1fr;gap:48px;align-items:start}
+@media (max-width:900px){.two{grid-template-columns:1fr;gap:32px}}
+.source{margin-top:12px}
+.tree{white-space:pre}
+@media (max-width:560px){.mast__nav a:nth-child(-n+2){display:none}}
+</style>
+</head>
+<body>
+<div class="progress" aria-hidden="true"></div>
+<a class="skip" href="#main" data-skip>Ir para o conteúdo</a>
+<svg id="ledger-sprite" xmlns="http://www.w3.org/2000/svg" aria-hidden="true" focusable="false">
+<symbol id="i-arrow-right" viewBox="0 0 24 24"><path d="M4 12h16M14 6l6 6-6 6"/></symbol>
+<symbol id="i-arrow-left" viewBox="0 0 24 24"><path d="M20 12H4M10 6l-6 6 6 6"/></symbol>
+<symbol id="i-arrow-up-right" viewBox="0 0 24 24"><path d="M7 17L17 7M9 7h8v8"/></symbol>
+<symbol id="i-chevron-right" viewBox="0 0 24 24"><path d="M9 5l7 7-7 7"/></symbol>
+<symbol id="i-chevron-down" viewBox="0 0 24 24"><path d="M5 9l7 7 7-7"/></symbol>
+<symbol id="i-check" viewBox="0 0 24 24"><path d="M4 12.5l5 5L20 6.5"/></symbol>
+<symbol id="i-close" viewBox="0 0 24 24"><path d="M5 5l14 14M19 5L5 19"/></symbol>
+<symbol id="i-plus" viewBox="0 0 24 24"><path d="M12 4v16M4 12h16"/></symbol>
+<symbol id="i-minus" viewBox="0 0 24 24"><path d="M4 12h16"/></symbol>
+<symbol id="i-menu" viewBox="0 0 24 24"><path d="M4 7h16M4 12h16M4 17h16"/></symbol>
+<symbol id="i-search" viewBox="0 0 24 24"><path d="M4 4h11v11H4zM15 15l5 5"/></symbol>
+<symbol id="i-filter" viewBox="0 0 24 24"><path d="M4 5h16l-6 7v6l-4 2v-8z"/></symbol>
+<symbol id="i-download" viewBox="0 0 24 24"><path d="M12 4v11M7 10l5 5 5-5M4 20h16"/></symbol>
+<symbol id="i-upload" viewBox="0 0 24 24"><path d="M12 15V4M7 9l5-5 5 5M4 20h16"/></symbol>
+<symbol id="i-copy" viewBox="0 0 24 24"><path d="M8 8h12v12H8zM4 16V4h12"/></symbol>
+<symbol id="i-link" viewBox="0 0 24 24"><path d="M9 7H5v10h4M15 7h4v10h-4M8 12h8"/></symbol>
+<symbol id="i-external" viewBox="0 0 24 24"><path d="M14 4h6v6M20 4l-9 9M18 14v6H4V6h6"/></symbol>
+<symbol id="i-edit" viewBox="0 0 24 24"><path d="M4 20h4L19 9l-4-4L4 16zM13 7l4 4"/></symbol>
+<symbol id="i-trash" viewBox="0 0 24 24"><path d="M4 6h16M9 6V3h6v3M6 6v15h12V6M10 10v7M14 10v7"/></symbol>
+<symbol id="i-eye" viewBox="0 0 24 24"><path d="M2 12l5-6h10l5 6-5 6H7zM10 10h4v4h-4z"/></symbol>
+<symbol id="i-eye-off" viewBox="0 0 24 24"><path d="M2 12l5-6h10l5 6-5 6H7zM4 20L20 4"/></symbol>
+<symbol id="i-sync" viewBox="0 0 24 24"><path d="M4 8h14l-3-3M20 16H6l3 3"/></symbol>
+<symbol id="i-logout" viewBox="0 0 24 24"><path d="M10 4H4v16h6M9 12h12M17 8l4 4-4 4"/></symbol>
+<symbol id="i-more" viewBox="0 0 24 24"><path d="M11 4h2v2h-2zM11 11h2v2h-2zM11 18h2v2h-2z" fill="currentColor" stroke="none"/></symbol>
+<symbol id="i-home" viewBox="0 0 24 24"><path d="M3 11l9-8 9 8M5 10v10h14V10M10 20v-6h4v6"/></symbol>
+<symbol id="i-layers" viewBox="0 0 24 24"><path d="M12 3l9 5-9 5-9-5zM3 13l9 5 9-5"/></symbol>
+<symbol id="i-chart-bar" viewBox="0 0 24 24"><path d="M4 4v16h16M8 16v-5h3v5M13 16V7h3v9"/></symbol>
+<symbol id="i-ledger" viewBox="0 0 24 24"><path d="M5 3h14v18H5zM9 8h6M9 12h6M9 16h4"/></symbol>
+<symbol id="i-meter" viewBox="0 0 24 24"><path d="M3 8h18v8H3zM7 8v3M11 8v4M15 8v3M19 8v4"/></symbol>
+<symbol id="i-receipt" viewBox="0 0 24 24"><path d="M6 3h12v18l-3-2-3 2-3-2-3 2zM9 8h6M9 12h6"/></symbol>
+<symbol id="i-card" viewBox="0 0 24 24"><path d="M3 6h18v12H3zM3 10h18M6 15h4"/></symbol>
+<symbol id="i-user" viewBox="0 0 24 24"><path d="M8 4h8v7H8zM4 20v-4l4-3h8l4 3v4"/></symbol>
+<symbol id="i-users" viewBox="0 0 24 24"><path d="M5 5h6v6H5zM2 20v-4l3-3h6l3 3v4zM15 7h5v5h-5zM17 14h1l4 3v3h-4"/></symbol>
+<symbol id="i-key" viewBox="0 0 24 24"><path d="M3 8h8v8H3zM11 12h10M17 12v3"/></symbol>
+<symbol id="i-lock" viewBox="0 0 24 24"><path d="M5 11h14v9H5zM8 11V5h8v6"/></symbol>
+<symbol id="i-shield" viewBox="0 0 24 24"><path d="M12 3l8 3v7l-8 8-8-8V6z"/></symbol>
+<symbol id="i-bell" viewBox="0 0 24 24"><path d="M6 17V9l3-4h6l3 4v8M4 17h16M10 20h4"/></symbol>
+<symbol id="i-mail" viewBox="0 0 24 24"><path d="M3 5h18v14H3zM3 5l9 8 9-8"/></symbol>
+<symbol id="i-calendar" viewBox="0 0 24 24"><path d="M4 6h16v14H4zM4 10h16M8 3v4M16 3v4"/></symbol>
+<symbol id="i-settings" viewBox="0 0 24 24"><path d="M4 7h6M14 7h6M10 4h4v6h-4zM4 17h10M18 17h2M14 14h4v6h-4z"/></symbol>
+<symbol id="i-sidebar" viewBox="0 0 24 24"><path d="M3 4h18v16H3zM9 4v16"/></symbol>
+<symbol id="i-terminal" viewBox="0 0 24 24"><path d="M3 4h18v16H3zM7 9l3 3-3 3M12 15h5"/></symbol>
+<symbol id="i-code" viewBox="0 0 24 24"><path d="M8 7l-5 5 5 5M16 7l5 5-5 5"/></symbol>
+<symbol id="i-bolt" viewBox="0 0 24 24"><path d="M13 2L4 14h7l-1 8 9-12h-7z"/></symbol>
+<symbol id="i-agent" viewBox="0 0 24 24"><path d="M12 3v18M3 12h18M5.6 5.6l12.8 12.8M18.4 5.6L5.6 18.4"/></symbol>
+<symbol id="i-contrast" viewBox="0 0 24 24"><path d="M4 4h16v16H4z"/><path d="M12 4h8v16h-8z" fill="currentColor" stroke="none"/></symbol>
+<symbol id="i-warning" viewBox="0 0 24 24"><path d="M12 3l10 18H2zM12 10v5M12 17.5v1.5"/></symbol>
+<symbol id="i-info" viewBox="0 0 24 24"><path d="M4 4h16v16H4zM12 11v6M12 7v2"/></symbol>
+<symbol id="i-error" viewBox="0 0 24 24"><path d="M4 4h16v16H4zM8 8l8 8M16 8l-8 8"/></symbol>
+<symbol id="i-success" viewBox="0 0 24 24"><path d="M4 4h16v16H4zM8 12.5l3 3 5-6.5"/></symbol>
+</svg>
+
+<div id="toasts" role="status" aria-live="polite"></div>
+
+<div class="wrap">
+  <header class="mast reveal" style="--d:.05s">
+    <a class="brand" href="#top" aria-label="QA Agent, início"><span class="brand__mark">Q</span><span class="brand__name">QA Agent</span></a>
+    <nav class="mast__nav" aria-label="Principal"><a href="#seguranca">Segurança</a><a href="#entrega">O que entrega</a><a href="#custo">Custo</a><a href="#comecar">Começar</a></nav>
+    <span class="badge"><span class="dot dot--pulse"></span>CLI · TypeScript</span>
+  </header>
+
+  <main id="main">
+    <section class="hero split" id="top">
+      <div>
+        <p class="eyebrow reveal" style="--d:.05s">QA agêntico para SaaS</p>
+        <h1 class="display reveal" style="--d:.16s" tabindex="-1"><span class="roll" data-roll="Explore|Meça|Documente">Explore</span><i class="wipe">seu SaaS inteiro, sem alterar um único dado.</i></h1>
+        <p class="lede reveal" style="--d:.27s">Dê uma URL e um login. O QA Agent descobre as telas, fotografa cada uma, mede erros, acessibilidade e desempenho e entrega uma pasta de evidências que sua engenharia revisa num pull request. Na execução de amostra ao lado, ele mapeou 8 de 8 telas e nenhuma requisição de escrita chegou ao servidor.</p>
+        <div class="row reveal" style="--d:.38s">
+          <a class="btn" href="#comecar">Rodar a primeira exploração</a>
+          <a class="link" href="#entrega">Ver o que sai no relatório <svg class="i i--16" aria-hidden="true"><use href="#i-arrow-right"/></svg></a>
+        </div>
+      </div>
+      <aside class="panel reveal" style="--d:.3s" data-parallax="-0.05" data-tilt aria-label="Resultado de uma execução de amostra">
+        <div class="panel__head"><span class="dot dot--pulse"></span><span class="title">Execução de amostra</span><span class="meta">SaaS sintético</span></div>
+        <div class="panel__body">
+          <div class="bar bar--cost"><span class="bar__label">Telas no app de teste</span><span class="bar__val">8</span><div class="bar__track"><span class="bar__fill" style="--w:100%"></span></div></div>
+          <div class="bar bar--save"><span class="bar__label">Telas mapeadas e documentadas</span><span class="bar__val">8</span><div class="bar__track"><span class="bar__fill" style="--w:100%"></span></div></div>
+        </div>
+        <div class="stats"><div><div class="stat__n">8/8</div><div class="stat__l">telas cobertas</div></div><div><div class="stat__n">0</div><div class="stat__l">escritas no servidor</div></div></div>
+        <p class="note"><span class="flag" aria-hidden="true">✓</span><span>Execução real contra um SaaS sintético com problemas plantados. Não é um benchmark em produto real.</span></p>
+        <div class="panel__foot"><span>23 chamadas ao modelo</span><span>3 subestados</span></div>
+      </aside>
+    </section>
+
+    <section class="section section--rule">
+      <div class="stack" data-reveal><p class="eyebrow">O que ele faz</p><h2 class="h2">Do link ao relatório,<i>sem roteiro manual.</i></h2></div>
+      <div class="cells cells--3" data-reveal-group style="margin-top:40px">
+        <div class="pillar"><span class="tile tile--ink">E</span><span class="pillar__role">Explorar</span><h3 class="h3">Descobre o produto sozinho</h3><p class="soft">Um crawler percorre menus e links com limites de telas, profundidade e tempo. O Claude abre as abas e os modais de leitura que um crawler comum não enxerga.</p></div>
+        <div class="pillar"><span class="tile tile--ink">M</span><span class="pillar__role">Medir</span><h3 class="h3">Mede em vez de opinar</h3><p class="soft">Erros de console, respostas 4xx e 5xx, violações de acessibilidade pelo axe e tempos de carregamento, LCP e CLS, tela por tela.</p></div>
+        <div class="pillar"><span class="tile tile--ink">D</span><span class="pillar__role">Documentar</span><h3 class="h3">Entrega pronto para revisar</h3><p class="soft">Markdown com screenshots, mapa de telas, reprodução de cada achado e checkbox de aprovação. Só o que a engenharia marcar vira issue.</p></div>
+      </div>
+    </section>
+
+    <section class="section section--rule" id="seguranca">
+      <div class="stack" data-reveal><p class="eyebrow">Segurança</p><h2 class="h2">Somente leitura,<i>garantido em duas camadas.</i></h2>
+        <p class="lede" style="max-width:62ch">Apontar um robô para um sistema real assusta com razão. Aqui, a exploração não depende da boa vontade do modelo: duas travas independentes impedem a escrita, e um teste confere que nada chegou ao servidor.</p></div>
+      <div class="cells cells--2" data-reveal-group style="margin-top:40px">
+        <div class="pillar"><span class="tile tile--ink">1</span><span class="pillar__role">Camada de elemento</span><h3 class="h3">Na dúvida, não clica</h3>
+          <ul class="list"><li><svg class="i i--16" aria-hidden="true"><use href="#i-check"/></svg>Só segue link, aba e item de menu.</li><li><svg class="i i--16" aria-hidden="true"><use href="#i-check"/></svg>Nunca aperta envio, botão dentro de formulário nem verbo de escrita, em português e inglês: excluir, convidar, pagar, delete, invite.</li><li><svg class="i i--16" aria-hidden="true"><use href="#i-check"/></svg>Sugestão do modelo passa pela mesma trava.</li></ul></div>
+        <div class="pillar"><span class="tile tile--ink">2</span><span class="pillar__role">Camada de rede</span><h3 class="h3">O navegador não deixa passar</h3>
+          <ul class="list"><li><svg class="i i--16" aria-hidden="true"><use href="#i-check"/></svg>PUT, PATCH e DELETE são sempre bloqueados.</li><li><svg class="i i--16" aria-hidden="true"><use href="#i-check"/></svg>POST só nos prefixos que você liberar, como busca e telemetria.</li><li><svg class="i i--16" aria-hidden="true"><use href="#i-check"/></svg>GraphQL: consulta passa, mutação é bloqueada, inclusive em lote.</li></ul></div>
+      </div>
+      <p class="meta source" data-reveal>Cada tentativa bloqueada vira uma linha em cobertura.md, com a tela e o motivo. Fluxos que precisam escrever ficam separados, em objetivos.md.</p>
+    </section>
+
+    <section class="section section--rule" id="entrega">
+      <div class="two">
+        <div class="stack" data-reveal>
+          <p class="eyebrow">O que entrega</p><h2 class="h2">Uma pasta que a engenharia<i>consegue auditar.</i></h2>
+          <p class="soft" style="max-width:56ch">Cada achado tem um id estável: o mesmo problema mantém o id entre execuções, e o README mostra o que é novo, o que persiste e o que foi resolvido desde o último run. O mesmo erro em várias telas vira um achado só, com a lista de telas afetadas.</p>
+          <ul class="list"><li><svg class="i i--16" aria-hidden="true"><use href="#i-check"/></svg>Onde está, evidência e como reproduzir.</li><li><svg class="i i--16" aria-hidden="true"><use href="#i-check"/></svg>Gravidade por achado, de crítica a baixa.</li><li><svg class="i i--16" aria-hidden="true"><use href="#i-check"/></svg>Mapa de navegação em Mermaid, direto no PR.</li></ul>
+        </div>
+        <div class="codewrap" data-reveal><pre class="code tree" aria-label="Estrutura da pasta qa-report">qa-report/&lt;runId&gt;/
+├─ README.md        <span class="c">resumo e o que mudou desde o último run</span>
+├─ achados.md       <span class="c">por gravidade, com [ ] de aprovação</span>
+├─ mapa.md          <span class="c">diagrama das telas e da navegação</span>
+├─ cobertura.md     <span class="c">o que foi e o que não foi explorado</span>
+├─ telas/           <span class="c">uma página por tela, com prints</span>
+├─ fluxos/          <span class="c">passo a passo de cada objetivo</span>
+├─ img/             <span class="c">screenshots em JPEG</span>
+└─ dados/           <span class="c">achados.json e manifest.json</span></pre></div>
+      </div>
+    </section>
+
+    <section class="section section--rule">
+      <div class="stack" data-reveal><p class="eyebrow">Como começa</p><h2 class="h2">Da exploração<i>à issue certa.</i></h2></div>
+      <div class="rail" data-reveal-group style="margin-top:48px">
+        <div class="rail__step"><span class="rail__n">1</span><h3 class="h3">Explorar</h3><p class="soft">Rode <span class="mono">qa-agent explore</span> com a URL. O relatório sai na pasta qa-report.</p></div>
+        <div class="rail__step"><span class="rail__n">2</span><h3 class="h3">Revisar no PR</h3><p class="soft">O comando <span class="mono">publish</span> abre o PR numa branch própria. A equipe marca [x] nos achados que valem uma issue.</p></div>
+        <div class="rail__step"><span class="rail__n">3</span><h3 class="h3">Abrir só o aprovado</h3><p class="soft">O comando <span class="mono">issues</span> cria uma issue por achado marcado e não duplica, porque procura o id nas issues abertas.</p></div>
+      </div>
+    </section>
+
+    <section class="section section--rule">
+      <div class="stack" data-reveal><p class="eyebrow">Transparência</p><h2 class="h2">O que foi medido,<i>o que é opinião.</i></h2>
+        <p class="lede" style="max-width:62ch">Relatório de QA que mistura fato e palpite perde a confiança do time. Aqui os dois vêm separados e rotulados.</p></div>
+      <div class="cmp" data-reveal style="margin-top:40px">
+        <div><span class="badge badge--ok">Medido</span><h3 class="h3" style="margin-top:12px">Técnico, acessibilidade, desempenho</h3>
+          <ul><li><svg class="i i--16" aria-hidden="true"><use href="#i-check"/></svg>Vem de console, rede, axe e métricas do navegador.</li><li><svg class="i i--16" aria-hidden="true"><use href="#i-check"/></svg>Limites de desempenho configuráveis: LCP, CLS e carregamento.</li><li><svg class="i i--16" aria-hidden="true"><use href="#i-check"/></svg>Reproduzível: mesma tela, mesmo resultado.</li></ul></div>
+        <div><span class="badge">Opinião do agente</span><h3 class="h3" style="margin-top:12px">UX pelo Claude</h3>
+          <ul><li><svg class="i i--16" aria-hidden="true"><use href="#i-check"/></svg>Só vale com evidência visível citada, como o texto exato do botão.</li><li><svg class="i i--16" aria-hidden="true"><use href="#i-check"/></svg>No máximo 5 por tela e gravidade limitada a média.</li><li><svg class="i i--16" aria-hidden="true"><use href="#i-check"/></svg>Sempre marcado, com a confiança do modelo.</li></ul></div>
+      </div>
+    </section>
+
+    <section class="section section--rule">
+      <div class="two">
+        <div class="stack" data-reveal>
+          <p class="eyebrow">Fluxos de negócio</p><h2 class="h2">Descreva o objetivo.<i>Um juiz decide.</i></h2>
+          <p class="soft" style="max-width:56ch">Para o que precisa escrever, como convidar um usuário ou criar um projeto, você descreve o objetivo em linguagem natural. O agente age passo a passo, com print antes e depois de cada ação, e um avaliador independente decide se o critério de sucesso foi atingido. Sem evidência, o resultado é revisão humana, nunca aprovação.</p>
+          <ul class="list"><li><svg class="i i--16" aria-hidden="true"><use href="#i-check"/></svg>Limite de 15 passos por objetivo.</li><li><svg class="i i--16" aria-hidden="true"><use href="#i-check"/></svg>Navegação restrita ao domínio do SaaS.</li><li><svg class="i i--16" aria-hidden="true"><use href="#i-check"/></svg>Senhas entram como variável: o modelo nunca as vê.</li></ul>
+        </div>
+        <div class="codewrap" data-reveal><pre class="code" aria-label="Exemplo de objetivos.md">## Convidar um usuário
+Entrar na tela de equipe e convidar
+um novo usuário pelo botão correspondente.
+**Sucesso:** o convite aparece como enviado.
+
+<span class="c"># resultado possível</span>
+pass          <span class="c">o Judge cita a evidência</span>
+fail          <span class="c">uma ação falhou</span>
+needs-review  <span class="c">sem evidência ou sem caminho</span></pre></div>
+      </div>
+    </section>
+
+    <section class="section section--rule" id="custo">
+      <div class="stack" data-reveal><p class="eyebrow">Custo e prova</p><h2 class="h2">Números de execuções reais,<i>com a fonte ao lado.</i></h2></div>
+      <div class="cells cells--4" data-reveal-group style="margin-top:40px">
+        <div class="kpi kpi--save"><div class="kpi__label">Escritas no servidor</div><div class="kpi__n">0</div><div class="kpi__delta">conferido por teste de aceitação</div><div class="kpi__bar"><i style="--w:100%"></i></div></div>
+        <div class="kpi"><div class="kpi__label">Testes automatizados</div><div class="kpi__n">350+</div><div class="kpi__delta">41 arquivos, todos passando</div><div class="kpi__bar"><i style="--w:100%"></i></div></div>
+        <div class="kpi"><div class="kpi__label">12 casos de Excel</div><div class="kpi__n">≈ US$ 0,50</div><div class="kpi__delta">30 chamadas, 2 minutos, 1ª execução</div><div class="kpi__bar"><i style="--w:30%"></i></div></div>
+        <div class="kpi"><div class="kpi__label">Exploração de 8 telas</div><div class="kpi__n">23</div><div class="kpi__delta">chamadas ao modelo, ≈ 49 mil tokens de entrada</div><div class="kpi__bar"><i style="--w:23%"></i></div></div>
+      </div>
+      <p class="meta source" data-reveal>Fonte: execuções com claude-opus-5-5 contra apps de teste locais. A segunda execução dos mesmos casos faz 0 chamadas, porque os passos compilados ficam em cache. No Excel, 11 dos 12 casos coincidiram com o esperado e o restante saiu em revisão humana. Custos em escala de produto real ainda não foram medidos.</p>
+    </section>
+
+    <section class="section section--rule" id="comecar">
+      <div class="two">
+        <div class="stack" data-reveal>
+          <p class="eyebrow">Começar</p><h2 class="h2">Três comandos<i>e o primeiro relatório.</i></h2>
+          <p class="soft" style="max-width:52ch">Requer Node 20.12 ou superior. Sem chave de API, a exploração roda só com o crawler e as análises medidas, e o relatório avisa o que não rodou. Com SSO, salve a sessão uma vez com <span class="mono">qa-agent login</span>.</p>
+          <div class="row" style="margin-top:8px"><a class="btn" href="https://github.com/juliopessan/QA-Playwright" target="_blank" rel="noopener">Abrir no GitHub</a><a class="link" href="#faq">Perguntas frequentes <svg class="i i--16" aria-hidden="true"><use href="#i-arrow-right"/></svg></a></div>
+        </div>
+        <div class="codewrap" data-reveal><pre class="code" id="cmds" aria-label="Comandos de início rápido">npm install &amp;&amp; npm run build
+<span class="c"># .env: APP_USER, APP_PASS, ANTHROPIC_API_KEY</span>
+node dist/cli/index.js explore https://app.exemplo.com
+node dist/cli/index.js publish &lt;runId&gt; --pr --repo dono/repo</pre><button class="btn btn--line btn--sm copy" type="button" id="copyBtn">Copiar</button></div>
+      </div>
+    </section>
+
+    <section class="section section--rule" id="faq">
+      <div class="stack" data-reveal><p class="eyebrow">Perguntas</p><h2 class="h2">Antes de apontar<i>para o seu SaaS.</i></h2></div>
+      <div class="faq" data-reveal style="margin-top:32px">
+        <details><summary>Ele pode quebrar ou alterar dados em produção? <svg class="i" aria-hidden="true"><use href="#i-plus"/></svg></summary><p>Na exploração, não: as duas camadas bloqueiam escrita e um teste confere que nenhuma requisição de escrita chega ao servidor. O login é a única escrita permitida e acontece antes da trava entrar. Mesmo assim, prefira um ambiente de homologação para os fluxos de negócio, que escrevem de propósito.</p></details>
+        <details><summary>O que o modelo enxerga das minhas telas? <svg class="i" aria-hidden="true"><use href="#i-plus"/></svg></summary><p>Screenshots com campos de senha e seletores configurados cobertos, e texto da página com e-mails, CPFs e tokens redigidos. O conteúdo das páginas é tratado como dado não confiável, e nunca como instrução.</p></details>
+        <details><summary>Funciona com login corporativo (SSO)? <svg class="i" aria-hidden="true"><use href="#i-plus"/></svg></summary><p>Sim, por sessão salva: você faz o login uma vez com <span class="mono">qa-agent login</span> e o agente reutiliza a sessão. Login por formulário comum usa APP_USER e APP_PASS. MFA interativo no CI está fora do escopo.</p></details>
+        <details><summary>Posso usar outro modelo além do Claude? <svg class="i" aria-hidden="true"><use href="#i-plus"/></svg></summary><p>O modelo fica atrás de uma interface trocável, e o Claude é o padrão. Trocar exige escrever um adaptador pequeno para essa interface.</p></details>
+        <details><summary>Isso substitui o time de QA? <svg class="i" aria-hidden="true"><use href="#i-plus"/></svg></summary><p>Não. Ele faz a varredura repetitiva e entrega evidências organizadas; quem decide o que é um problema real e o que vira issue é a sua equipe, no PR. Em dúvida, o agente nunca aprova: marca para revisão humana.</p></details>
+        <details><summary>O que ainda não faz? <svg class="i" aria-hidden="true"><use href="#i-plus"/></svg></summary><p>Leituras via POST fora de GraphQL deixam a tela incompleta até a rota entrar na lista liberada, e o relatório aponta qual foi. O login heurístico pode falhar em telas incomuns. A qualidade da análise de UX foi vista só em um SaaS sintético, e o ponto de partida é um app de teste, não um produto real. Teste de carga, execução paralela e Jira ou Linear estão fora do escopo.</p></details>
+      </div>
+    </section>
+
+    <section class="section section--rule">
+      <div class="stack" data-reveal><h2 class="h2">Pare de caçar tela por tela.<i>Revise evidências.</i></h2>
+        <div class="row" style="margin-top:28px"><a class="btn" href="#comecar">Rodar a primeira exploração</a><a class="link" href="https://github.com/juliopessan/QA-Playwright" target="_blank" rel="noopener">Ver o código no GitHub <svg class="i i--16" aria-hidden="true"><use href="#i-arrow-up-right"/></svg></a></div></div>
+    </section>
+  </main>
+
+  <footer class="foot"><span class="meta">© 2026 QA Agent. Números de execuções de teste, com fonte indicada na página.</span>
+    <nav aria-label="Rodapé"><a href="#seguranca">Segurança</a><a href="#faq">Perguntas</a><button class="icon-btn" type="button" data-theme-toggle aria-label="Tema: automático. Alterar tema"><svg class="i" aria-hidden="true"><use href="#i-contrast"/></svg></button></nav></footer>
+</div>
+
+<script>
+/*! Ledger UI runtime v2 — vanilla JS, no dependencies, safe under the artifact CSP.
+   Sections: util · theme · tab (favicon + title) · motion · verbs · roll · url chips · toast · tabs · delegates · init
+   Contract: if anything throws, every reveal target gets .is-in so the page is never left hidden. */
+(function () {
+  'use strict';
+  var W = window, D = document, R = D.documentElement;
+  var L = (W.Ledger = W.Ledger || {});
+  L.version = '2.0.0';
+  L.config = { faviconSrc: null };   // (host) => image URL | null. Leave null inside published artifacts (CSP blocks remote images).
+
+  function mq(q) { return W.matchMedia ? W.matchMedia(q) : { matches: false }; }
+  var RM = mq('(prefers-reduced-motion: reduce)').matches;
+  function $(s, r) { return (r || D).querySelector(s); }
+  function $$(s, r) { return Array.prototype.slice.call((r || D).querySelectorAll(s)); }
+  function el(tag, cls, html) { var e = D.createElement(tag); if (cls) e.className = cls; if (html != null) e.innerHTML = html; return e; }
+  function esc(s) { return String(s).replace(/[&<>"]/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]; }); }
+  function safe(fn) { try { fn(); } catch (e) { if (W.console) console.warn('[ledger]', e); } }
+  L.icon = function (name, size) { return '<svg class="i' + (size ? ' i--' + size : '') + '" aria-hidden="true"><use href="#i-' + name + '"/></svg>'; };
+
+  /* Polite live region — one place for screen-reader announcements (verbs, async results). */
+  L.say = function (msg) {
+    var r = $('#ledger-live');
+    if (!r) { r = el('div', 'sr-only'); r.id = 'ledger-live'; r.setAttribute('role', 'status'); r.setAttribute('aria-live', 'polite'); D.body.appendChild(r); }
+    r.textContent = ''; setTimeout(function () { r.textContent = msg; }, 60);
+  };
+
+  /* ── theme: auto → light → dark ───────────────────────────────────────────── */
+  var TKEY = 'ledger-theme';
+  L.theme = {
+    get: function () { try { return localStorage.getItem(TKEY) || 'auto'; } catch (e) { return 'auto'; } },
+    effective: function () { return R.getAttribute('data-theme') || (mq('(prefers-color-scheme: dark)').matches ? 'dark' : 'light'); },
+    set: function (m) {
+      if (m === 'auto') R.removeAttribute('data-theme'); else R.setAttribute('data-theme', m);
+      try { if (m === 'auto') localStorage.removeItem(TKEY); else localStorage.setItem(TKEY, m); } catch (e) {}
+      L.theme.label(); if (L.tab) L.tab.refresh();
+    },
+    label: function () {
+      var m = L.theme.get();
+      $$('[data-theme-toggle]').forEach(function (b) { b.setAttribute('aria-label', 'Theme: ' + m + '. Change theme'); b.title = 'Theme: ' + m; });
+    },
+    cycle: function () { var o = ['auto', 'light', 'dark']; L.theme.set(o[(o.indexOf(L.theme.get()) + 1) % 3]); }
+  };
+
+  /* ── tab: dynamic favicon + document title ────────────────────────────────── */
+  var FAV = { light: { bg: '#17140F', fg: '#F1EEE5', live: '#B9CC3E', err: '#C9591F' }, dark: { bg: '#EDE9DE', fg: '#151310', live: '#C9D95F', err: '#E07A3C' } };
+  L.tab = {
+    state: 'idle',
+    letter: function () {
+      var m = $('meta[name="ledger:letter"]'), b = $('.brand__mark');
+      return ((m && m.content) || (b && b.textContent) || 'L').trim().charAt(0).toUpperCase();
+    },
+    product: function () { var m = $('meta[name="ledger:product"]'); return m ? m.content : ''; },
+    svg: function (state) {
+      var c = FAV[mq('(prefers-color-scheme: dark)').matches ? 'dark' : 'light'];   // browser chrome follows the OS, not the page theme
+      var dot = state === 'live' ? c.live : state === 'error' ? c.err : null;
+      return '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32"><rect width="32" height="32" fill="' + c.bg + '"/>' +
+        '<text x="16" y="24" text-anchor="middle" font-family="Archivo,Arial Black,Arial,sans-serif" font-weight="800" font-size="22" fill="' + c.fg + '">' + esc(L.tab.letter()) + '</text>' +
+        (dot ? '<circle cx="25" cy="7" r="6" fill="' + dot + '" stroke="' + c.bg + '" stroke-width="2"/>' : '') + '</svg>';
+    },
+    refresh: function () {
+      var old = $('link[rel="icon"][type="image/svg+xml"]'), n = el('link');
+      n.rel = 'icon'; n.type = 'image/svg+xml'; n.href = 'data:image/svg+xml,' + encodeURIComponent(L.tab.svg(L.tab.state));
+      if (old && old.parentNode) old.parentNode.replaceChild(n, old); else D.head.appendChild(n);   // replacing the node forces browsers to repaint the tab icon
+    },
+    set: function (o) {
+      o = o || {};
+      if (o.state) L.tab.state = o.state;
+      if (o.title != null) { var p = L.tab.product(); D.title = o.title + (p ? ' | ' + p : ''); }
+      L.tab.refresh();
+    }
+  };
+
+  /* ── motion ───────────────────────────────────────────────────────────────── */
+  function fallbackVisible() { $$('[data-reveal],[data-reveal-group],.eyebrow,.rail,.chart-wrap').forEach(function (n) { n.classList.add('is-in'); }); }
+  var io = null;
+  function setupCount(n) {
+    if (n.__ct || RM) return; n.__ct = 1;
+    var m = /^(\D*)([\d.,]+)(\D*)$/.exec(n.textContent.trim()); if (!m) return;
+    var pre = n.getAttribute('data-prefix') != null ? n.getAttribute('data-prefix') : m[1];
+    var suf = n.getAttribute('data-suffix') != null ? n.getAttribute('data-suffix') : m[3];
+    var to = n.getAttribute('data-count') ? parseFloat(n.getAttribute('data-count')) : parseFloat(m[2].replace(/,/g, ''));
+    var dec = n.getAttribute('data-decimals') != null ? +n.getAttribute('data-decimals') : (m[2].split('.')[1] || '').length;
+    var delay = +(n.getAttribute('data-delay') || 450), dur = 1300, finalText = n.textContent;
+    function fmt(v) { return pre + v.toLocaleString('en-US', { minimumFractionDigits: dec, maximumFractionDigits: dec }) + suf; }
+    n.textContent = fmt(0);   // static final text lives in the markup; reset happens under the block's fade-in
+    function run() {
+      setTimeout(function () {
+        var t0 = null;
+        requestAnimationFrame(function step(ts) {
+          if (t0 === null) t0 = ts;
+          var p = Math.min(1, (ts - t0) / dur);
+          n.textContent = p < 1 ? fmt(to * (1 - Math.pow(1 - p, 3))) : finalText;
+          if (p < 1) requestAnimationFrame(step);
+        });
+      }, delay);
+    }
+    if ('IntersectionObserver' in W) {
+      var o = new IntersectionObserver(function (es) { if (es[0].isIntersecting) { o.disconnect(); run(); } }, { threshold: .3 });
+      o.observe(n);
+    } else n.textContent = finalText;
+  }
+  var nudge = function () {};
+  function parallaxTilt() {
+    if (RM) return;
+    var items = $$('[data-parallax],[data-tilt]').map(function (n) {
+      return { n: n, f: parseFloat(n.getAttribute('data-parallax')) || 0, tilt: n.hasAttribute('data-tilt'), py: 0, rx: 0, ry: 0, tX: 0, tY: 0 };
+    });
+    if (!items.length) return;
+    var raf = 0, fine = mq('(hover: hover) and (pointer: fine)').matches;
+    function ready(n) { return !n.classList.contains('reveal') || n.classList.contains('revealed'); }   // load animation must release before JS owns transform
+    function frame() {
+      raf = 0; var vh = W.innerHeight, again = false;
+      items.forEach(function (it) {
+        if (!ready(it.n)) { again = true; return; }
+        var r = it.n.getBoundingClientRect(); if (!r.height) return;
+        if (it.f) it.py = (r.top + r.height / 2 - it.py - vh / 2) * it.f;   // subtract our own offset so the read is stable
+        if (it.tilt) {
+          it.rx += (it.tX - it.rx) * .12; it.ry += (it.tY - it.ry) * .12;
+          if (Math.abs(it.tX - it.rx) > .01 || Math.abs(it.tY - it.ry) > .01) again = true;
+        }
+        it.n.style.transform = 'translate3d(0,' + it.py.toFixed(2) + 'px,0)' +
+          (it.tilt ? ' perspective(1200px) rotateX(' + it.rx.toFixed(3) + 'deg) rotateY(' + it.ry.toFixed(3) + 'deg)' : '');   // ONE transform string per element
+      });
+      if (again) raf = requestAnimationFrame(frame);
+    }
+    nudge = function () { if (!raf) raf = requestAnimationFrame(frame); };
+    W.addEventListener('scroll', nudge, { passive: true }); W.addEventListener('resize', nudge);
+    if (fine) items.forEach(function (it) {
+      if (!it.tilt) return;
+      it.n.addEventListener('pointermove', function (e) {
+        var r = it.n.getBoundingClientRect();
+        it.tY = ((e.clientX - r.left) / r.width - .5) * 5; it.tX = -((e.clientY - r.top) / r.height - .5) * 5;   // ±2.5°
+        nudge();
+      });
+      it.n.addEventListener('pointerleave', function () { it.tX = 0; it.tY = 0; nudge(); });
+    });
+    nudge();
+  }
+  function progress() {
+    var b = $('.progress'); if (!b) return;
+    function tick() { var h = R.scrollHeight - W.innerHeight; b.style.transform = 'scaleX(' + (h > 0 ? Math.min(1, W.scrollY / h) : 0) + ')'; }
+    W.addEventListener('scroll', tick, { passive: true }); W.addEventListener('resize', tick); tick();
+  }
+  L.motion = {
+    init: function () { try { progress(); L.motion.scan(D); parallaxTilt(); } catch (e) { fallbackVisible(); } },
+    refresh: function () { nudge(); },   // call after showing a hidden view
+    scan: function (root) {
+      root = root || D;
+      var targets = $$('[data-reveal],[data-reveal-group],.eyebrow,.rail,.chart-wrap', root);
+      if (RM || !('IntersectionObserver' in W)) targets.forEach(function (t) { t.classList.add('is-in'); });
+      else {
+        io = io || new IntersectionObserver(function (es) { es.forEach(function (e) { if (e.isIntersecting) { e.target.classList.add('is-in'); io.unobserve(e.target); } }); }, { threshold: .08, rootMargin: '0px 0px -4% 0px' });
+        targets.forEach(function (t) { if (!t.__lo) { t.__lo = 1; io.observe(t); } });
+      }
+      $$('.reveal', root).forEach(function (n) {
+        if (n.__rv) return; n.__rv = 1;
+        n.addEventListener('animationend', function (e) { if (e.target === n) n.classList.add('revealed'); });   // release fill-mode:forwards so JS can own transform
+      });
+      $$('.count', root).forEach(setupCount);
+    }
+  };
+
+  /* ── spinning verbs: a wait state that names the work ─────────────────────── */
+  var VERBS = {   // [present, past] — bookkeeping and audit vocabulary; past form closes the entry
+    data:  [['Tallying', 'Tallied'], ['Footing', 'Footed'], ['Casting', 'Cast'], ['Vouching', 'Vouched'], ['Reconciling', 'Reconciled'], ['Balancing', 'Balanced'], ['Ticking', 'Ticked'], ['Netting', 'Netted']],
+    auth:  [['Verifying', 'Verified'], ['Matching', 'Matched'], ['Checking', 'Checked'], ['Unsealing', 'Unsealed']],
+    agent: [['Routing', 'Routed'], ['Weighing', 'Weighed'], ['Trimming', 'Trimmed'], ['Pricing', 'Priced'], ['Counting', 'Counted'], ['Caching', 'Cached']],
+    file:  [['Ruling', 'Ruled'], ['Binding', 'Bound'], ['Stamping', 'Stamped'], ['Filing', 'Filed']]
+  };
+  function shuffle(a) { a = a.slice(); for (var i = a.length - 1; i > 0; i--) { var j = Math.floor(Math.random() * (i + 1)), t = a[i]; a[i] = a[j]; a[j] = t; } return a; }
+  function fmtT(s) { return s < 60 ? s + 's' : Math.floor(s / 60) + 'm ' + ('0' + (s % 60)).slice(-2) + 's'; }
+
+  L.verbs = {
+    sets: VERBS,
+    /* start(host, {set, first, delay=400, cycle=1600, minShow=600, elapsed=true, keep, linger, label, onShow}) → {done, fail, stop} */
+    start: function (host, o) {
+      o = o || {};
+      var pairs = Array.isArray(o.set) ? o.set : (VERBS[o.set || host.getAttribute('data-verbs')] || VERBS.data);
+      var deck = shuffle(pairs);
+      if (o.first) deck.sort(function (a, b) { return (b[0] === o.first) - (a[0] === o.first); });
+      var i = 0, delay = o.delay != null ? o.delay : 400, cycle = o.cycle || 1600, minShow = o.minShow != null ? o.minShow : 600;
+      var maxLen = deck.reduce(function (m, p) { return Math.max(m, p[0].length, p[1].length); }, 0);
+      var t0 = Date.now(), shownAt = 0, timers = [], ended = false;
+
+      host.classList.add('verb'); host.classList.remove('verb--done', 'verb--fail', 'verb--run');
+      host.setAttribute('data-pending', ''); host.style.setProperty('--verb-w', (maxLen + 1) + 'ch');
+      host.innerHTML = '<span class="verb__sq" aria-hidden="true"></span>' +
+        '<span class="verb__lbl" aria-hidden="true"><span class="verb__text"></span><span class="verb__dots">...</span></span>' +
+        (o.elapsed === false ? '' : '<span class="verb__t" aria-hidden="true">0s</span>');
+      var txt = $('.verb__text', host), sq = $('.verb__sq', host), tEl = $('.verb__t', host), lbl = $('.verb__lbl', host);
+
+      function put(word, animate) {
+        var s = el('span', '', word), old = txt.firstChild;
+        if (animate && !RM && old && old.animate) {
+          txt.appendChild(s);
+          var ease = 'cubic-bezier(.2,.7,.2,1)';
+          old.animate([{ transform: 'translateY(0)' }, { transform: 'translateY(-100%)' }], { duration: 240, easing: ease, fill: 'forwards' })
+            .onfinish = function () { if (old.parentNode) old.parentNode.removeChild(old); };
+          s.animate([{ transform: 'translateY(100%)' }, { transform: 'translateY(0)' }], { duration: 240, easing: ease });
+        } else { txt.textContent = ''; txt.appendChild(s); }
+      }
+      function clear() { timers.forEach(function (t) { clearInterval(t); clearTimeout(t); }); timers = []; }
+      function show() {
+        shownAt = Date.now(); host.removeAttribute('data-pending'); host.classList.add('verb--run');
+        put(deck[0][0], false); L.say(o.label || 'Working'); if (o.onShow) o.onShow();
+        if (!RM && deck.length > 1) timers.push(setInterval(function () { i = (i + 1) % deck.length; put(deck[i][0], true); }, cycle));   // reduced motion: hold the first verb
+        if (tEl) timers.push(setInterval(function () { tEl.textContent = fmtT(Math.floor((Date.now() - t0) / 1000)); }, 1000));
+      }
+      if (delay <= 0) show(); else timers.push(setTimeout(show, delay));   // under `delay` ms nothing renders — no flash on fast responses
+
+      function finish(kind, msg) {
+        if (ended) return Promise.resolve();
+        ended = true;
+        var wait = shownAt ? Math.max(0, minShow - (Date.now() - shownAt)) : 0;   // once visible, stay visible long enough to be read
+        return new Promise(function (res) {
+          setTimeout(function () {
+            clear(); host.classList.remove('verb--run');
+            if (!shownAt) { host.innerHTML = ''; host.removeAttribute('data-pending'); return res(false); }
+            var ok = kind === 'done', word = ok ? (msg || deck[i][1]) : (msg || 'Failed');
+            sq.className = 'verb__flag'; sq.textContent = ok ? '✓' : '✕';
+            host.classList.add(ok ? 'verb--done' : 'verb--fail');
+            lbl.innerHTML = ''; lbl.appendChild(el('span', '', word)); if (tEl) tEl.parentNode.removeChild(tEl);
+            L.say(word);
+            if (!ok) return res(true);   // errors stay on screen until the person acts
+            setTimeout(function () { if (!o.keep) host.innerHTML = ''; res(true); }, o.linger != null ? o.linger : 1400);
+          }, wait);
+        });
+      }
+      return {
+        done: function (word) { return finish('done', word); },
+        fail: function (msg) { return finish('fail', msg); },
+        stop: function () { ended = true; clear(); host.innerHTML = ''; host.removeAttribute('data-pending'); host.classList.remove('verb--run'); }
+      };
+    },
+    /* button(btn, promiseOrFn, {set, done, delay=120}) — swaps the label for a verb while `work` runs; resolves with work's value */
+    button: function (btn, work, o) {
+      o = o || {};
+      var html = btn.innerHTML, lab = el('span', '', html), slot = el('span', 'verb--btn');
+      btn.style.minWidth = btn.getBoundingClientRect().width + 'px';   // no width jump when the label swaps
+      btn.setAttribute('aria-busy', 'true'); btn.setAttribute('aria-disabled', 'true');
+      btn.innerHTML = ''; btn.appendChild(lab); btn.appendChild(slot);
+      var run = L.verbs.start(slot, { set: o.set, delay: o.delay != null ? o.delay : 120, elapsed: false, keep: true, linger: o.linger != null ? o.linger : 700, onShow: function () { lab.hidden = true; } });
+      function restore() { btn.innerHTML = html; btn.style.minWidth = ''; btn.removeAttribute('aria-busy'); btn.removeAttribute('aria-disabled'); }
+      return Promise.resolve(typeof work === 'function' ? work() : work).then(
+        function (v) { return run.done(o.done).then(function () { restore(); return v; }); },
+        function (err) { run.stop(); restore(); throw err; });
+    }
+  };
+
+  /* ── verb roller: a headline word that cycles once, then settles ──────────── */
+  L.roll = function (root) {
+    $$('[data-roll]', root || D).forEach(function (n) {
+      if (n.__roll) return; n.__roll = 1;
+      var words = n.getAttribute('data-roll').split('|'), rest = n.textContent.trim();
+      var loops = +(n.getAttribute('data-roll-loops') || 1), every = +(n.getAttribute('data-roll-every') || 2400), lead = +(n.getAttribute('data-roll-delay') || 1800);
+      if (RM || words.length < 2) return;   // static: the markup already holds the resting word
+      var ri = Math.max(0, words.indexOf(rest));
+      n.textContent = ''; n.appendChild(el('span', 'sr-only', rest));
+      var els = words.map(function (w) { var s = el('span', 'roll__w', w); s.setAttribute('aria-hidden', 'true'); n.appendChild(s); return s; });
+      var cur = els[ri], z = 1, seq = [], k, j; cur.classList.add('is-on');
+      for (k = 0; k < loops; k++) for (j = 1; j <= words.length; j++) seq.push((ri + j) % words.length);   // walks the others, lands back on the resting word
+      var step = 0;
+      function next() {
+        if (step >= seq.length) return;
+        var nx = els[seq[step++]], prev = cur;
+        nx.style.zIndex = ++z; nx.classList.add('is-on', 'is-fresh'); cur = nx;
+        setTimeout(function () { prev.classList.remove('is-on', 'is-fresh'); }, 560);
+        setTimeout(next, every);
+      }
+      setTimeout(next, lead);   // the resting word is readable first; the hero's own load sequence plays before any roll
+    });
+  };
+
+  /* ── url chips: favicon tile + emphasised host ────────────────────────────── */
+  L.urlChip = function (root) {
+    $$('a[data-url-chip]', root || D).forEach(function (a) {
+      if (a.__uc) return; a.__uc = 1;
+      var u; try { u = new URL(a.getAttribute('href'), D.baseURI); } catch (e) { return; }
+      var h = u.hostname.replace(/^www\./, ''), path = (u.pathname === '/' ? '' : u.pathname) + u.search + u.hash, parts = h.split('.'), n = parts.length;
+      var core = (n > 2 && parts[n - 1].length <= 3 && parts[n - 2].length <= 3) ? parts[n - 3] : (parts[n - 2] || h);   // handles co.uk / com.br
+      a.className = (a.className + ' url').trim(); a.title = u.href;
+      if (u.origin !== W.location.origin) { a.target = '_blank'; a.rel = 'noopener noreferrer'; }
+      var tile = el('span', 'tile'); tile.setAttribute('aria-hidden', 'true'); tile.textContent = core.charAt(0);
+      var src = L.config.faviconSrc ? L.config.faviconSrc(h) : null;
+      if (src) { var img = new Image(); img.alt = ''; img.width = 16; img.height = 16; img.onload = function () { tile.textContent = ''; tile.appendChild(img); }; img.src = src; }   // on error the letter stays
+      a.textContent = ''; a.appendChild(tile);
+      var host = el('span', 'url__host'); host.textContent = h; a.appendChild(host);
+      if (path) { var p = el('span', 'url__path'); p.textContent = path; a.appendChild(p); }
+      a.insertAdjacentHTML('beforeend', L.icon('arrow-up-right'));
+    });
+  };
+
+  /* ── toast ────────────────────────────────────────────────────────────────── */
+  L.toast = function (msg, o) {
+    o = o || {};
+    var box = $('#toasts');
+    if (!box) { box = el('div'); box.id = 'toasts'; box.setAttribute('role', 'status'); box.setAttribute('aria-live', 'polite'); D.body.appendChild(box); }
+    var kind = o.kind || '', t = el('div', 'toast' + (kind ? ' toast--' + kind : ''), L.icon(kind === 'ok' ? 'success' : kind === 'err' ? 'error' : 'info') + '<span></span>');
+    t.lastChild.textContent = msg; box.appendChild(t);
+    setTimeout(function () { if (t.parentNode) t.parentNode.removeChild(t); }, o.ms || 4200);
+    return t;
+  };
+
+  /* ── tabs (roving tabindex, arrow keys) ───────────────────────────────────── */
+  L.tabs = function (root) {
+    $$('[role="tablist"]', root || D).forEach(function (list) {
+      if (list.__t) return; list.__t = 1;
+      var tabs = $$('[role="tab"]', list);
+      function sel(t, focus) {
+        tabs.forEach(function (x) {
+          var on = x === t; x.setAttribute('aria-selected', on ? 'true' : 'false'); x.tabIndex = on ? 0 : -1;
+          var p = D.getElementById(x.getAttribute('aria-controls')); if (p) p.hidden = !on;
+        });
+        if (focus) t.focus();
+      }
+      tabs.forEach(function (t, i) {
+        t.addEventListener('click', function () { sel(t); });
+        t.addEventListener('keydown', function (e) {
+          var k = e.key, n = k === 'ArrowRight' ? i + 1 : k === 'ArrowLeft' ? i - 1 : k === 'Home' ? 0 : k === 'End' ? tabs.length - 1 : null;
+          if (n === null) return; e.preventDefault(); sel(tabs[(n + tabs.length) % tabs.length], true);
+        });
+      });
+      sel(tabs.filter(function (t) { return t.getAttribute('aria-selected') === 'true'; })[0] || tabs[0]);
+    });
+  };
+
+  /* ── delegated interactions ───────────────────────────────────────────────── */
+  function delegates() {
+    D.addEventListener('click', function (e) {
+      var t = e.target.closest ? e.target.closest('[data-dialog-open],[data-dialog-close],[data-theme-toggle],[data-nav-toggle],[data-copy],[data-toggle-pw],.shell__scrim,.seg button') : null;
+      if (e.target.tagName === 'DIALOG' && e.target.open) { e.target.close(); return; }   // backdrop click (the dialog has no padding, so target === dialog only outside the content)
+      if (!t) return;
+      if (t.hasAttribute('data-theme-toggle')) L.theme.cycle();
+      else if (t.hasAttribute('data-nav-toggle') || t.classList.contains('shell__scrim')) {
+        var sh = $('.shell'); if (!sh) return; var open = sh.classList.toggle('is-nav-open');
+        $$('[data-nav-toggle]').forEach(function (b) { b.setAttribute('aria-expanded', open ? 'true' : 'false'); });
+      } else if (t.hasAttribute('data-dialog-open')) { var d = $(t.getAttribute('data-dialog-open')); if (d && d.showModal) d.showModal(); }
+      else if (t.hasAttribute('data-dialog-close')) { var dd = t.closest('dialog'); if (dd) dd.close(); }
+      else if (t.hasAttribute('data-toggle-pw')) {
+        var inp = $(t.getAttribute('data-toggle-pw')); if (!inp) return;
+        var show = inp.type === 'password'; inp.type = show ? 'text' : 'password'; t.setAttribute('aria-pressed', show ? 'true' : 'false');
+        t.setAttribute('aria-label', show ? 'Hide password' : 'Show password'); t.innerHTML = L.icon(show ? 'eye-off' : 'eye');
+      } else if (t.hasAttribute('data-copy')) {
+        var src = $(t.getAttribute('data-copy')), txt = src ? (src.getAttribute('data-value') || src.textContent).trim() : '';
+        var ok = function () { L.toast('Copied to clipboard', { kind: 'ok' }); }, bad = function () { L.toast('Copy failed. Select the text and copy it manually.', { kind: 'err' }); };
+        if (navigator.clipboard && navigator.clipboard.writeText) navigator.clipboard.writeText(txt).then(ok, bad); else bad();
+      } else if (t.closest('.seg')) {   // segmented control: one pressed at a time, emits ledger:seg
+        $$('button', t.parentNode).forEach(function (b) { b.setAttribute('aria-pressed', b === t ? 'true' : 'false'); });
+        t.parentNode.dispatchEvent(new CustomEvent('ledger:seg', { bubbles: true, detail: { value: t.getAttribute('data-value') } }));
+      }
+    });
+    D.addEventListener('keydown', function (e) {
+      if (e.key !== 'Escape') return;
+      var sh = $('.shell.is-nav-open'); if (sh) { sh.classList.remove('is-nav-open'); $$('[data-nav-toggle]').forEach(function (b) { b.setAttribute('aria-expanded', 'false'); }); }
+    });
+  }
+
+  /* ── init ─────────────────────────────────────────────────────────────────── */
+  L.init = function () {
+    safe(L.theme.label); safe(L.motion.init); safe(L.roll); safe(L.urlChip); safe(L.tabs); safe(L.tab.refresh); safe(delegates);
+    var dm = mq('(prefers-color-scheme: dark)'); if (dm.addEventListener) dm.addEventListener('change', function () { L.tab.refresh(); });
+  };
+  if (!W.LEDGER_MANUAL) { if (D.readyState === 'loading') D.addEventListener('DOMContentLoaded', L.init); else L.init(); }
+})();
+
+</script>
+<script>
+(function () {
+  'use strict';
+  try { window.Ledger.config.faviconSrc = null; } catch (e) {}
+  var btn = document.getElementById('copyBtn'), pre = document.getElementById('cmds');
+  if (btn && pre) btn.addEventListener('click', function () {
+    var text = pre.innerText;
+    function done(ok) { btn.textContent = ok ? 'Copiado' : 'Selecione e copie'; if (!ok) { var r = document.createRange(); r.selectNodeContents(pre); var s = getSelection(); s.removeAllRanges(); s.addRange(r); } setTimeout(function () { btn.textContent = 'Copiar'; }, 1800); }
+    try { navigator.clipboard.writeText(text).then(function () { done(true); }, function () { done(false); }); } catch (e) { done(false); }
+  });
+  document.querySelectorAll('a[href^="#"]').forEach(function (a) { a.addEventListener('click', function (e) { var id = a.getAttribute('href').slice(1); var t = id && document.getElementById(id); if (t) { e.preventDefault(); t.scrollIntoView({ behavior: 'smooth' }); } }); });
+})();
+</script>
+</body>
+</html>
