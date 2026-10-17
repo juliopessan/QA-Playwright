@@ -75,3 +75,6 @@ export function evidenceFound(evidence, pages) {
   if (e.length < 4) return false;
   return pages.some((p) => norm(`${p.title ?? ""} ${p.text ?? ""}`).includes(e));
 }
+
+/** Chave do Exa: o nome documentado é EXA_API_KEY; EXA_API também é aceito (nome usado no painel da Vercel). */
+export const exaKey = (env) => env.EXA_API_KEY || env.EXA_API || "";

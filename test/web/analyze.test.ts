@@ -68,6 +68,13 @@ describe("POST /api/analyze", () => {
     expect(all.body.error).toMatch(/DNS/);
   });
 
+  it("aceita a chave do Exa com o nome alternativo EXA_API", async () => {
+    const d = deps({ env: { EXA_API: "exa-alt" } });
+    const r = await call(makeAnalyze(d), { url: "https://a.com" });
+    expect(r.status).toBe(200);
+    expect(d.exaCrawl).toHaveBeenCalledWith("https://a.com/", { apiKey: "exa-alt" });
+  });
+
   it("só aceita POST", async () => {
     expect((await call(makeAnalyze(deps()), undefined, "GET")).status).toBe(405);
   });

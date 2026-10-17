@@ -24,11 +24,11 @@ Variáveis de ambiente do projeto na Vercel (Settings → Environment Variables)
 
 | Variável | Obrigatória | Uso |
 |---|---|---|
-| `EXA_API_KEY` | sim | Leitura das páginas pela API do Exa |
+| `EXA_API_KEY` | sim | Leitura das páginas pela API do Exa (o nome `EXA_API` também é aceito) |
 | `ANTHROPIC_API_KEY` | recomendada | Revisão do conteúdo pelo Claude; sem ela a análise traz só as medições |
 | `QA_WEB_MODEL` | não | Modelo da revisão (padrão `claude-opus-5-5`, com esforço baixo e fallback do servidor em caso de recusa) |
 
-Sem `EXA_API_KEY`, o formulário responde que a análise ainda não foi configurada.
+Sem `EXA_API_KEY`, o formulário responde que a análise ainda não foi configurada. Para conferir o que chegou à função, abra `/api/health`: mostra se as chaves estão presentes e nomes de variáveis parecidas (nunca valores). Variável cadastrada depois do último deploy só vale após um novo deploy.
 
 ## Segurança e custo
 

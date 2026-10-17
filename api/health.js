@@ -1,4 +1,4 @@
-import { send } from "./_lib/core.js";
+import { exaKey, send } from "./_lib/core.js";
 import { REVIEW_MODEL } from "./_lib/review.js";
 
 /**
@@ -8,8 +8,8 @@ import { REVIEW_MODEL } from "./_lib/review.js";
 export function health(env = process.env) {
   const similar = Object.keys(env).filter((k) => /exa|anthropic|claude/i.test(k)).sort();
   return {
-    ready: Boolean(env.EXA_API_KEY),
-    exa: Boolean(env.EXA_API_KEY),
+    ready: Boolean(exaKey(env)),
+    exa: Boolean(exaKey(env)),
     anthropic: Boolean(env.ANTHROPIC_API_KEY),
     model: REVIEW_MODEL,
     similarVariables: similar,
