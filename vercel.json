@@ -5,8 +5,12 @@
   "buildCommand": "npm run build:web",
   "outputDirectory": "web-dist",
   "functions": {
-    "api/*.js": {
-      "maxDuration": 120
+    "api/analyze.js": {
+      "maxDuration": 120,
+      "includeFiles": "node_modules/@sparticuz/chromium/bin/**"
+    },
+    "api/health.js": {
+      "maxDuration": 10
     }
   }
 }

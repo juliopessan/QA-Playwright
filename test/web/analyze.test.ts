@@ -4,6 +4,7 @@ import { makeLimiter } from "../../api/_lib/core.js";
 
 const ENV = { EXA_API_KEY: "exa-test", ANTHROPIC_API_KEY: "sk-test" };
 const pages = [{ url: "https://ukodelabs.com.br/", title: "Ukode", text: "Fale com um especialista" }];
+const sameHostLinks = ["https://ukodelabs.com.br/servicos", "https://outro.com/x", "https://ukodelabs.com.br/logo.png", "https://ukodelabs.com.br/contato"];
 const okPage = { status: 200, finalUrl: "https://ukodelabs.com.br/", ms: 420, bytes: 1000, headers: {}, html: "<html><title>Ukode</title></html>" };
 
 function call(handler: any, body: unknown, method = "POST", ip = "1.1.1.1") {
@@ -14,9 +15,10 @@ function call(handler: any, body: unknown, method = "POST", ip = "1.1.1.1") {
 
 const deps = (over: Record<string, unknown> = {}) => ({
   env: ENV,
-  exaCrawl: vi.fn(async () => ({ pages, links: [] })),
+  exaCrawl: vi.fn(async () => ({ pages, links: sameHostLinks })),
   fetchPage: vi.fn(async () => okPage),
   review: vi.fn(async () => ({ summary: "Site claro.", findings: [{ origin: "agent", severity: "low", title: "CTA", category: "ux", evidence: "Fale com um especialista", suggestion: "s", page: pages[0].url, description: "d", confidence: 0.7 }], dropped: 1, model: "claude-opus-5-5" })),
+  inspectPages: vi.fn(async (urls: string[]) => ({ shots: urls.map((u) => ({ url: u, title: "T", status: 200, loadMs: 800, desktop: "data:image/jpeg;base64,QQ==" })), findings: [{ origin: "measured", category: "acessibilidade", severity: "medium", title: "Acessibilidade: Imagens precisam de texto alternativo", evidence: "img.logo", suggestion: "s", page: urls[0] }], notes: [] })),
   limiter: makeLimiter({ max: 100 }),
   ...over,
 });
@@ -34,6 +36,10 @@ describe("POST /api/analyze", () => {
     expect(r.body.findings.some((f: any) => f.origin === "agent")).toBe(true);
     expect(r.body.notes.join(" ")).toMatch(/1 sugestão/);
     expect(r.body.responseMs).toBe(420);
+    expect(d.inspectPages).toHaveBeenCalledWith(["https://ukodelabs.com.br/", "https://ukodelabs.com.br/servicos", "https://ukodelabs.com.br/contato"]);
+    expect(r.body.shots).toHaveLength(3);
+    expect(r.body.findings.some((f: any) => /Imagens precisam/.test(f.title))).toBe(true);
+    expect((d.review.mock.calls[0] as any[])[2].images).toHaveLength(3);
     const sev = r.body.findings.map((f: any) => f.severity);
     expect(sev).toEqual([...sev].sort((a: string, b: string) => ["high", "medium", "low"].indexOf(a) - ["high", "medium", "low"].indexOf(b)));
   });

@@ -1,5 +1,6 @@
 import { clientIp, exaKey, makeLimiter, readBody, send, validateTarget } from "./_lib/core.js";
 import { exaCrawl } from "./_lib/exa.js";
+import { inspectPages, pickInternal } from "./_lib/browser.js";
 import { fetchPage, measuredFindings } from "./_lib/probe.js";
 import { reviewWithClaude } from "./_lib/review.js";
 
@@ -44,11 +45,20 @@ export function makeAnalyze(deps = {}) {
     const pages = crawl.status === "fulfilled" ? crawl.value.pages : [];
     if (crawl.status === "rejected") notes.push(`Leitura das páginas pelo Exa falhou: ${crawl.reason?.message}. A revisão de conteúdo não rodou.`);
 
+    // Navegador (Playwright): prints, console, rede, métricas e axe da página inicial e de até 3 internas.
+    const home = page.status === "fulfilled" ? page.value.finalUrl : target.url;
+    const internal = pickInternal(home, [...pages.map((p) => p.url), ...(crawl.status === "fulfilled" ? crawl.value.links : [])], 3);
+    const browser = await (deps.inspectPages ?? inspectPages)([home, ...internal]);
+    findings.push(...browser.findings);
+    notes.push(...browser.notes);
+    const shots = browser.shots;
+
     let summary = "";
     let model;
     if (pages.length && env.ANTHROPIC_API_KEY) {
       try {
-        const r = await (deps.review ?? reviewWithClaude)(pages, facts, { apiKey: env.ANTHROPIC_API_KEY });
+        const images = shots.flatMap((s, i) => (i === 0 ? [s.desktop, s.mobile] : [s.desktop])).filter(Boolean);
+        const r = await (deps.review ?? reviewWithClaude)(pages, facts, { apiKey: env.ANTHROPIC_API_KEY, images });
         findings.push(...r.findings);
         summary = r.summary;
         model = r.model;
@@ -67,6 +77,7 @@ export function makeAnalyze(deps = {}) {
       status: page.status === "fulfilled" ? page.value.status : undefined,
       responseMs: page.status === "fulfilled" ? page.value.ms : undefined,
       pages: pages.map((p) => ({ url: p.url, title: p.title })),
+      shots,
       summary,
       findings,
       counts: { high: findings.filter((f) => f.severity === "high").length, medium: findings.filter((f) => f.severity === "medium").length, low: findings.filter((f) => f.severity === "low").length },

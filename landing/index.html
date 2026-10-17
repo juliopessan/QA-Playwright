@@ -433,6 +433,11 @@ html [hidden] { display: none; }   /* html prefix: beats .check/.field display r
 #az-panel .list li.is-done{color:var(--panel-text)}
 #az-panel .list li.is-done .i{color:var(--mint)}
 #az-panel .btn{background:var(--panel-text);color:var(--panel)}
+.shots{display:grid;grid-template-columns:repeat(auto-fit,minmax(320px,1fr));gap:16px;margin-top:16px}
+.sh{margin:0;border:1px solid var(--line-strong);padding:12px;display:grid;gap:10px;min-width:0;align-content:start}
+.sh img{display:block;max-width:100%;height:auto;border:1px solid var(--line)}
+.sh .sh__m{max-width:180px}
+.sh figcaption{display:grid;gap:2px;overflow-wrap:anywhere}
 .az-form{margin-top:28px}
 .az-row{display:flex;gap:8px;flex-wrap:wrap}
 .az-row .input{flex:1 1 260px;min-width:0}
@@ -526,7 +531,7 @@ html [hidden] { display: none; }   /* html prefix: beats .check/.field display r
       <div>
         <p class="eyebrow reveal" style="--d:.05s">QA agêntico para qualquer site</p>
         <h1 class="display reveal" style="--d:.16s" tabindex="-1"><span class="roll" data-roll="Analise|Audite|Revise">Analise</span><i class="wipe">qualquer site só com a URL.</i></h1>
-        <p class="lede reveal" style="--d:.27s">Cole o endereço. O QA Agent lê a página inicial e as páginas internas, mede segurança, desempenho, SEO e acessibilidade e pede ao Claude uma revisão do conteúdo em que cada sugestão cita um trecho real do site. Sem login, sem formulários, sem tocar em nada.</p>
+        <p class="lede reveal" style="--d:.27s">Cole o endereço. O QA Agent abre o site num navegador de verdade (Playwright), fotografa a página inicial e as internas, mede segurança, desempenho, SEO e acessibilidade e pede ao Claude uma revisão em que cada sugestão cita um trecho real do site. Sem login, sem formulários, sem tocar em nada.</p>
         <form id="analyzeForm" class="az-form reveal" style="--d:.38s" novalidate>
           <div class="field"><label for="az-url">URL do site</label>
             <div class="az-row"><input class="input" id="az-url" name="url" type="text" inputmode="url" autocomplete="url" autocapitalize="none" spellcheck="false" placeholder="https://seusite.com.br" aria-describedby="az-url-hint az-url-err" required><button class="btn" type="submit" id="az-submit">Analisar o site</button></div>
@@ -540,11 +545,11 @@ html [hidden] { display: none; }   /* html prefix: beats .check/.field display r
         <div class="panel__body">
           <ol id="az-steps" class="list" style="margin:0">
             <li data-step="1"><svg class="i i--16" aria-hidden="true"><use href="#i-search"/></svg><span><b>Ler</b> · o Exa busca a página inicial e até 6 páginas internas</span></li>
-            <li data-step="2"><svg class="i i--16" aria-hidden="true"><use href="#i-shield"/></svg><span><b>Medir</b> · status, tempo, cabeçalhos de segurança, SEO e acessibilidade</span></li>
+            <li data-step="2"><svg class="i i--16" aria-hidden="true"><use href="#i-shield"/></svg><span><b>Fotografar e medir</b> · o Playwright tira prints, mede o carregamento e roda o axe; cabeçalhos, SEO e idioma são checados</span></li>
             <li data-step="3"><svg class="i i--16" aria-hidden="true"><use href="#i-agent"/></svg><span><b>Revisar</b> · o Claude aponta problemas de conteúdo e UX</span></li>
           </ol>
         </div>
-        <div class="stats"><div><div class="stat__n">7</div><div class="stat__l">páginas lidas, no máximo</div></div><div><div class="stat__n">0</div><div class="stat__l">formulários enviados</div></div></div>
+        <div class="stats"><div><div class="stat__n">4</div><div class="stat__l">páginas fotografadas, no máximo</div></div><div><div class="stat__n">0</div><div class="stat__l">formulários enviados</div></div></div>
         <p class="note"><span class="flag" aria-hidden="true">✓</span><span>Sugestão do Claude sem trecho real do site é descartada antes de chegar ao relatório.</span></p>
         <div class="panel__foot"><span>somente leitura</span><span id="az-elapsed">—</span></div>
       </aside>
@@ -554,26 +559,27 @@ html [hidden] { display: none; }   /* html prefix: beats .check/.field display r
       <div class="stack"><p class="eyebrow">Resultado</p><h2 class="h2" id="az-result-h"></h2><p class="lede" id="az-summary" style="max-width:70ch"></p></div>
       <div class="cells cells--4" id="az-kpis" style="margin-top:32px"></div>
       <div id="az-findings" class="gstack" style="gap:0;margin-top:32px"></div>
+      <div id="az-shots-wrap" style="margin-top:40px" hidden><h3 class="h3">Telas fotografadas</h3><div id="az-shots" class="shots"></div></div>
       <p id="az-pages" class="meta" style="margin-top:16px"></p>
       <ul id="az-notes" class="list meta" style="margin:8px 0 0"></ul>
-      <div class="row" style="margin-top:24px"><a class="link" href="#top" id="az-again">Analisar outro site <svg class="i i--16" aria-hidden="true"><use href="#i-arrow-up-right"/></svg></a></div>
+      <div class="row" style="margin-top:24px"><button class="btn btn--line" type="button" id="az-download">Baixar o relatório (HTML)</button><a class="link" href="#top" id="az-again">Analisar outro site <svg class="i i--16" aria-hidden="true"><use href="#i-arrow-up-right"/></svg></a></div>
     </section>
 
     <section class="section section--rule" id="como">
       <div class="stack" data-reveal><p class="eyebrow">Como funciona</p><h2 class="h2">Ler, medir, revisar.<i>Em uma chamada.</i></h2></div>
       <div class="cells cells--3" data-reveal-group style="margin-top:40px">
-        <div class="pillar"><span class="tile tile--ink">L</span><span class="pillar__role">Ler</span><h3 class="h3">O site como o visitante vê</h3><p class="soft">O Exa busca a página inicial e até seis páginas internas e devolve o texto limpo, inclusive de sites que montam o conteúdo com JavaScript.</p></div>
-        <div class="pillar"><span class="tile tile--ink">M</span><span class="pillar__role">Medir</span><h3 class="h3">Fatos, não impressões</h3><p class="soft">Uma visita direta mede status, tempo e peso do HTML, HTTPS e cabeçalhos de segurança, título, descrição, idioma, viewport, h1 e imagens sem texto alternativo.</p></div>
-        <div class="pillar"><span class="tile tile--ink">R</span><span class="pillar__role">Revisar</span><h3 class="h3">Opinião com prova</h3><p class="soft">O Claude revisa clareza, navegação, conteúdo e sinais de confiança. Cada sugestão traz o trecho do site que a sustenta e um caminho para corrigir.</p></div>
+        <div class="pillar"><span class="tile tile--ink">L</span><span class="pillar__role">Ler</span><h3 class="h3">O site como o visitante vê</h3><p class="soft">O Exa busca a página inicial e até seis páginas internas e devolve o texto limpo, inclusive de sites que montam o conteúdo com JavaScript. Esse texto é o que o Claude revisa.</p></div>
+        <div class="pillar"><span class="tile tile--ink">M</span><span class="pillar__role">Fotografar e medir</span><h3 class="h3">Fatos, não impressões</h3><p class="soft">Um Chromium com Playwright abre a página inicial e até três internas: tira prints (desktop e celular), mede carregamento, roda o axe e registra erros de console e recursos quebrados. Uma visita direta confere HTTPS, cabeçalhos de segurança, título, descrição e idioma.</p></div>
+        <div class="pillar"><span class="tile tile--ink">R</span><span class="pillar__role">Revisar</span><h3 class="h3">Opinião com prova</h3><p class="soft">O Claude vê os prints e lê o texto para avaliar clareza, hierarquia visual, navegação e confiança. Cada sugestão traz o trecho do site que a sustenta e um caminho para corrigir.</p></div>
       </div>
     </section>
 
     <section class="section section--rule" id="seguranca">
       <div class="stack" data-reveal><p class="eyebrow">Segurança</p><h2 class="h2">Só leitura,<i>só sites públicos.</i></h2>
-        <p class="lede" style="max-width:62ch">A análise olha o site do lado de fora, como um visitante anônimo. Nada é enviado, nenhuma conta é usada e o servidor não segue o site para dentro de redes privadas.</p></div>
+        <p class="lede" style="max-width:62ch">A análise olha o site do lado de fora, como um visitante anônimo. Nada é enviado, nenhuma conta é usada e o navegador não segue o site para dentro de redes privadas.</p></div>
       <div class="cells cells--2" data-reveal-group style="margin-top:40px">
         <div class="pillar"><span class="tile tile--ink">1</span><span class="pillar__role">O que ele nunca faz</span><h3 class="h3">Nenhuma ação no site</h3>
-          <ul class="list"><li><svg class="i i--16" aria-hidden="true"><use href="#i-check"/></svg>Não faz login nem pede senha.</li><li><svg class="i i--16" aria-hidden="true"><use href="#i-check"/></svg>Não envia formulários nem clica em botões.</li><li><svg class="i i--16" aria-hidden="true"><use href="#i-check"/></svg>Não guarda o conteúdo do site depois da análise.</li></ul></div>
+          <ul class="list"><li><svg class="i i--16" aria-hidden="true"><use href="#i-check"/></svg>Não faz login nem pede senha.</li><li><svg class="i i--16" aria-hidden="true"><use href="#i-check"/></svg>Não envia formulários nem clica em botões: o navegador só faz leituras (GET) e bloqueia qualquer outra requisição.</li><li><svg class="i i--16" aria-hidden="true"><use href="#i-check"/></svg>Não guarda o conteúdo do site depois da análise.</li></ul></div>
         <div class="pillar"><span class="tile tile--ink">2</span><span class="pillar__role">Como ele se protege</span><h3 class="h3">Travas no servidor</h3>
           <ul class="list"><li><svg class="i i--16" aria-hidden="true"><use href="#i-check"/></svg>Aceita só nomes de domínio públicos; recusa IPs, localhost e nomes internos.</li><li><svg class="i i--16" aria-hidden="true"><use href="#i-check"/></svg>Confere cada redirecionamento e o IP de destino antes de visitar.</li><li><svg class="i i--16" aria-hidden="true"><use href="#i-check"/></svg>O texto do site vai ao modelo marcado como não confiável, nunca como instrução.</li></ul></div>
       </div>
@@ -584,7 +590,7 @@ html [hidden] { display: none; }   /* html prefix: beats .check/.field display r
         <p class="lede" style="max-width:62ch">Relatório que mistura fato e palpite perde a confiança do time. Aqui cada achado diz de onde veio.</p></div>
       <div class="cmp" data-reveal style="margin-top:40px">
         <div><span class="badge badge--ok">Medido</span><h3 class="h3" style="margin-top:12px">Segurança, desempenho, SEO e acessibilidade</h3>
-          <ul><li><svg class="i i--16" aria-hidden="true"><use href="#i-check"/></svg>Vem da resposta do servidor e do HTML da página inicial.</li><li><svg class="i i--16" aria-hidden="true"><use href="#i-check"/></svg>Reproduzível: mesma página, mesmo resultado.</li><li><svg class="i i--16" aria-hidden="true"><use href="#i-check"/></svg>Gravidade de baixa a alta, com a correção sugerida.</li></ul></div>
+          <ul><li><svg class="i i--16" aria-hidden="true"><use href="#i-check"/></svg>Vem do navegador (Playwright, axe) e da resposta do servidor.</li><li><svg class="i i--16" aria-hidden="true"><use href="#i-check"/></svg>Reproduzível: mesma página, mesmo resultado.</li><li><svg class="i i--16" aria-hidden="true"><use href="#i-check"/></svg>Gravidade de baixa a alta, com a correção sugerida.</li></ul></div>
         <div><span class="badge">Opinião do agente</span><h3 class="h3" style="margin-top:12px">Conteúdo e UX pelo Claude</h3>
           <ul><li><svg class="i i--16" aria-hidden="true"><use href="#i-check"/></svg>Só entra com um trecho que existe de fato no site.</li><li><svg class="i i--16" aria-hidden="true"><use href="#i-check"/></svg>No máximo 8 sugestões, com gravidade limitada a média.</li><li><svg class="i i--16" aria-hidden="true"><use href="#i-check"/></svg>O relatório avisa quantas sugestões foram descartadas.</li></ul></div>
       </div>
@@ -594,7 +600,7 @@ html [hidden] { display: none; }   /* html prefix: beats .check/.field display r
       <div class="two">
         <div class="stack" data-reveal>
           <p class="eyebrow">Para ir além</p><h2 class="h2">Telas com login?<i>Use o CLI.</i></h2>
-          <p class="soft" style="max-width:56ch">A análise pela web cobre o que é público, sem navegador e sem prints. Para sistemas internos, o CLI abre o Playwright com o seu login, descobre todas as telas, fotografa cada uma (inclusive abas e modais), roda o axe e entrega uma pasta de evidências para a engenharia revisar num pull request, abrindo issues só do que for aprovado. O exemplo abaixo é uma execução real contra o app de teste.</p>
+          <p class="soft" style="max-width:56ch">A análise pela web cobre o que é público: até 4 páginas. Para sistemas internos, o CLI abre o Playwright com o seu login, descobre todas as telas, fotografa cada uma (inclusive abas e modais), roda o axe e entrega uma pasta de evidências para a engenharia revisar num pull request, abrindo issues só do que for aprovado. O exemplo abaixo é uma execução real contra o app de teste.</p>
           <ul class="list"><li><svg class="i i--16" aria-hidden="true"><use href="#i-check"/></svg>Exploração somente leitura, travada em duas camadas e verificada por teste.</li><li><svg class="i i--16" aria-hidden="true"><use href="#i-check"/></svg>Fluxos de negócio descritos em linguagem natural, julgados com evidência.</li><li><svg class="i i--16" aria-hidden="true"><use href="#i-check"/></svg>Casos de teste do Excel com relatório de evidências por passo.</li></ul>
           <div class="row" style="margin-top:8px"><a class="btn btn--line" href="exemplo/relatorio.html" target="_blank" rel="noopener">Ver um relatório real com prints</a><a class="link" href="https://github.com/juliopessan/QA-Playwright" target="_blank" rel="noopener">Ver o código no GitHub <svg class="i i--16" aria-hidden="true"><use href="#i-arrow-up-right"/></svg></a><a class="link" href="demo/">Abrir o app de teste <svg class="i i--16" aria-hidden="true"><use href="#i-arrow-right"/></svg></a></div>
         </div>
@@ -609,10 +615,10 @@ node dist/cli/index.js publish &lt;runId&gt; --pr --repo dono/repo</pre><button 
       <div class="stack" data-reveal><p class="eyebrow">Perguntas</p><h2 class="h2">Antes de colar<i>a sua URL.</i></h2></div>
       <div class="faq" data-reveal style="margin-top:32px">
         <details><summary>A análise pode mudar algo no meu site? <svg class="i" aria-hidden="true"><use href="#i-plus"/></svg></summary><p>Não. Ela só lê páginas públicas, como um visitante anônimo: não faz login, não envia formulários e não clica em nada.</p></details>
-        <details><summary>Quanto tempo leva? <svg class="i" aria-hidden="true"><use href="#i-plus"/></svg></summary><p>Depende do site. A leitura, as medições e a revisão rodam numa única etapa, com limite de dois minutos. O andamento aparece logo abaixo do botão.</p></details>
-        <details><summary>O que o Claude recebe? <svg class="i" aria-hidden="true"><use href="#i-plus"/></svg></summary><p>O texto público das páginas lidas e alguns fatos medidos da página inicial. Nenhum dado de quem faz a análise.</p></details>
+        <details><summary>Quanto tempo leva? <svg class="i" aria-hidden="true"><use href="#i-plus"/></svg></summary><p>Cerca de um minuto: leitura, navegador com prints, medições e revisão rodam numa única etapa, com limite de dois minutos. O andamento aparece logo abaixo do botão.</p></details>
+        <details><summary>O que o Claude recebe? <svg class="i" aria-hidden="true"><use href="#i-plus"/></svg></summary><p>O texto público das páginas lidas, até quatro screenshots do site e alguns fatos medidos. Nenhum dado de quem faz a análise.</p></details>
         <details><summary>Por que algumas sugestões somem? <svg class="i" aria-hidden="true"><use href="#i-plus"/></svg></summary><p>Toda sugestão do Claude precisa citar um trecho que existe no site. As que não citam são descartadas, e o relatório diz quantas foram.</p></details>
-        <details><summary>Onde ficam os prints e a documentação? <svg class="i" aria-hidden="true"><use href="#i-plus"/></svg></summary><p>A análise pela web mostra o relatório na própria página, sem prints. Os prints de cada tela, o passo a passo dos fluxos e a documentação em Markdown são gerados pelo CLI com o Playwright, na pasta qa-report. Veja um <a class="link" href="exemplo/relatorio.html" target="_blank" rel="noopener">relatório real de exemplo</a>.</p></details>
+        <details><summary>Onde ficam os prints e a documentação? <svg class="i" aria-hidden="true"><use href="#i-plus"/></svg></summary><p>A análise pela web mostra os prints (desktop e celular) e os achados na própria página, e você baixa tudo em um HTML único. O passo a passo de fluxos, os subestados (abas e modais) e a documentação em Markdown para PR vêm do CLI, na pasta qa-report. Veja um <a class="link" href="exemplo/relatorio.html" target="_blank" rel="noopener">relatório real de exemplo</a>.</p></details>
         <details><summary>Funciona em sistemas com login? <svg class="i" aria-hidden="true"><use href="#i-plus"/></svg></summary><p>Não pela web. Para telas autenticadas, use o CLI, que roda no seu ambiente com o seu usuário de teste.</p></details>
         <details><summary>Há limite de uso? <svg class="i" aria-hidden="true"><use href="#i-plus"/></svg></summary><p>Sim: algumas análises a cada dez minutos por endereço de rede, para manter o serviço disponível para todos.</p></details>
       </div>
@@ -1014,7 +1020,9 @@ node dist/cli/index.js publish &lt;runId&gt; --pr --repo dono/repo</pre><button 
   var L = window.Ledger, D = document;
   var $ = function (s) { return D.querySelector(s); };
   var form = $('#analyzeForm'); if (!form) return;
-  var VERBS = [['Lendo as páginas', 'Páginas lidas'], ['Medindo a resposta', 'Resposta medida'], ['Conferindo a segurança', 'Segurança conferida'], ['Revisando o conteúdo', 'Conteúdo revisado'], ['Montando o relatório', 'Relatório montado']];
+  var VERBS = [['Lendo as páginas', 'Páginas lidas'], ['Abrindo o navegador', 'Navegador aberto'], ['Fotografando as telas', 'Telas fotografadas'], ['Rodando o axe', 'Axe concluído'], ['Conferindo a segurança', 'Segurança conferida'], ['Revisando o conteúdo', 'Conteúdo revisado'], ['Montando o relatório', 'Relatório montado']];
+  var IMG = /^data:image\/jpeg;base64,[A-Za-z0-9+\/=]+$/;
+  var lastReport = null;
   var MIN_VISIBLE = 900;
   var SEV = { high: 'Alta', medium: 'Média', low: 'Baixa' };
   var CAT = { tecnico: 'Técnico', seguranca: 'Segurança', desempenho: 'Desempenho', seo: 'SEO', acessibilidade: 'Acessibilidade', ux: 'UX', conteudo: 'Conteúdo', confianca: 'Confiança' };
@@ -1034,7 +1042,7 @@ node dist/cli/index.js publish &lt;runId&gt; --pr --repo dono/repo</pre><button 
     $('#az-result-h').textContent = 'Análise de ' + host;
     $('#az-summary').textContent = r.summary || '';
     var k = $('#az-kpis'); k.textContent = '';
-    [['Páginas lidas', String(r.pages.length)], ['Achados', String(r.findings.length)], ['Gravidade alta', String(r.counts.high)], ['Resposta do HTML', r.responseMs != null ? (r.responseMs / 1000).toFixed(1).replace('.', ',') + ' s' : '—']].forEach(function (x) {
+    [['Telas analisadas', String((r.shots || []).length || r.pages.length)], ['Achados', String(r.findings.length)], ['Gravidade alta', String(r.counts.high)], ['Resposta do HTML', r.responseMs != null ? (r.responseMs / 1000).toFixed(1).replace('.', ',') + ' s' : '—']].forEach(function (x) {
       var c = el('div', 'kpi'); c.appendChild(el('div', 'kpi__label', x[0])); c.appendChild(el('div', 'kpi__n', x[1])); k.appendChild(c);
     });
     var list = $('#az-findings'); list.textContent = '';
@@ -1049,6 +1057,8 @@ node dist/cli/index.js publish &lt;runId&gt; --pr --repo dono/repo</pre><button 
       if (f.page) body.appendChild(el('p', 'meta', f.page));
       a.appendChild(side); a.appendChild(body); list.appendChild(a);
     });
+    renderShots(r);
+    lastReport = r;
     $('#az-pages').textContent = r.pages.length ? 'Páginas lidas: ' + r.pages.map(function (p) { return p.url; }).join(' · ') : '';
     var n = $('#az-notes'); n.textContent = '';
     (r.notes || []).forEach(function (t) { n.appendChild(el('li', null, t)); });
@@ -1056,6 +1066,40 @@ node dist/cli/index.js publish &lt;runId&gt; --pr --repo dono/repo</pre><button 
     box.querySelectorAll('[data-reveal]').forEach(function (x) { x.classList.add('is-in'); });
     box.focus({ preventScroll: true }); box.scrollIntoView({ behavior: 'smooth', block: 'start' });
   }
+
+  function renderShots(r) {
+    var box = $('#az-shots'); box.textContent = '';
+    (r.shots || []).forEach(function (s, i) {
+      var fig = el('figure', 'sh');
+      var cap = el('figcaption'); cap.appendChild(el('b', null, s.title || s.url)); cap.appendChild(el('span', 'meta', s.url + ' · HTTP ' + s.status + ' · ' + (s.loadMs / 1000).toFixed(1).replace('.', ',') + ' s'));
+      if (s.desktop && IMG.test(s.desktop)) { var im = el('img'); im.src = s.desktop; im.alt = 'Screenshot de ' + (s.title || s.url) + ' no desktop'; im.loading = 'lazy'; fig.appendChild(im); }
+      if (s.mobile && IMG.test(s.mobile)) { var mm = el('img', 'sh__m'); mm.src = s.mobile; mm.alt = 'Screenshot de ' + (s.title || s.url) + ' no celular'; mm.loading = 'lazy'; fig.appendChild(mm); }
+      fig.appendChild(cap); box.appendChild(fig);
+    });
+    $('#az-shots-wrap').hidden = !(r.shots && r.shots.length);
+  }
+
+  var esc = function (v) { return String(v == null ? '' : v).replace(/[&<>"']/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]; }); };
+  /* Relatório HTML único (prints embutidos), gerado no navegador a partir do resultado já recebido. */
+  function standalone(r) {
+    var host = ''; try { host = new URL(r.finalUrl || r.url).host; } catch (e) {}
+    var out = '<!doctype html><html lang="pt-BR"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Relatório QA Agent · ' + esc(host) + '</title><style>body{font:16px/1.55 system-ui,Arial,sans-serif;margin:0;background:#F1EEE5;color:#17140F}main{max-width:1000px;margin:0 auto;padding:32px 16px}img{max-width:100%;border:1px solid #CFC9BA}h2{border-top:1px solid #17140F;padding-top:12px;margin-top:40px}article{border:1px solid #CFC9BA;padding:12px 16px;margin:0 0 12px}code,.m{font-family:ui-monospace,Menlo,monospace;font-size:13px;color:#5C564B}</style></head><body><main>';
+    out += '<p class="m">Relatório do QA Agent · ' + esc(r.analyzedAt || '') + '</p><h1>' + esc(host) + '</h1><p>' + esc(r.summary) + '</p>';
+    out += '<h2>Achados (' + r.findings.length + ')</h2>';
+    r.findings.forEach(function (f) { out += '<article><b>' + esc(SEV[f.severity] || f.severity) + '</b> · ' + esc(CAT[f.category] || f.category) + ' · <span class="m">' + (f.origin === 'agent' ? 'opinião do agente' : 'medido') + '</span><h3>' + esc(f.title) + '</h3>' + (f.description ? '<p>' + esc(f.description) + '</p>' : '') + '<p>Evidência: <code>' + esc(f.evidence) + '</code></p>' + (f.suggestion ? '<p>Sugestão: ' + esc(f.suggestion) + '</p>' : '') + '<p class="m">' + esc(f.page) + '</p></article>'; });
+    out += '<h2>Telas</h2>';
+    (r.shots || []).forEach(function (s) { out += '<article><h3>' + esc(s.title || s.url) + '</h3><p class="m">' + esc(s.url) + ' · HTTP ' + esc(s.status) + '</p>' + (IMG.test(s.desktop || '') ? '<img src="' + s.desktop + '" alt="desktop">' : '') + (IMG.test(s.mobile || '') ? '<img src="' + s.mobile + '" alt="celular" style="max-width:260px">' : '') + '</article>'; });
+    (r.notes || []).length && (out += '<h2>Observações</h2><ul>' + r.notes.map(function (n) { return '<li>' + esc(n) + '</li>'; }).join('') + '</ul>');
+    return out + '</main></body></html>';
+  }
+  D.addEventListener('click', function (e) {
+    var b = e.target.closest && e.target.closest('#az-download'); if (!b || !lastReport) return;
+    try {
+      var url = URL.createObjectURL(new Blob([standalone(lastReport)], { type: 'text/html' }));
+      var a = el('a'); a.href = url; a.download = 'relatorio-qa-agent.html'; D.body.appendChild(a); a.click(); a.remove(); setTimeout(function () { URL.revokeObjectURL(url); }, 4000);
+      L.toast('Relatório baixado.', { kind: 'ok' });
+    } catch (err) { L.toast('Não foi possível gerar o arquivo. Tente de novo.', { kind: 'err' }); }
+  });
 
   form.addEventListener('submit', function (e) {
     e.preventDefault();

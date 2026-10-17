@@ -3,6 +3,7 @@ import { mkdtempSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { chromium, type Browser } from "playwright";
+import { inspectPages } from "../../api/_lib/browser.js";
 import { startTestApp } from "../app/server.js";
 import { buildSite } from "../../scripts/build-web.js";
 import { makeAnalyze } from "../../api/analyze.js";
@@ -28,6 +29,7 @@ const claude = {
     ] }) }] }) } },
 };
 
+let reviewImages = 0;
 let browser: Browser;
 let app: Awaited<ReturnType<typeof startTestApp>>;
 beforeAll(async () => {
@@ -48,7 +50,9 @@ describe("análise pela landing, de ponta a ponta", () => {
       limiter: makeLimiter({ max: 10 }),
       exaCrawl: (url: string, o: any) => exaCrawl(url, { ...o, doFetch: exaFetch }),
       fetchPage: async () => ({ status: 200, finalUrl: HOME, ms: 2100, bytes: HTML.length, headers: { "content-type": "text/html" }, html: HTML }),
-      review: (pages: any, facts: any) => reviewWithClaude(pages, facts, { client: claude }),
+      // Playwright de verdade fotografando o app de teste local (no lugar do site real, que a rede daqui não alcança).
+      inspectPages: () => inspectPages([`${app.url}/demo/`], { launch: () => chromium.launch(), resolve: (async () => [{ address: "200.1.2.3", family: 4 }]) as never, allowHosts: ["127.0.0.1"] }),
+      review: (pages: any, facts: any, o: any) => { reviewImages = o.images.length; return reviewWithClaude(pages, facts, { client: claude, images: o.images }); },
     });
     const page = await browser.newPage({ viewport: { width: 1280, height: 900 } });
     const errors: string[] = [];
@@ -77,8 +81,16 @@ describe("análise pela landing, de ponta a ponta", () => {
     expect(text).not.toMatch(/Promessa sem prova/);
     await expect(page.locator("#az-notes").innerText()).resolves.toMatch(/1 sugestão\(ões\) do modelo descartada/);
     await expect(page.locator("#az-pages").innerText()).resolves.toContain(`${HOME}contato`);
-    await expect(page.locator("#az-kpis").innerText()).resolves.toMatch(/Páginas lidas\s*2/);
+    await expect(page.locator("#az-kpis").innerText()).resolves.toMatch(/Telas analisadas\s*1/);
     await expect.poll(() => page.locator("#az-live").innerText()).toMatch(/Análise pronta em \d+ s/);
+    // Prints reais do Playwright aparecem na página (desktop + celular) e seguem para o Claude.
+    const shots = page.locator("#az-shots img");
+    await expect(shots.count()).resolves.toBe(2);
+    const sizes = await shots.evaluateAll((els) => els.map((e) => [(e as HTMLImageElement).naturalWidth, (e as HTMLImageElement).naturalHeight]));
+    expect(sizes[0][0]).toBe(1280);
+    expect(sizes[1][0]).toBe(390);
+    expect(reviewImages).toBe(2);
+    expect(text).toMatch(/Acessibilidade: /);
     expect(errors).toEqual([]);
     await page.close();
   });
