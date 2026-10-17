@@ -61,6 +61,7 @@ export function inspectHtml(html) {
 }
 
 const finding = (f) => ({ origin: "measured", ...f });
+const sec = (ms) => (ms / 1000).toFixed(1).replace(".", ",");
 
 /** Achados medidos: segurança, desempenho, SEO e acessibilidade básicos da página inicial. */
 export function measuredFindings(page) {
@@ -74,8 +75,8 @@ export function measuredFindings(page) {
   if (!h["content-security-policy"]) out.push(finding({ category: "seguranca", severity: "low", title: "Sem Content-Security-Policy", evidence: "Cabeçalho content-security-policy ausente", suggestion: "Defina uma CSP para limitar scripts e origens externas.", page: at }));
   if ((h["x-content-type-options"] ?? "").toLowerCase() !== "nosniff") out.push(finding({ category: "seguranca", severity: "low", title: "Sem X-Content-Type-Options: nosniff", evidence: "Cabeçalho x-content-type-options ausente ou diferente de nosniff", suggestion: "Envie X-Content-Type-Options: nosniff.", page: at }));
   if (!h["x-frame-options"] && !/frame-ancestors/i.test(h["content-security-policy"] ?? "")) out.push(finding({ category: "seguranca", severity: "low", title: "A página pode ser embutida em iframes de outros sites", evidence: "Sem X-Frame-Options e sem frame-ancestors na CSP", suggestion: "Use frame-ancestors 'self' na CSP (ou X-Frame-Options: SAMEORIGIN).", page: at }));
-  if (page.ms > 3000) out.push(finding({ category: "desempenho", severity: "medium", title: `Resposta lenta: ${(page.ms / 1000).toFixed(1)} s até o HTML`, evidence: `Tempo até receber o HTML: ${page.ms} ms`, suggestion: "Investigue o tempo do servidor, cache e CDN.", page: at }));
-  else if (page.ms > 1500) out.push(finding({ category: "desempenho", severity: "low", title: `Resposta acima de 1,5 s: ${(page.ms / 1000).toFixed(1)} s`, evidence: `Tempo até receber o HTML: ${page.ms} ms`, suggestion: "Verifique cache e CDN para o HTML.", page: at }));
+  if (page.ms > 3000) out.push(finding({ category: "desempenho", severity: "medium", title: `Resposta lenta: ${sec(page.ms)} s até o HTML`, evidence: `Tempo até receber o HTML: ${page.ms} ms`, suggestion: "Investigue o tempo do servidor, cache e CDN.", page: at }));
+  else if (page.ms > 1500) out.push(finding({ category: "desempenho", severity: "low", title: `Resposta acima de 1,5 s: ${sec(page.ms)} s`, evidence: `Tempo até receber o HTML: ${page.ms} ms`, suggestion: "Verifique cache e CDN para o HTML.", page: at }));
   if (page.bytes > 1_000_000) out.push(finding({ category: "desempenho", severity: "low", title: `HTML pesado: ${Math.round(page.bytes / 1024)} KB`, evidence: `Tamanho do HTML: ${page.bytes} bytes`, suggestion: "Reduza conteúdo inline e scripts embutidos.", page: at }));
   if (!info.title) out.push(finding({ category: "seo", severity: "medium", title: "A página não tem <title>", evidence: "Tag <title> ausente ou vazia", suggestion: "Defina um título único e descritivo.", page: at }));
   else if (info.title.length > 65) out.push(finding({ category: "seo", severity: "low", title: "Título longo demais para os buscadores", evidence: `<title> com ${info.title.length} caracteres: "${info.title.slice(0, 80)}"`, suggestion: "Mantenha o título com até 60 caracteres.", page: at }));

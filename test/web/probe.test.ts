@@ -24,7 +24,7 @@ describe("measuredFindings", () => {
     const titles = findings.map((f) => f.title).join(" | ");
     expect(titles).toMatch(/HSTS/);
     expect(titles).toMatch(/Content-Security-Policy/);
-    expect(titles).toMatch(/Resposta lenta: 3\.5 s/);
+    expect(titles).toMatch(/Resposta lenta: 3,5 s/);
     expect(titles).toMatch(/não tem <title>/);
     expect(titles).toMatch(/idioma/);
     expect(titles).toMatch(/viewport/);
