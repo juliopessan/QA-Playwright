@@ -38,6 +38,22 @@ function screen(s: Screen, findings: Finding[]): string {
 </article>`;
 }
 
+function flow(f: NonNullable<ExploreResult["flows"]>[number]): string {
+  return `<article class="s" id="fluxo-${esc(f.id)}">
+  <header><h3>${esc(f.title)}</h3><span class="sev${f.status === "pass" ? "" : " sev--high"}">${FLOW[f.status] ?? esc(f.status)}</span></header>
+  <p><strong>Objetivo:</strong> ${esc(f.goal)}</p>
+  <p><strong>Critério de sucesso:</strong> ${esc(f.success)}</p>
+  <p class="meta">${esc(f.reasoning)}</p>
+  ${f.steps
+    .map(
+      (st) => `<h4>${st.stepIndex}. ${esc(st.text ?? "")} <span class="meta">(${esc(st.status)})</span></h4>
+  ${st.error ? `<p>${esc(st.error)}</p>` : ""}
+  <div class="pair">${st.screenshotBefore ? `<figure>${img(st.screenshotBefore, "antes")}<figcaption>Antes</figcaption></figure>` : ""}${st.screenshotAfter ? `<figure>${img(st.screenshotAfter, "depois")}<figcaption>Depois</figcaption></figure>` : ""}</div>`,
+    )
+    .join("\n")}
+</article>`;
+}
+
 /** Relatório em HTML único (abre direto no navegador). As imagens ficam em `img/`, ao lado do arquivo. */
 export function renderHtmlReport(r: ExploreResult): string {
   const fs = sorted(r.findings);
@@ -63,6 +79,7 @@ h3{margin:8px 0;font-size:18px}h4{margin:12px 0 4px;font-size:14px}code,.meta,.s
 .tag{padding:2px 6px;background:var(--paper-2)}.f p,.f li{overflow-wrap:anywhere}img{display:block;max-width:100%;height:auto;border:1px solid var(--line);margin-top:12px}
 figure{margin:12px 0 0}figcaption{font-size:13px;color:var(--soft)}table{border-collapse:collapse;width:100%;font-size:14px}td,th{border-bottom:1px solid var(--line);padding:6px 8px;text-align:left;vertical-align:top;overflow-wrap:anywhere}
 .wrap{overflow-x:auto}
+.pair{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:12px}
 </style></head><body><main>
 <p class="meta">Relatório do QA Agent · run ${esc(r.runId)}</p>
 <h1>${esc(r.baseUrl)}</h1>
@@ -73,7 +90,7 @@ figure{margin:12px 0 0}figcaption{font-size:13px;color:var(--soft)}table{border-
 <div><b>${count("critical") + count("high")}</b>críticos ou altos</div>
 <div><b>${r.blocked.length}</b>ações bloqueadas</div>
 </section>
-${r.flows?.length ? `<h2>Fluxos-objetivo</h2><div class="wrap"><table><tr><th>Fluxo</th><th>Resultado</th><th>Parecer</th></tr>${r.flows.map((f) => `<tr><td>${esc(f.title)}</td><td>${FLOW[f.status] ?? esc(f.status)}</td><td>${esc(f.reasoning)}</td></tr>`).join("")}</table></div>` : ""}
+${r.flows?.length ? `<h2>Fluxos-objetivo</h2>${r.flows.map(flow).join("\n")}` : ""}
 <h2>Achados</h2>
 ${groups.length ? groups.map(([s, g]) => `<h3>${SEV[s]} (${g.length})</h3>${g.map((f) => finding(f, r.screens)).join("\n")}`).join("\n") : "<p>Nenhum achado nesta execução.</p>"}
 <h2>Telas</h2>

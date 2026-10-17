@@ -21,7 +21,7 @@ const fromEnv = forceNew ? undefined : credentialsFromEnv(process.env);
 const fromFile = forceNew ? undefined : credentialsFromFile("web-credentials.json");
 const reused = fromEnv ?? fromFile ?? existing();
 const creds = reused ?? generateCredentials();
-buildSite({ outDir: "web-dist", creds, landing: "landing/index.html" });
+buildSite({ outDir: "web-dist", creds, landing: "landing/index.html", example: "docs/exemplo-relatorio" });
 const apiKey = existsSync(".env") ? parseEnv(readFileSync(".env", "utf8")).ANTHROPIC_API_KEY : undefined;
 writeEnvWeb(".env.web", creds, apiKey);
 console.log(`Site gerado em web-dist/: landing na raiz, app de teste em web-dist/demo/ (${fromEnv ? "credenciais das variáveis QA_WEB_*" : fromFile ? "credenciais de web-credentials.json" : reused ? "credenciais reaproveitadas de .env.web" : "credenciais novas"})`);

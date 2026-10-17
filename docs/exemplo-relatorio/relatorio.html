@@ -1,0 +1,441 @@
+<!doctype html>
+<html lang="pt-BR"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Relatório QA Agent · 127.0.0.1:4020</title>
+<style>
+:root{--paper:#F1EEE5;--paper-2:#E7E3D7;--ink:#17140F;--soft:#5C564B;--line:#CFC9BA;--orange:#A8460F;--mint:#2F7454;color-scheme:light}
+@media (prefers-color-scheme:dark){:root{--paper:#151310;--paper-2:#1F1C17;--ink:#EDE9DE;--soft:#B3AC9E;--line:#3A352D;--orange:#E07A3C;--mint:#7EC8A1;color-scheme:dark}}
+*{box-sizing:border-box}body{margin:0;background:var(--paper);color:var(--ink);font:16px/1.55 Archivo,Arial,sans-serif}
+main{max-width:1080px;margin:0 auto;padding:32px max(16px,env(safe-area-inset-left))}
+h1{font-size:clamp(26px,4vw,40px);line-height:1.1;margin:0 0 8px}h2{margin:48px 0 16px;font-size:24px;border-top:1px solid var(--ink);padding-top:16px}
+h3{margin:8px 0;font-size:18px}h4{margin:12px 0 4px;font-size:14px}code,.meta,.sev,.cat,.tag{font-family:"IBM Plex Mono",Menlo,monospace;font-size:12px}
+.meta{color:var(--soft)}.kpis{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:1px;background:var(--ink);border:1px solid var(--ink);margin:24px 0}
+.kpis div{background:var(--paper);padding:16px}.kpis b{display:block;font-size:30px;font-variant-numeric:tabular-nums}
+.f,.s{border:1px solid var(--line);padding:16px;margin:0 0 12px;min-width:0}.f header,.s header{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+.sev{padding:2px 6px;border:1px solid var(--ink)}.sev--critical,.sev--high{border-color:var(--orange);color:var(--orange)}.sev--low{color:var(--soft)}
+.tag{padding:2px 6px;background:var(--paper-2)}.f p,.f li{overflow-wrap:anywhere}img{display:block;max-width:100%;height:auto;border:1px solid var(--line);margin-top:12px}
+figure{margin:12px 0 0}figcaption{font-size:13px;color:var(--soft)}table{border-collapse:collapse;width:100%;font-size:14px}td,th{border-bottom:1px solid var(--line);padding:6px 8px;text-align:left;vertical-align:top;overflow-wrap:anywhere}
+.wrap{overflow-x:auto}
+.pair{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:12px}
+</style></head><body><main>
+<p class="meta">Relatório do QA Agent · run 20261017-185552-269d</p>
+<h1>http://127.0.0.1:4020</h1>
+<p class="meta">Início 2026-10-17T18:55:52.577Z · fim 2026-10-17T18:58:28.504Z · exploração somente leitura</p>
+<section class="kpis" aria-label="Resumo">
+<div><b>8</b>telas (+ 3 subestados)</div>
+<div><b>38</b>achados</div>
+<div><b>6</b>críticos ou altos</div>
+<div><b>1</b>ações bloqueadas</div>
+</section>
+<h2>Fluxos-objetivo</h2><article class="s" id="fluxo-ver-os-detalhes-da-equipe">
+  <header><h3>Ver os detalhes da equipe</h3><span class="sev">Aprovado</span></header>
+  <p><strong>Objetivo:</strong> Abrir a tela de equipe e ver os detalhes do plano contratado.</p>
+  <p><strong>Critério de sucesso:</strong> o texto com o plano e a quantidade de assentos aparece na tela.</p>
+  <p class="meta">Todos os passos e verificações satisfeitos. Passo 3 aprovado pelo Judge: Depois de clicar em &quot;Ver detalhes&quot;, abriu-se um painel com o texto &quot;Plano Business, 10 assentos.&quot; e um botão &quot;Fechar&quot;. O mesmo texto aparece na captura de tela e no texto observado, então o plano e a quantidade de assentos estão visíveis.</p>
+  <h4>1. Abrir a tela de equipe pelo menu principal <span class="meta">(pass)</span></h4>
+  
+  <div class="pair"><figure><img loading="lazy" src="img/fluxos/ver-os-detalhes-da-equipe/01-antes.jpg" alt="antes"><figcaption>Antes</figcaption></figure><figure><img loading="lazy" src="img/fluxos/ver-os-detalhes-da-equipe/01-depois.jpg" alt="depois"><figcaption>Depois</figcaption></figure></div>
+<h4>2. Clicar em &#39;Ver detalhes&#39; para exibir os detalhes do plano contratado <span class="meta">(pass)</span></h4>
+  
+  <div class="pair"><figure><img loading="lazy" src="img/fluxos/ver-os-detalhes-da-equipe/02-antes.jpg" alt="antes"><figcaption>Antes</figcaption></figure><figure><img loading="lazy" src="img/fluxos/ver-os-detalhes-da-equipe/02-depois.jpg" alt="depois"><figcaption>Depois</figcaption></figure></div>
+<h4>3. Critério de sucesso: o texto com o plano e a quantidade de assentos aparece na tela. <span class="meta">(pass)</span></h4>
+  
+  <div class="pair"><figure><img loading="lazy" src="img/fluxos/ver-os-detalhes-da-equipe/03-final.jpg" alt="depois"><figcaption>Depois</figcaption></figure></div>
+</article>
+<h2>Achados</h2>
+<h3>Crítica (2)</h3><article class="f" id="f-184f66be55">
+  <header><span class="sev sev--critical">Crítica</span><span class="cat">Acessibilidade</span><code>184f66be55</code></header>
+  <h3>Acessibilidade: Form elements must have labels</h3>
+  <p>Ensure every form element has a label. Regra axe `label`. https://dequeuniversity.com/rules/axe/4.14/label?application=playwright</p>
+  <h4>Evidências</h4><ul><li>/settings: input</li></ul>
+  <h4>Como reproduzir</h4><ol><li>Início</li><li>Configurações</li></ol>
+  <p><strong>Sugestão:</strong> Element does not have an implicit (wrapped) &lt;label&gt;   Element does not have an explicit &lt;label&gt;</p>
+  <p class="meta">Telas: Configurações</p>
+</article>
+<article class="f" id="f-8a50490b34">
+  <header><span class="sev sev--critical">Crítica</span><span class="cat">Acessibilidade</span><code>8a50490b34</code></header>
+  <h3>Acessibilidade: Images must have alternative text</h3>
+  <p>Ensure &lt;img&gt; elements have alternative text or a role of none or presentation. Regra axe `image-alt`. https://dequeuniversity.com/rules/axe/4.14/image-alt?application=playwright</p>
+  <h4>Evidências</h4><ul><li>/settings: img</li></ul>
+  <h4>Como reproduzir</h4><ol><li>Início</li><li>Configurações</li></ol>
+  <p><strong>Sugestão:</strong> Element does not have an alt attribute   aria-label attribute does not exist or is empty</p>
+  <p class="meta">Telas: Configurações</p>
+</article>
+<h3>Alta (4)</h3><article class="f" id="f-98cabb27ac">
+  <header><span class="sev sev--high">Alta</span><span class="cat">Acessibilidade</span><code>98cabb27ac</code></header>
+  <h3>Acessibilidade: &lt;html&gt; element must have a lang attribute</h3>
+  <p>Ensure every HTML document has a lang attribute. Regra axe `html-has-lang`. https://dequeuniversity.com/rules/axe/4.14/html-has-lang?application=playwright</p>
+  <h4>Evidências</h4><ul><li>/help: html</li></ul>
+  <h4>Como reproduzir</h4><ol><li>Início</li><li>Ajuda</li></ol>
+  <p><strong>Sugestão:</strong> The &lt;html&gt; element does not have a lang attribute</p>
+  <p class="meta">Telas: Página não encontrada</p>
+</article>
+<article class="f" id="f-17ad4e8bdd">
+  <header><span class="sev sev--high">Alta</span><span class="cat">Acessibilidade</span><code>17ad4e8bdd</code></header>
+  <h3>Acessibilidade: Documents must have &lt;title&gt; element to aid in navigation</h3>
+  <p>Ensure each HTML document contains a non-empty &lt;title&gt; element. Regra axe `document-title`. https://dequeuniversity.com/rules/axe/4.14/document-title?application=playwright</p>
+  <h4>Evidências</h4><ul><li>/help: html</li></ul>
+  <h4>Como reproduzir</h4><ol><li>Início</li><li>Ajuda</li></ol>
+  <p><strong>Sugestão:</strong> Document does not have a non-empty &lt;title&gt; element</p>
+  <p class="meta">Telas: Página não encontrada</p>
+</article>
+<article class="f" id="f-fc58b53f3e">
+  <header><span class="sev sev--high">Alta</span><span class="cat">Técnico</span><code>fc58b53f3e</code></header>
+  <h3>Exceção JavaScript não tratada: undefinedHelper is not defined</h3>
+  <p>A página lançou uma exceção que não foi capturada: undefinedHelper is not defined</p>
+  <h4>Evidências</h4><ul><li>Exceção: undefinedHelper is not defined</li></ul>
+  <h4>Como reproduzir</h4><ol><li>Início</li></ol>
+  <p><strong>Sugestão:</strong> Tratar o erro ou corrigir a referência indefinida; erros não tratados costumam quebrar a interface.</p>
+  <p class="meta">Telas: Painel, Projetos</p>
+</article>
+<article class="f" id="f-323f2d8dee">
+  <header><span class="sev sev--high">Alta</span><span class="cat">Técnico</span><code>323f2d8dee</code></header>
+  <h3>HTTP 500 em GET /api/invoices</h3>
+  <p>A requisição GET /api/invoices respondeu com status 500.</p>
+  <h4>Evidências</h4><ul><li>GET http://127.0.0.1:4020/api/invoices → 500</li></ul>
+  <h4>Como reproduzir</h4><ol><li>Início</li><li>Faturas</li></ol>
+  <p><strong>Sugestão:</strong> Investigar o erro no servidor (logs da API).</p>
+  <p class="meta">Telas: Faturas</p>
+</article>
+<h3>Média (27)</h3><article class="f" id="f-a70e66eee2">
+  <header><span class="sev sev--medium">Média</span><span class="cat">Acessibilidade</span><code>a70e66eee2</code></header>
+  <h3>Acessibilidade: All page content should be contained by landmarks</h3>
+  <p>Ensure all page content is contained by landmarks. Regra axe `region`. https://dequeuniversity.com/rules/axe/4.14/region?application=playwright</p>
+  <h4>Evidências</h4><ul><li>/help: h1</li></ul>
+  <h4>Como reproduzir</h4><ol><li>Início</li><li>Ajuda</li></ol>
+  <p><strong>Sugestão:</strong> Some page content is not contained by landmarks</p>
+  <p class="meta">Telas: Página não encontrada</p>
+</article>
+<article class="f" id="f-1364f07991">
+  <header><span class="sev sev--medium">Média</span><span class="cat">Acessibilidade</span><code>1364f07991</code></header>
+  <h3>Acessibilidade: Document should have one main landmark</h3>
+  <p>Ensure the document has a main landmark. Regra axe `landmark-one-main`. https://dequeuniversity.com/rules/axe/4.14/landmark-one-main?application=playwright</p>
+  <h4>Evidências</h4><ul><li>/help: html</li></ul>
+  <h4>Como reproduzir</h4><ol><li>Início</li><li>Ajuda</li></ol>
+  <p><strong>Sugestão:</strong> Document does not have a main landmark</p>
+  <p class="meta">Telas: Página não encontrada</p>
+</article>
+<article class="f" id="f-eebea8e37f">
+  <header><span class="sev sev--medium">Média</span><span class="cat">Acessibilidade</span><code>eebea8e37f</code></header>
+  <h3>Acessibilidade: Page should contain a level-one heading</h3>
+  <p>Ensure that the page, or at least one of its frames contains a level-one heading. Regra axe `page-has-heading-one`. https://dequeuniversity.com/rules/axe/4.14/page-has-heading-one?application=playwright</p>
+  <h4>Evidências</h4><ul><li>/reports: html</li></ul>
+  <h4>Como reproduzir</h4><ol><li>Início</li><li>Relatórios</li></ol>
+  <p><strong>Sugestão:</strong> Page must have a level-one heading</p>
+  <p class="meta">Telas: Relatórios · Acme SaaS</p>
+</article>
+<article class="f" id="f-2d4e419975">
+  <header><span class="sev sev--medium">Média</span><span class="cat">Técnico</span><code>2d4e419975</code></header>
+  <h3>Erro no console: Falha ao carregar faturas: 500</h3>
+  <p>A página registrou um erro no console: Falha ao carregar faturas: 500</p>
+  <h4>Evidências</h4><ul><li>console.error: Falha ao carregar faturas: 500</li></ul>
+  <h4>Como reproduzir</h4><ol><li>Início</li><li>Faturas</li></ol>
+  
+  <p class="meta">Telas: Faturas</p>
+</article>
+<article class="f" id="f-d1401154cc">
+  <header><span class="sev sev--medium">Média</span><span class="cat">Técnico</span><code>d1401154cc</code></header>
+  <h3>HTTP 404 ao abrir a tela</h3>
+  <p>A própria página respondeu com status 404.</p>
+  <h4>Evidências</h4><ul><li>GET http://127.0.0.1:4020/help → 404</li></ul>
+  <h4>Como reproduzir</h4><ol><li>Início</li><li>Ajuda</li></ol>
+  
+  <p class="meta">Telas: Página não encontrada</p>
+</article>
+<article class="f" id="f-2514cf6d60">
+  <header><span class="sev sev--medium">Média</span><span class="cat">UX</span><span class="tag">opinião do agente · 80%</span><code>2514cf6d60</code></header>
+  <h3>&quot;Excluir conta&quot; sem destaque de perigo e colado às ações comuns</h3>
+  <p>Uma ação destrutiva e irreversível aparece como link azul comum, com o mesmo peso de &quot;Ajuda&quot;, logo abaixo de &quot;Salvar&quot;. Isso aumenta o risco de clique por engano e não indica a gravidade da ação.</p>
+  <h4>Evidências</h4><ul><li>Link &quot;Excluir conta&quot; no mesmo estilo de &quot;Ajuda&quot; e &quot;Docs externos&quot;, imediatamente abaixo do botão &quot;Salvar&quot;</li></ul>
+  <h4>Como reproduzir</h4><ol><li>Início</li><li>Configurações</li></ol>
+  <p><strong>Sugestão:</strong> Mover para uma seção &quot;Zona de perigo&quot; separada, com estilo de alerta (vermelho) e uma etapa de confirmação.</p>
+  <p class="meta">Telas: Configurações</p>
+</article>
+<article class="f" id="f-35bc08d437">
+  <header><span class="sev sev--medium">Média</span><span class="cat">UX</span><span class="tag">opinião do agente · 65%</span><code>35bc08d437</code></header>
+  <h3>&quot;Sair&quot; aparece junto com os itens de navegação</h3>
+  <p>&quot;Sair&quot; é uma ação destrutiva (encerra a sessão), mas aparece logo abaixo de &quot;Configurações&quot;, com o mesmo estilo dos links de navegação. Isso aumenta o risco de clique sem querer.</p>
+  <h4>Evidências</h4><ul><li>Lista lateral: &quot;Configurações&quot; seguido de &quot;Sair&quot;, sem separador e com o mesmo estilo.</li></ul>
+  <h4>Como reproduzir</h4><ol><li>Início</li></ol>
+  <p><strong>Sugestão:</strong> Separar &quot;Sair&quot; visualmente, por exemplo no rodapé do menu ou no menu do usuário, com um divisor.</p>
+  <p class="meta">Telas: Painel</p>
+</article>
+<article class="f" id="f-92174c5c77">
+  <header><span class="sev sev--medium">Média</span><span class="cat">UX</span><span class="tag">opinião do agente · 75%</span><code>92174c5c77</code></header>
+  <h3>Aba ativa pouco diferenciada</h3>
+  <p>As abas &quot;Membros&quot; e &quot;Convites&quot; parecem botões comuns. A aba selecionada só aparece em negrito, sem outro indicador claro de estado, o que dificulta saber qual visão está aberta.</p>
+  <h4>Evidências</h4><ul><li>Botões &quot;Membros&quot; (em negrito) e &quot;Convites&quot; com o mesmo estilo de botão padrão</li></ul>
+  <h4>Como reproduzir</h4><ol><li>Início</li><li>Equipe</li></ol>
+  <p><strong>Sugestão:</strong> Usar um componente de abas com indicador visual forte (sublinhado ou cor de fundo) e aria-selected.</p>
+  <p class="meta">Telas: Equipe</p>
+</article>
+<article class="f" id="f-73c57d8dd4">
+  <header><span class="sev sev--medium">Média</span><span class="cat">UX</span><span class="tag">opinião do agente · 70%</span><code>73c57d8dd4</code></header>
+  <h3>Ação principal sem destaque</h3>
+  <p>&quot;Convidar usuário&quot; deveria ser a ação principal, mas tem o mesmo peso visual de &quot;Ver detalhes&quot; e aparece colado a ele.</p>
+  <h4>Evidências</h4><ul><li>Botões &quot;Convidar usuário&quot; e &quot;Ver detalhes&quot; lado a lado com estilo idêntico</li></ul>
+  <h4>Como reproduzir</h4><ol><li>Início</li><li>Equipe</li></ol>
+  <p><strong>Sugestão:</strong> Estilizar &quot;Convidar usuário&quot; como botão primário e separá-lo das ações secundárias.</p>
+  <p class="meta">Telas: Equipe</p>
+</article>
+<article class="f" id="f-1c0211b12c">
+  <header><span class="sev sev--medium">Média</span><span class="cat">UX</span><span class="tag">opinião do agente · 85%</span><code>1c0211b12c</code></header>
+  <h3>Campo de texto sem rótulo</h3>
+  <p>O único campo da página não tem rótulo nem placeholder, então o usuário não sabe o que preencher nem o que o botão &quot;Salvar&quot; vai alterar.</p>
+  <h4>Evidências</h4><ul><li>Campo de texto vazio, sem rótulo visível, logo abaixo do quadrado azul e ao lado do botão &quot;Salvar&quot;</li></ul>
+  <h4>Como reproduzir</h4><ol><li>Início</li><li>Configurações</li></ol>
+  <p><strong>Sugestão:</strong> Colocar um rótulo visível que descreva o dado (ex.: &quot;Nome de exibição&quot;) e um texto de ajuda, se necessário.</p>
+  <p class="meta">Telas: Configurações</p>
+</article>
+<article class="f" id="f-f318d7f100">
+  <header><span class="sev sev--medium">Média</span><span class="cat">UX</span><span class="tag">opinião do agente · 65%</span><code>f318d7f100</code></header>
+  <h3>Configurações sem seções nem agrupamento</h3>
+  <p>Os elementos estão empilhados sem espaçamento, títulos de seção ou agrupamento. O campo e o botão ficam colados e não fica claro a qual parte das configurações cada controle pertence.</p>
+  <h4>Evidências</h4><ul><li>Quadrado azul, campo + &quot;Salvar&quot;, &quot;Excluir conta&quot; e &quot;Ajuda · Docs externos&quot; empilhados sem espaço entre si e sem subtítulos</li></ul>
+  <h4>Como reproduzir</h4><ol><li>Início</li><li>Configurações</li></ol>
+  <p><strong>Sugestão:</strong> Dividir em seções com subtítulos (Perfil, Conta etc.) e aplicar espaçamento consistente entre os grupos.</p>
+  <p class="meta">Telas: Configurações</p>
+</article>
+<article class="f" id="f-1cb3073145">
+  <header><span class="sev sev--medium">Média</span><span class="cat">UX</span><span class="tag">opinião do agente · 75%</span><code>1cb3073145</code></header>
+  <h3>Erro sem destaque visual</h3>
+  <p>A mensagem de erro usa o mesmo estilo do texto comum: preto, sem ícone, sem cor de alerta e sem contêiner. Ela não se destaca como um estado de erro.</p>
+  <h4>Evidências</h4><ul><li>&quot;Erro ao carregar&quot; aparece em texto simples, com o mesmo peso dos demais textos da página</li></ul>
+  <h4>Como reproduzir</h4><ol><li>Início</li><li>Faturas</li></ol>
+  <p><strong>Sugestão:</strong> Mostrar o erro em um bloco de alerta, com ícone e cor de erro, e respeitando o contraste exigido para acessibilidade.</p>
+  <p class="meta">Telas: Faturas</p>
+</article>
+<article class="f" id="f-ee17fae8b4">
+  <header><span class="sev sev--medium">Média</span><span class="cat">UX</span><span class="tag">opinião do agente · 60%</span><code>ee17fae8b4</code></header>
+  <h3>Hierarquia visual fraca e espaço vazio</h3>
+  <p>O conteúdo fica concentrado no canto superior esquerdo, em texto pequeno de link padrão, e a maior parte da área principal fica em branco. Os itens da lista estão muito juntos, o que deixa as áreas de clique pequenas.</p>
+  <h4>Evidências</h4><ul><li>Lista com marcadores &quot;Projeto 1/2/3&quot; em espaçamento simples e o restante da área à direita e abaixo totalmente vazio</li></ul>
+  <h4>Como reproduzir</h4><ol><li>Início</li><li>Projetos</li></ol>
+  <p><strong>Sugestão:</strong> Aumentar o espaçamento e o tamanho das áreas clicáveis e usar um layout em tabela ou grade que ocupe a largura disponível.</p>
+  <p class="meta">Telas: Projetos</p>
+</article>
+<article class="f" id="f-c8ec7b259f">
+  <header><span class="sev sev--medium">Média</span><span class="cat">UX</span><span class="tag">opinião do agente · 70%</span><code>c8ec7b259f</code></header>
+  <h3>Lista de membros ausente na aba Membros</h3>
+  <p>A aba Membros mostra só uma contagem e não lista os membros. O usuário não consegue ver quem faz parte da equipe nem gerenciar ninguém diretamente.</p>
+  <h4>Evidências</h4><ul><li>Único conteúdo da aba: &quot;Membros ativos: 5&quot;</li></ul>
+  <h4>Como reproduzir</h4><ol><li>Início</li><li>Equipe</li></ol>
+  <p><strong>Sugestão:</strong> Exibir uma tabela de membros com nome, e-mail, papel e ações por linha.</p>
+  <p class="meta">Telas: Equipe</p>
+</article>
+<article class="f" id="f-ef98c004fb">
+  <header><span class="sev sev--medium">Média</span><span class="cat">UX</span><span class="tag">opinião do agente · 90%</span><code>ef98c004fb</code></header>
+  <h3>Mensagem de erro genérica e sem explicação</h3>
+  <p>A tela mostra só &quot;Erro ao carregar&quot;. Não diz o que falhou (lista de faturas?), por que falhou nem se o problema é temporário. O usuário fica sem saber o estado das próprias faturas.</p>
+  <h4>Evidências</h4><ul><li>Texto &quot;Erro ao carregar&quot; logo abaixo do título &quot;Faturas&quot;</li></ul>
+  <h4>Como reproduzir</h4><ol><li>Início</li><li>Faturas</li></ol>
+  <p><strong>Sugestão:</strong> Trocar por uma mensagem específica, como &quot;Não foi possível carregar suas faturas. Verifique sua conexão e tente novamente&quot;, com a causa quando ela for conhecida.</p>
+  <p class="meta">Telas: Faturas</p>
+</article>
+<article class="f" id="f-98a0d3cd7b">
+  <header><span class="sev sev--medium">Média</span><span class="cat">UX</span><span class="tag">opinião do agente · 80%</span><code>98a0d3cd7b</code></header>
+  <h3>Menu lateral não indica a página atual</h3>
+  <p>Na navegação lateral, &quot;Painel&quot; tem o mesmo estilo dos outros itens, mesmo sendo a página aberta. Sem destaque, o usuário não percebe onde está.</p>
+  <h4>Evidências</h4><ul><li>Menu lateral: &quot;Painel&quot;, &quot;Projetos&quot;, &quot;Equipe&quot;... aparecem todos sublinhados, com a mesma cor e o mesmo peso, sem destaque para &quot;Painel&quot;.</li></ul>
+  <h4>Como reproduzir</h4><ol><li>Início</li></ol>
+  <p><strong>Sugestão:</strong> Destacar o item ativo com fundo, negrito ou um indicador lateral e usar aria-current=&quot;page&quot;.</p>
+  <p class="meta">Telas: Painel</p>
+</article>
+<article class="f" id="f-3a29df5760">
+  <header><span class="sev sev--medium">Média</span><span class="cat">UX</span><span class="tag">opinião do agente · 80%</span><code>3a29df5760</code></header>
+  <h3>Métrica sem período nem contexto de comparação</h3>
+  <p>&quot;Receita do mês&quot; não diz qual mês nem traz comparação com o período anterior ou com a meta. Assim, quem lê não sabe se o número é bom ou ruim.</p>
+  <h4>Evidências</h4><ul><li>Texto &quot;Receita do mês: R$ 120.000&quot; sem mês/ano, sem data de atualização e sem variação.</li></ul>
+  <h4>Como reproduzir</h4><ol><li>Início</li><li>Relatórios</li></ol>
+  <p><strong>Sugestão:</strong> Mostrar o período (ex.: &quot;Receita de março/2025&quot;), a variação em relação ao mês anterior e a data da última atualização.</p>
+  <p class="meta">Telas: Relatórios · Acme SaaS</p>
+</article>
+<article class="f" id="f-defa631eb1">
+  <header><span class="sev sev--medium">Média</span><span class="cat">UX</span><span class="tag">opinião do agente · 85%</span><code>defa631eb1</code></header>
+  <h3>Nenhuma ação de recuperação após o erro</h3>
+  <p>Não há botão para tentar de novo nem caminho alternativo, como falar com o suporte. Para recuperar a tela, o usuário precisa recarregar a página por conta própria.</p>
+  <h4>Evidências</h4><ul><li>Abaixo de &quot;Erro ao carregar&quot; só aparecem os links &quot;Ajuda · Docs externos&quot;, sem botão &quot;Tentar novamente&quot;</li></ul>
+  <h4>Como reproduzir</h4><ol><li>Início</li><li>Faturas</li></ol>
+  <p><strong>Sugestão:</strong> Adicionar um botão principal &quot;Tentar novamente&quot; e, se possível, um link para o suporte de cobrança.</p>
+  <p class="meta">Telas: Faturas</p>
+</article>
+<article class="f" id="f-d8b06f53f7">
+  <header><span class="sev sev--medium">Média</span><span class="cat">UX</span><span class="tag">opinião do agente · 75%</span><code>d8b06f53f7</code></header>
+  <h3>Nomes de projeto genéricos e sem informação extra</h3>
+  <p>Os itens da lista têm só nomes numerados, sem status, data, responsável ou descrição. Assim o usuário não consegue distinguir os projetos nem escolher qual abrir sem clicar em cada um.</p>
+  <h4>Evidências</h4><ul><li>Lista com &quot;Projeto 1&quot;, &quot;Projeto 2&quot;, &quot;Projeto 3&quot; como links simples, sem nenhum outro dado</li></ul>
+  <h4>Como reproduzir</h4><ol><li>Início</li><li>Projetos</li></ol>
+  <p><strong>Sugestão:</strong> Mostrar em cada item nome descritivo, status, última atualização e responsável, em formato de tabela ou cartões.</p>
+  <p class="meta">Telas: Projetos</p>
+</article>
+<article class="f" id="f-45c5fc50c5">
+  <header><span class="sev sev--medium">Média</span><span class="cat">UX</span><span class="tag">opinião do agente · 75%</span><code>45c5fc50c5</code></header>
+  <h3>Página 404 sem o layout do app e sem nenhuma navegação</h3>
+  <p>A página de erro não tem menu lateral, cabeçalho nem rodapé, ao contrário das outras telas do aplicativo. Sem nenhum elemento além do título, o usuário fica preso e precisa usar o botão Voltar do navegador ou digitar outra URL.</p>
+  <h4>Evidências</h4><ul><li>A tela inteira é branca e o único elemento é o título &quot;Página não encontrada&quot;, no canto superior esquerdo, sem estilo próprio.</li></ul>
+  <h4>Como reproduzir</h4><ol><li>Início</li><li>Ajuda</li></ol>
+  <p><strong>Sugestão:</strong> Mostrar a página 404 dentro do layout padrão do app e incluir links visíveis, como &quot;Voltar ao painel&quot; e &quot;Ir para a Ajuda&quot;, além de uma busca.</p>
+  <p class="meta">Telas: Página não encontrada</p>
+</article>
+<article class="f" id="f-c0e96facbc">
+  <header><span class="sev sev--medium">Média</span><span class="cat">UX</span><span class="tag">opinião do agente · 60%</span><code>c0e96facbc</code></header>
+  <h3>Página de erro sem estilo visual e sem hierarquia</h3>
+  <p>O título aparece com a fonte serifada padrão do navegador, encostado no canto da tela, e o resto da tela fica vazio. Isso não segue a identidade visual do app e não deixa claro se o problema é do usuário ou do sistema.</p>
+  <h4>Evidências</h4><ul><li>O título &quot;Página não encontrada&quot; aparece em fonte serifada padrão do navegador, no canto superior esquerdo, e o resto da tela está em branco.</li></ul>
+  <h4>Como reproduzir</h4><ol><li>Início</li><li>Ajuda</li></ol>
+  <p><strong>Sugestão:</strong> Aplicar a tipografia e o espaçamento do design system, centralizar o conteúdo e acrescentar um texto curto explicando o que aconteceu.</p>
+  <p class="meta">Telas: Página não encontrada</p>
+</article>
+<article class="f" id="f-2b55024e47">
+  <header><span class="sev sev--medium">Média</span><span class="cat">UX</span><span class="tag">opinião do agente · 75%</span><code>2b55024e47</code></header>
+  <h3>Página de Relatórios sem filtros, detalhamento ou exportação</h3>
+  <p>A tela tem o título &quot;Relatórios&quot;, mas mostra só um número solto. Não dá para mudar o período, ver a composição da receita nem exportar os dados, que é o que se espera de uma área de relatórios.</p>
+  <h4>Evidências</h4><ul><li>Abaixo do título &quot;Relatórios&quot; só aparece a linha &quot;Receita do mês: R$ 120.000&quot;; não há filtros, gráficos, tabelas nem botões.</li></ul>
+  <h4>Como reproduzir</h4><ol><li>Início</li><li>Relatórios</li></ol>
+  <p><strong>Sugestão:</strong> Incluir um seletor de período, uma tabela ou gráfico com a receita detalhada (por projeto ou cliente) e uma ação para exportar (CSV/PDF).</p>
+  <p class="meta">Telas: Relatórios · Acme SaaS</p>
+</article>
+<article class="f" id="f-c06b20d8b6">
+  <header><span class="sev sev--medium">Média</span><span class="cat">UX</span><span class="tag">opinião do agente · 60%</span><code>c06b20d8b6</code></header>
+  <h3>Painel sem conteúdo útil e com hierarquia fraca</h3>
+  <p>A página principal mostra só uma saudação e três links soltos. Não há resumo, métricas nem ações principais, e quase toda a área fica vazia.</p>
+  <h4>Evidências</h4><ul><li>Conteúdo: &quot;Bem-vindo ao Acme.&quot; / &quot;Último projeto&quot; / &quot;Ajuda · Docs externos&quot; e o resto da tela em branco.</li></ul>
+  <h4>Como reproduzir</h4><ol><li>Início</li></ol>
+  <p><strong>Sugestão:</strong> Incluir cartões de resumo (projetos, faturas pendentes, atividade recente) e uma ação principal bem visível.</p>
+  <p class="meta">Telas: Painel</p>
+</article>
+<article class="f" id="f-3dae65f7b1">
+  <header><span class="sev sev--medium">Média</span><span class="cat">UX</span><span class="tag">opinião do agente · 70%</span><code>3dae65f7b1</code></header>
+  <h3>Quadrado azul sem identificação</h3>
+  <p>Há um bloco azul sólido sem texto ou legenda. Pode ser um avatar, uma cor de tema ou um logo, mas a tela não deixa claro o que ele é nem se dá para interagir com ele.</p>
+  <h4>Evidências</h4><ul><li>Quadrado azul de ~40px abaixo do título &quot;Configurações&quot;, sem texto associado</li></ul>
+  <h4>Como reproduzir</h4><ol><li>Início</li><li>Configurações</li></ol>
+  <p><strong>Sugestão:</strong> Incluir uma legenda (ex.: &quot;Foto de perfil&quot;) e uma ação explícita (&quot;Alterar&quot;), ou remover o elemento se for só decorativo.</p>
+  <p class="meta">Telas: Configurações</p>
+</article>
+<article class="f" id="f-b663d3f4f5">
+  <header><span class="sev sev--medium">Média</span><span class="cat">UX</span><span class="tag">opinião do agente · 80%</span><code>b663d3f4f5</code></header>
+  <h3>Rota de Ajuda (/help) leva a uma página 404</h3>
+  <p>O usuário que procura ajuda cai numa página de erro. Isso quebra o fluxo de suporte justamente quando ele precisa de orientação, e passa a impressão de que o produto está quebrado.</p>
+  <h4>Evidências</h4><ul><li>A tela da rota /help mostra apenas o título &quot;Página não encontrada&quot;.</li></ul>
+  <h4>Como reproduzir</h4><ol><li>Início</li><li>Ajuda</li></ol>
+  <p><strong>Sugestão:</strong> Publicar a página de Ajuda nessa rota ou corrigir os links que apontam para /help, levando o usuário ao destino certo (central de ajuda ou documentação).</p>
+  <p class="meta">Telas: Página não encontrada</p>
+</article>
+<article class="f" id="f-2c37f9533a">
+  <header><span class="sev sev--medium">Média</span><span class="cat">UX</span><span class="tag">opinião do agente · 65%</span><code>2c37f9533a</code></header>
+  <h3>Rótulo &quot;Ver detalhes&quot; ambíguo</h3>
+  <p>Não fica claro de que são os detalhes: da equipe, dos membros ou dos convites.</p>
+  <h4>Evidências</h4><ul><li>Botão &quot;Ver detalhes&quot;</li></ul>
+  <h4>Como reproduzir</h4><ol><li>Início</li><li>Equipe</li></ol>
+  <p><strong>Sugestão:</strong> Usar um rótulo específico, como &quot;Ver membros&quot; ou &quot;Detalhes da equipe&quot;.</p>
+  <p class="meta">Telas: Equipe</p>
+</article>
+<article class="f" id="f-f9517dc66f">
+  <header><span class="sev sev--medium">Média</span><span class="cat">UX</span><span class="tag">opinião do agente · 65%</span><code>f9517dc66f</code></header>
+  <h3>Sem ação principal para criar projeto</h3>
+  <p>A tela de Projetos não tem botão nem link para criar um projeto novo, nem para buscar ou filtrar. Falta uma ação principal clara na página.</p>
+  <h4>Evidências</h4><ul><li>Abaixo do título &quot;Projetos&quot; só aparecem a lista de três links e &quot;Ajuda · Docs externos&quot;; não há nenhum botão</li></ul>
+  <h4>Como reproduzir</h4><ol><li>Início</li><li>Projetos</li></ol>
+  <p><strong>Sugestão:</strong> Colocar um botão de destaque &quot;Novo projeto&quot; ao lado do título e, se a lista crescer, adicionar busca e filtros.</p>
+  <p class="meta">Telas: Projetos</p>
+</article>
+<h3>Baixa (5)</h3><article class="f" id="f-fd262b1c27">
+  <header><span class="sev sev--low">Baixa</span><span class="cat">UX</span><span class="tag">opinião do agente · 55%</span><code>fd262b1c27</code></header>
+  <h3>Link externo sem indicação e misturado com links de ajuda</h3>
+  <p>&quot;Docs externos&quot; leva para fora do app, mas tem o mesmo estilo de &quot;Ajuda&quot;, sem ícone de link externo. Além disso, os links de suporte ficam colados em &quot;Último projeto&quot;, sem separação entre tipos de conteúdo diferentes.</p>
+  <h4>Evidências</h4><ul><li>&quot;Ajuda · Docs externos&quot; logo abaixo de &quot;Último projeto&quot;, sem espaço nem ícone de link externo.</li></ul>
+  <h4>Como reproduzir</h4><ol><li>Início</li></ol>
+  <p><strong>Sugestão:</strong> Adicionar um ícone de link externo e agrupar os links de suporte em uma seção separada.</p>
+  <p class="meta">Telas: Painel</p>
+</article>
+<article class="f" id="f-2cb6370026">
+  <header><span class="sev sev--low">Baixa</span><span class="cat">UX</span><span class="tag">opinião do agente · 55%</span><code>2cb6370026</code></header>
+  <h3>Links de ajuda colados aos botões de ação</h3>
+  <p>Os links &quot;Ajuda · Docs externos&quot; ficam logo abaixo dos botões, sem espaçamento, e parecem fazer parte do grupo de ações.</p>
+  <h4>Evidências</h4><ul><li>&quot;Ajuda · Docs externos&quot; imediatamente abaixo de &quot;Convidar usuário&quot; e &quot;Ver detalhes&quot;</li></ul>
+  <h4>Como reproduzir</h4><ol><li>Início</li><li>Equipe</li></ol>
+  <p><strong>Sugestão:</strong> Separar os links de ajuda com espaçamento ou movê-los para uma área de suporte.</p>
+  <p class="meta">Telas: Equipe</p>
+</article>
+<article class="f" id="f-e19dceb0c0">
+  <header><span class="sev sev--low">Baixa</span><span class="cat">UX</span><span class="tag">opinião do agente · 50%</span><code>e19dceb0c0</code></header>
+  <h3>Links de ajuda com o mesmo peso dos itens da lista</h3>
+  <p>&quot;Ajuda&quot; aparece logo abaixo da lista, sem separação nem destaque diferente. Ele se confunde com o conteúdo principal e parece fazer parte da lista de projetos.</p>
+  <h4>Evidências</h4><ul><li>&quot;Ajuda · Docs externos&quot; logo abaixo de &quot;Projeto 3&quot;, com o mesmo estilo de link azul sublinhado</li></ul>
+  <h4>Como reproduzir</h4><ol><li>Início</li><li>Projetos</li></ol>
+  <p><strong>Sugestão:</strong> Levar os links de ajuda para um rodapé ou ícone de ajuda e separá-los visualmente da lista.</p>
+  <p class="meta">Telas: Projetos</p>
+</article>
+<article class="f" id="f-35fe6df495">
+  <header><span class="sev sev--low">Baixa</span><span class="cat">UX</span><span class="tag">opinião do agente · 70%</span><code>35fe6df495</code></header>
+  <h3>Rótulo &quot;Último projeto&quot; é vago</h3>
+  <p>O link não diz qual é o projeto nem quando foi acessado. O usuário só descobre o destino depois de clicar.</p>
+  <h4>Evidências</h4><ul><li>Link &quot;Último projeto&quot; sem o nome do projeto.</li></ul>
+  <h4>Como reproduzir</h4><ol><li>Início</li></ol>
+  <p><strong>Sugestão:</strong> Mostrar o nome e a data, por exemplo: &quot;Continuar: Projeto X (editado ontem)&quot;.</p>
+  <p class="meta">Telas: Painel</p>
+</article>
+<article class="f" id="f-3ddc941437">
+  <header><span class="sev sev--low">Baixa</span><span class="cat">UX</span><span class="tag">opinião do agente · 60%</span><code>3ddc941437</code></header>
+  <h3>Rótulo e valor da métrica com o mesmo estilo</h3>
+  <p>O rótulo e o valor aparecem numa única linha, com a mesma fonte e o mesmo peso. Nada destaca o número, e a métrica fica maior que o próprio título da página, o que inverte a hierarquia.</p>
+  <h4>Evidências</h4><ul><li>&quot;Receita do mês: R$ 120.000&quot; está em fonte maior que o título &quot;Relatórios&quot;, e rótulo e valor têm o mesmo estilo.</li></ul>
+  <h4>Como reproduzir</h4><ol><li>Início</li><li>Relatórios</li></ol>
+  <p><strong>Sugestão:</strong> Usar um card de KPI: rótulo pequeno e discreto, valor em destaque e título da página como o elemento principal.</p>
+  <p class="meta">Telas: Relatórios · Acme SaaS</p>
+</article>
+<h2>Telas</h2>
+<article class="s" id="s-dashboard">
+  <header><h3>Painel</h3><code>/dashboard</code><span class="meta">6 achados</span></header>
+  <p class="meta">Caminho: Início</p>
+  <img loading="lazy" src="img/dashboard.jpg" alt="Painel">
+  
+</article>
+<article class="s" id="s-projects">
+  <header><h3>Projetos</h3><code>/projects</code><span class="meta">5 achados</span></header>
+  <p class="meta">Caminho: Início › Projetos</p>
+  <img loading="lazy" src="img/projects.jpg" alt="Projetos">
+  
+</article>
+<article class="s" id="s-team">
+  <header><h3>Equipe</h3><code>/team</code><span class="meta">5 achados</span></header>
+  <p class="meta">Caminho: Início › Equipe</p>
+  <img loading="lazy" src="img/team.jpg" alt="Equipe">
+  <figure><img loading="lazy" src="img/team--aba-convites.jpg" alt="aba Convites"><figcaption>aba Convites</figcaption></figure><figure><img loading="lazy" src="img/team--aba-membros.jpg" alt="aba Membros"><figcaption>aba Membros</figcaption></figure><figure><img loading="lazy" src="img/team--ver-detalhes.jpg" alt="Ver detalhes"><figcaption>Ver detalhes</figcaption></figure>
+</article>
+<article class="s" id="s-billing">
+  <header><h3>Faturas</h3><code>/billing</code><span class="meta">5 achados</span></header>
+  <p class="meta">Caminho: Início › Faturas</p>
+  <img loading="lazy" src="img/billing.jpg" alt="Faturas">
+  
+</article>
+<article class="s" id="s-reports">
+  <header><h3>Relatórios · Acme SaaS</h3><code>/reports</code><span class="meta">4 achados</span></header>
+  <p class="meta">Caminho: Início › Relatórios</p>
+  <img loading="lazy" src="img/reports.jpg" alt="Relatórios · Acme SaaS">
+  
+</article>
+<article class="s" id="s-settings">
+  <header><h3>Configurações</h3><code>/settings</code><span class="meta">6 achados</span></header>
+  <p class="meta">Caminho: Início › Configurações</p>
+  <img loading="lazy" src="img/settings.jpg" alt="Configurações">
+  
+</article>
+<article class="s" id="s-projects-id">
+  <header><h3>Projeto 1</h3><code>/projects/:id</code><span class="meta">0 achados</span></header>
+  <p class="meta">Caminho: Início › Último projeto</p>
+  <img loading="lazy" src="img/projects-id.jpg" alt="Projeto 1">
+  
+</article>
+<article class="s" id="s-help">
+  <header><h3>Página não encontrada</h3><code>/help</code><span class="meta">8 achados</span></header>
+  <p class="meta">Caminho: Início › Ajuda</p>
+  <img loading="lazy" src="img/help.jpg" alt="Página não encontrada">
+  
+</article>
+<h2>Cobertura</h2>
+<p>Limites atingidos: nenhum.</p>
+<div class="wrap"><table><tr><th>Camada</th><th>Tela</th><th>Alvo</th><th>Motivo</th></tr><tr><td>elemento</td><td>settings</td><td>link &quot;Excluir conta&quot;</td><td>rótulo de escrita: &quot;Excluir conta&quot;</td></tr></table></div>
+<h3>Observações</h3><ul><li>LLM indisponível (UX): Resposta do LLM inválida após retentativa: [</li></ul>
+<p class="meta">LLM: 23 chamadas · 49316 tokens de entrada · 11646 de saída. Achados marcados como opinião do agente não são medições.</p>
+</main></body></html>

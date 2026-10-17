@@ -216,4 +216,22 @@ describe("relatorio.html", () => {
     expect(html).not.toContain("javascript:");
     expect(html).toContain("&lt;script&gt;");
   });
+
+  it("mostra cada fluxo-objetivo com os prints de antes e depois de cada passo", () => {
+    const d = mkdtempSync(join(tmpdir(), "qa-html-"));
+    writeDocs(
+      result({
+        flows: [{
+          id: "convidar", title: "Convidar usuário", goal: "Convidar alguém.", success: "Convite enviado.", status: "pass", reasoning: "Aprovado pelo Judge.", screenIds: [],
+          steps: [{ stepIndex: 1, text: "Clicar em Convidar", status: "pass", durationMs: 1, screenshotBefore: "img/fluxos/convidar/01-antes.jpg", screenshotAfter: "img/fluxos/convidar/01-depois.jpg" }],
+        }],
+      }),
+      d,
+    );
+    const html = readFileSync(join(d, "relatorio.html"), "utf8");
+    expect(html).toContain("Convidar usuário");
+    expect(html).toContain('src="img/fluxos/convidar/01-antes.jpg"');
+    expect(html).toContain('src="img/fluxos/convidar/01-depois.jpg"');
+    expect(html).toContain("Critério de sucesso:</strong> Convite enviado.");
+  });
 });

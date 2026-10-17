@@ -23,7 +23,7 @@ qa-agent issues <runId> --repo dono/repo            # uma issue por achado marca
 npm run test-saas                                   # SaaS sintético com problemas plantados
 ```
 
-Detalhes, formato do relatório, configuração e limitações em [`docs/saas-explore.md`](docs/saas-explore.md).
+Detalhes, formato do relatório, configuração e limitações em [`docs/saas-explore.md`](docs/saas-explore.md). **Exemplo real** (Playwright + Claude contra o SaaS sintético), com prints de cada tela, subestados e o passo a passo de um fluxo: [`docs/exemplo-relatorio/`](docs/exemplo-relatorio/README.md), também publicado no site em `/exemplo/relatorio.html`.
 
 **Pela web:** na landing page publicada basta colar a URL de um site público: o Exa lê as páginas, uma visita direta mede segurança, desempenho, SEO e acessibilidade, e o Claude revisa o conteúdo citando trechos reais. O relatório aparece na própria página. Configuração e segurança em [`docs/web-analise.md`](docs/web-analise.md).
 

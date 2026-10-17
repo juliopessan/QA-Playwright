@@ -13,7 +13,7 @@ let app: Awaited<ReturnType<typeof startTestApp>>;
 
 beforeAll(async () => {
   const out = mkdtempSync(join(tmpdir(), "qa-landing-"));
-  buildSite({ outDir: out, creds, landing: "landing/index.html" });
+  buildSite({ outDir: out, creds, landing: "landing/index.html", example: "docs/exemplo-relatorio" });
   app = await startTestApp(0, out);
   browser = await chromium.launch();
 });
@@ -206,6 +206,27 @@ describe("análise pela landing", () => {
       await expect.poll(() => page.locator("#az-submit").getAttribute("aria-busy")).toBeNull();
       await page.close();
     }
+  });
+});
+
+describe("relatório de exemplo", () => {
+  it("a landing leva ao relatório real do CLI, com prints de telas e do fluxo carregando", async () => {
+    const { page } = await open();
+    const href = await page.getByRole("link", { name: "Ver um relatório real com prints" }).getAttribute("href");
+    expect(href).toBe("exemplo/relatorio.html");
+    await page.goto(`${app.url}/${href}`);
+    await expect(page.locator("h1").innerText()).resolves.toMatch(/127\.0\.0\.1/);
+    const srcs = await page.locator("img").evaluateAll((els) => els.map((e) => e.getAttribute("src") ?? ""));
+    expect(srcs.length).toBeGreaterThan(10);
+    expect(srcs.some((s) => s.startsWith("img/fluxos/"))).toBe(true);
+    const broken: string[] = [];
+    for (const src of srcs) {
+      const r = await page.request.get(`${app.url}/exemplo/${src}`);
+      const body = await r.body();
+      if (r.status() !== 200 || body[0] !== 0xff || body[1] !== 0xd8) broken.push(src);
+    }
+    expect(broken).toEqual([]);
+    await page.close();
   });
 });
 

@@ -1,0 +1,820 @@
+[
+  {
+    "id": "184f66be55",
+    "category": "accessibility",
+    "severity": "critical",
+    "origin": "measured",
+    "title": "Acessibilidade: Form elements must have labels",
+    "description": "Ensure every form element has a label. Regra axe `label`. https://dequeuniversity.com/rules/axe/4.14/label?application=playwright",
+    "rule": "axe:label",
+    "scope": "global",
+    "screenIds": [
+      "settings"
+    ],
+    "evidence": [
+      "/settings: input"
+    ],
+    "reproduction": [
+      "Início",
+      "Configurações"
+    ],
+    "suggestion": "Element does not have an implicit (wrapped) <label>   Element does not have an explicit <label>"
+  },
+  {
+    "id": "8a50490b34",
+    "category": "accessibility",
+    "severity": "critical",
+    "origin": "measured",
+    "title": "Acessibilidade: Images must have alternative text",
+    "description": "Ensure <img> elements have alternative text or a role of none or presentation. Regra axe `image-alt`. https://dequeuniversity.com/rules/axe/4.14/image-alt?application=playwright",
+    "rule": "axe:image-alt",
+    "scope": "global",
+    "screenIds": [
+      "settings"
+    ],
+    "evidence": [
+      "/settings: img"
+    ],
+    "reproduction": [
+      "Início",
+      "Configurações"
+    ],
+    "suggestion": "Element does not have an alt attribute   aria-label attribute does not exist or is empty"
+  },
+  {
+    "id": "98cabb27ac",
+    "category": "accessibility",
+    "severity": "high",
+    "origin": "measured",
+    "title": "Acessibilidade: <html> element must have a lang attribute",
+    "description": "Ensure every HTML document has a lang attribute. Regra axe `html-has-lang`. https://dequeuniversity.com/rules/axe/4.14/html-has-lang?application=playwright",
+    "rule": "axe:html-has-lang",
+    "scope": "global",
+    "screenIds": [
+      "help"
+    ],
+    "evidence": [
+      "/help: html"
+    ],
+    "reproduction": [
+      "Início",
+      "Ajuda"
+    ],
+    "suggestion": "The <html> element does not have a lang attribute"
+  },
+  {
+    "id": "17ad4e8bdd",
+    "category": "accessibility",
+    "severity": "high",
+    "origin": "measured",
+    "title": "Acessibilidade: Documents must have <title> element to aid in navigation",
+    "description": "Ensure each HTML document contains a non-empty <title> element. Regra axe `document-title`. https://dequeuniversity.com/rules/axe/4.14/document-title?application=playwright",
+    "rule": "axe:document-title",
+    "scope": "global",
+    "screenIds": [
+      "help"
+    ],
+    "evidence": [
+      "/help: html"
+    ],
+    "reproduction": [
+      "Início",
+      "Ajuda"
+    ],
+    "suggestion": "Document does not have a non-empty <title> element"
+  },
+  {
+    "id": "fc58b53f3e",
+    "category": "technical",
+    "severity": "high",
+    "origin": "measured",
+    "title": "Exceção JavaScript não tratada: undefinedHelper is not defined",
+    "description": "A página lançou uma exceção que não foi capturada: undefinedHelper is not defined",
+    "rule": "pageerror undefinedhelper is not defined",
+    "scope": "global",
+    "screenIds": [
+      "dashboard",
+      "projects"
+    ],
+    "evidence": [
+      "Exceção: undefinedHelper is not defined"
+    ],
+    "reproduction": [
+      "Início"
+    ],
+    "suggestion": "Tratar o erro ou corrigir a referência indefinida; erros não tratados costumam quebrar a interface."
+  },
+  {
+    "id": "323f2d8dee",
+    "category": "technical",
+    "severity": "high",
+    "origin": "measured",
+    "title": "HTTP 500 em GET /api/invoices",
+    "description": "A requisição GET /api/invoices respondeu com status 500.",
+    "rule": "http :n get /api/invoices",
+    "scope": "global",
+    "screenIds": [
+      "billing"
+    ],
+    "evidence": [
+      "GET http://127.0.0.1:4020/api/invoices → 500"
+    ],
+    "reproduction": [
+      "Início",
+      "Faturas"
+    ],
+    "suggestion": "Investigar o erro no servidor (logs da API)."
+  },
+  {
+    "id": "a70e66eee2",
+    "category": "accessibility",
+    "severity": "medium",
+    "origin": "measured",
+    "title": "Acessibilidade: All page content should be contained by landmarks",
+    "description": "Ensure all page content is contained by landmarks. Regra axe `region`. https://dequeuniversity.com/rules/axe/4.14/region?application=playwright",
+    "rule": "axe:region",
+    "scope": "global",
+    "screenIds": [
+      "help"
+    ],
+    "evidence": [
+      "/help: h1"
+    ],
+    "reproduction": [
+      "Início",
+      "Ajuda"
+    ],
+    "suggestion": "Some page content is not contained by landmarks"
+  },
+  {
+    "id": "1364f07991",
+    "category": "accessibility",
+    "severity": "medium",
+    "origin": "measured",
+    "title": "Acessibilidade: Document should have one main landmark",
+    "description": "Ensure the document has a main landmark. Regra axe `landmark-one-main`. https://dequeuniversity.com/rules/axe/4.14/landmark-one-main?application=playwright",
+    "rule": "axe:landmark-one-main",
+    "scope": "global",
+    "screenIds": [
+      "help"
+    ],
+    "evidence": [
+      "/help: html"
+    ],
+    "reproduction": [
+      "Início",
+      "Ajuda"
+    ],
+    "suggestion": "Document does not have a main landmark"
+  },
+  {
+    "id": "eebea8e37f",
+    "category": "accessibility",
+    "severity": "medium",
+    "origin": "measured",
+    "title": "Acessibilidade: Page should contain a level-one heading",
+    "description": "Ensure that the page, or at least one of its frames contains a level-one heading. Regra axe `page-has-heading-one`. https://dequeuniversity.com/rules/axe/4.14/page-has-heading-one?application=playwright",
+    "rule": "axe:page-has-heading-one",
+    "scope": "global",
+    "screenIds": [
+      "reports"
+    ],
+    "evidence": [
+      "/reports: html"
+    ],
+    "reproduction": [
+      "Início",
+      "Relatórios"
+    ],
+    "suggestion": "Page must have a level-one heading"
+  },
+  {
+    "id": "2d4e419975",
+    "category": "technical",
+    "severity": "medium",
+    "origin": "measured",
+    "title": "Erro no console: Falha ao carregar faturas: 500",
+    "description": "A página registrou um erro no console: Falha ao carregar faturas: 500",
+    "rule": "console falha ao carregar faturas: :n",
+    "scope": "global",
+    "screenIds": [
+      "billing"
+    ],
+    "evidence": [
+      "console.error: Falha ao carregar faturas: 500"
+    ],
+    "reproduction": [
+      "Início",
+      "Faturas"
+    ]
+  },
+  {
+    "id": "d1401154cc",
+    "category": "technical",
+    "severity": "medium",
+    "origin": "measured",
+    "title": "HTTP 404 ao abrir a tela",
+    "description": "A própria página respondeu com status 404.",
+    "rule": "http :n documento",
+    "scope": "screen",
+    "screenIds": [
+      "help"
+    ],
+    "evidence": [
+      "GET http://127.0.0.1:4020/help → 404"
+    ],
+    "reproduction": [
+      "Início",
+      "Ajuda"
+    ]
+  },
+  {
+    "id": "2514cf6d60",
+    "category": "ux",
+    "severity": "medium",
+    "origin": "agent",
+    "title": "\"Excluir conta\" sem destaque de perigo e colado às ações comuns",
+    "description": "Uma ação destrutiva e irreversível aparece como link azul comum, com o mesmo peso de \"Ajuda\", logo abaixo de \"Salvar\". Isso aumenta o risco de clique por engano e não indica a gravidade da ação.",
+    "rule": "\"excluir conta\" sem destaque de perigo e colado às ações comuns",
+    "scope": "screen",
+    "screenIds": [
+      "settings"
+    ],
+    "evidence": [
+      "Link \"Excluir conta\" no mesmo estilo de \"Ajuda\" e \"Docs externos\", imediatamente abaixo do botão \"Salvar\""
+    ],
+    "reproduction": [
+      "Início",
+      "Configurações"
+    ],
+    "suggestion": "Mover para uma seção \"Zona de perigo\" separada, com estilo de alerta (vermelho) e uma etapa de confirmação.",
+    "confidence": 0.8
+  },
+  {
+    "id": "35bc08d437",
+    "category": "ux",
+    "severity": "medium",
+    "origin": "agent",
+    "title": "\"Sair\" aparece junto com os itens de navegação",
+    "description": "\"Sair\" é uma ação destrutiva (encerra a sessão), mas aparece logo abaixo de \"Configurações\", com o mesmo estilo dos links de navegação. Isso aumenta o risco de clique sem querer.",
+    "rule": "\"sair\" aparece junto com os itens de navegação",
+    "scope": "screen",
+    "screenIds": [
+      "dashboard"
+    ],
+    "evidence": [
+      "Lista lateral: \"Configurações\" seguido de \"Sair\", sem separador e com o mesmo estilo."
+    ],
+    "reproduction": [
+      "Início"
+    ],
+    "suggestion": "Separar \"Sair\" visualmente, por exemplo no rodapé do menu ou no menu do usuário, com um divisor.",
+    "confidence": 0.65
+  },
+  {
+    "id": "92174c5c77",
+    "category": "ux",
+    "severity": "medium",
+    "origin": "agent",
+    "title": "Aba ativa pouco diferenciada",
+    "description": "As abas \"Membros\" e \"Convites\" parecem botões comuns. A aba selecionada só aparece em negrito, sem outro indicador claro de estado, o que dificulta saber qual visão está aberta.",
+    "rule": "aba ativa pouco diferenciada",
+    "scope": "screen",
+    "screenIds": [
+      "team"
+    ],
+    "evidence": [
+      "Botões \"Membros\" (em negrito) e \"Convites\" com o mesmo estilo de botão padrão"
+    ],
+    "reproduction": [
+      "Início",
+      "Equipe"
+    ],
+    "suggestion": "Usar um componente de abas com indicador visual forte (sublinhado ou cor de fundo) e aria-selected.",
+    "confidence": 0.75
+  },
+  {
+    "id": "73c57d8dd4",
+    "category": "ux",
+    "severity": "medium",
+    "origin": "agent",
+    "title": "Ação principal sem destaque",
+    "description": "\"Convidar usuário\" deveria ser a ação principal, mas tem o mesmo peso visual de \"Ver detalhes\" e aparece colado a ele.",
+    "rule": "ação principal sem destaque",
+    "scope": "screen",
+    "screenIds": [
+      "team"
+    ],
+    "evidence": [
+      "Botões \"Convidar usuário\" e \"Ver detalhes\" lado a lado com estilo idêntico"
+    ],
+    "reproduction": [
+      "Início",
+      "Equipe"
+    ],
+    "suggestion": "Estilizar \"Convidar usuário\" como botão primário e separá-lo das ações secundárias.",
+    "confidence": 0.7
+  },
+  {
+    "id": "1c0211b12c",
+    "category": "ux",
+    "severity": "medium",
+    "origin": "agent",
+    "title": "Campo de texto sem rótulo",
+    "description": "O único campo da página não tem rótulo nem placeholder, então o usuário não sabe o que preencher nem o que o botão \"Salvar\" vai alterar.",
+    "rule": "campo de texto sem rótulo",
+    "scope": "screen",
+    "screenIds": [
+      "settings"
+    ],
+    "evidence": [
+      "Campo de texto vazio, sem rótulo visível, logo abaixo do quadrado azul e ao lado do botão \"Salvar\""
+    ],
+    "reproduction": [
+      "Início",
+      "Configurações"
+    ],
+    "suggestion": "Colocar um rótulo visível que descreva o dado (ex.: \"Nome de exibição\") e um texto de ajuda, se necessário.",
+    "confidence": 0.85
+  },
+  {
+    "id": "f318d7f100",
+    "category": "ux",
+    "severity": "medium",
+    "origin": "agent",
+    "title": "Configurações sem seções nem agrupamento",
+    "description": "Os elementos estão empilhados sem espaçamento, títulos de seção ou agrupamento. O campo e o botão ficam colados e não fica claro a qual parte das configurações cada controle pertence.",
+    "rule": "configurações sem seções nem agrupamento",
+    "scope": "screen",
+    "screenIds": [
+      "settings"
+    ],
+    "evidence": [
+      "Quadrado azul, campo + \"Salvar\", \"Excluir conta\" e \"Ajuda · Docs externos\" empilhados sem espaço entre si e sem subtítulos"
+    ],
+    "reproduction": [
+      "Início",
+      "Configurações"
+    ],
+    "suggestion": "Dividir em seções com subtítulos (Perfil, Conta etc.) e aplicar espaçamento consistente entre os grupos.",
+    "confidence": 0.65
+  },
+  {
+    "id": "1cb3073145",
+    "category": "ux",
+    "severity": "medium",
+    "origin": "agent",
+    "title": "Erro sem destaque visual",
+    "description": "A mensagem de erro usa o mesmo estilo do texto comum: preto, sem ícone, sem cor de alerta e sem contêiner. Ela não se destaca como um estado de erro.",
+    "rule": "erro sem destaque visual",
+    "scope": "screen",
+    "screenIds": [
+      "billing"
+    ],
+    "evidence": [
+      "\"Erro ao carregar\" aparece em texto simples, com o mesmo peso dos demais textos da página"
+    ],
+    "reproduction": [
+      "Início",
+      "Faturas"
+    ],
+    "suggestion": "Mostrar o erro em um bloco de alerta, com ícone e cor de erro, e respeitando o contraste exigido para acessibilidade.",
+    "confidence": 0.75
+  },
+  {
+    "id": "ee17fae8b4",
+    "category": "ux",
+    "severity": "medium",
+    "origin": "agent",
+    "title": "Hierarquia visual fraca e espaço vazio",
+    "description": "O conteúdo fica concentrado no canto superior esquerdo, em texto pequeno de link padrão, e a maior parte da área principal fica em branco. Os itens da lista estão muito juntos, o que deixa as áreas de clique pequenas.",
+    "rule": "hierarquia visual fraca e espaço vazio",
+    "scope": "screen",
+    "screenIds": [
+      "projects"
+    ],
+    "evidence": [
+      "Lista com marcadores \"Projeto 1/2/3\" em espaçamento simples e o restante da área à direita e abaixo totalmente vazio"
+    ],
+    "reproduction": [
+      "Início",
+      "Projetos"
+    ],
+    "suggestion": "Aumentar o espaçamento e o tamanho das áreas clicáveis e usar um layout em tabela ou grade que ocupe a largura disponível.",
+    "confidence": 0.6
+  },
+  {
+    "id": "c8ec7b259f",
+    "category": "ux",
+    "severity": "medium",
+    "origin": "agent",
+    "title": "Lista de membros ausente na aba Membros",
+    "description": "A aba Membros mostra só uma contagem e não lista os membros. O usuário não consegue ver quem faz parte da equipe nem gerenciar ninguém diretamente.",
+    "rule": "lista de membros ausente na aba membros",
+    "scope": "screen",
+    "screenIds": [
+      "team"
+    ],
+    "evidence": [
+      "Único conteúdo da aba: \"Membros ativos: 5\""
+    ],
+    "reproduction": [
+      "Início",
+      "Equipe"
+    ],
+    "suggestion": "Exibir uma tabela de membros com nome, e-mail, papel e ações por linha.",
+    "confidence": 0.7
+  },
+  {
+    "id": "ef98c004fb",
+    "category": "ux",
+    "severity": "medium",
+    "origin": "agent",
+    "title": "Mensagem de erro genérica e sem explicação",
+    "description": "A tela mostra só \"Erro ao carregar\". Não diz o que falhou (lista de faturas?), por que falhou nem se o problema é temporário. O usuário fica sem saber o estado das próprias faturas.",
+    "rule": "mensagem de erro genérica e sem explicação",
+    "scope": "screen",
+    "screenIds": [
+      "billing"
+    ],
+    "evidence": [
+      "Texto \"Erro ao carregar\" logo abaixo do título \"Faturas\""
+    ],
+    "reproduction": [
+      "Início",
+      "Faturas"
+    ],
+    "suggestion": "Trocar por uma mensagem específica, como \"Não foi possível carregar suas faturas. Verifique sua conexão e tente novamente\", com a causa quando ela for conhecida.",
+    "confidence": 0.9
+  },
+  {
+    "id": "98a0d3cd7b",
+    "category": "ux",
+    "severity": "medium",
+    "origin": "agent",
+    "title": "Menu lateral não indica a página atual",
+    "description": "Na navegação lateral, \"Painel\" tem o mesmo estilo dos outros itens, mesmo sendo a página aberta. Sem destaque, o usuário não percebe onde está.",
+    "rule": "menu lateral não indica a página atual",
+    "scope": "screen",
+    "screenIds": [
+      "dashboard"
+    ],
+    "evidence": [
+      "Menu lateral: \"Painel\", \"Projetos\", \"Equipe\"... aparecem todos sublinhados, com a mesma cor e o mesmo peso, sem destaque para \"Painel\"."
+    ],
+    "reproduction": [
+      "Início"
+    ],
+    "suggestion": "Destacar o item ativo com fundo, negrito ou um indicador lateral e usar aria-current=\"page\".",
+    "confidence": 0.8
+  },
+  {
+    "id": "3a29df5760",
+    "category": "ux",
+    "severity": "medium",
+    "origin": "agent",
+    "title": "Métrica sem período nem contexto de comparação",
+    "description": "\"Receita do mês\" não diz qual mês nem traz comparação com o período anterior ou com a meta. Assim, quem lê não sabe se o número é bom ou ruim.",
+    "rule": "métrica sem período nem contexto de comparação",
+    "scope": "screen",
+    "screenIds": [
+      "reports"
+    ],
+    "evidence": [
+      "Texto \"Receita do mês: R$ 120.000\" sem mês/ano, sem data de atualização e sem variação."
+    ],
+    "reproduction": [
+      "Início",
+      "Relatórios"
+    ],
+    "suggestion": "Mostrar o período (ex.: \"Receita de março/2025\"), a variação em relação ao mês anterior e a data da última atualização.",
+    "confidence": 0.8
+  },
+  {
+    "id": "defa631eb1",
+    "category": "ux",
+    "severity": "medium",
+    "origin": "agent",
+    "title": "Nenhuma ação de recuperação após o erro",
+    "description": "Não há botão para tentar de novo nem caminho alternativo, como falar com o suporte. Para recuperar a tela, o usuário precisa recarregar a página por conta própria.",
+    "rule": "nenhuma ação de recuperação após o erro",
+    "scope": "screen",
+    "screenIds": [
+      "billing"
+    ],
+    "evidence": [
+      "Abaixo de \"Erro ao carregar\" só aparecem os links \"Ajuda · Docs externos\", sem botão \"Tentar novamente\""
+    ],
+    "reproduction": [
+      "Início",
+      "Faturas"
+    ],
+    "suggestion": "Adicionar um botão principal \"Tentar novamente\" e, se possível, um link para o suporte de cobrança.",
+    "confidence": 0.85
+  },
+  {
+    "id": "d8b06f53f7",
+    "category": "ux",
+    "severity": "medium",
+    "origin": "agent",
+    "title": "Nomes de projeto genéricos e sem informação extra",
+    "description": "Os itens da lista têm só nomes numerados, sem status, data, responsável ou descrição. Assim o usuário não consegue distinguir os projetos nem escolher qual abrir sem clicar em cada um.",
+    "rule": "nomes de projeto genéricos e sem informação extra",
+    "scope": "screen",
+    "screenIds": [
+      "projects"
+    ],
+    "evidence": [
+      "Lista com \"Projeto 1\", \"Projeto 2\", \"Projeto 3\" como links simples, sem nenhum outro dado"
+    ],
+    "reproduction": [
+      "Início",
+      "Projetos"
+    ],
+    "suggestion": "Mostrar em cada item nome descritivo, status, última atualização e responsável, em formato de tabela ou cartões.",
+    "confidence": 0.75
+  },
+  {
+    "id": "45c5fc50c5",
+    "category": "ux",
+    "severity": "medium",
+    "origin": "agent",
+    "title": "Página 404 sem o layout do app e sem nenhuma navegação",
+    "description": "A página de erro não tem menu lateral, cabeçalho nem rodapé, ao contrário das outras telas do aplicativo. Sem nenhum elemento além do título, o usuário fica preso e precisa usar o botão Voltar do navegador ou digitar outra URL.",
+    "rule": "página :n sem o layout do app e sem nenhuma navegação",
+    "scope": "screen",
+    "screenIds": [
+      "help"
+    ],
+    "evidence": [
+      "A tela inteira é branca e o único elemento é o título \"Página não encontrada\", no canto superior esquerdo, sem estilo próprio."
+    ],
+    "reproduction": [
+      "Início",
+      "Ajuda"
+    ],
+    "suggestion": "Mostrar a página 404 dentro do layout padrão do app e incluir links visíveis, como \"Voltar ao painel\" e \"Ir para a Ajuda\", além de uma busca.",
+    "confidence": 0.75
+  },
+  {
+    "id": "c0e96facbc",
+    "category": "ux",
+    "severity": "medium",
+    "origin": "agent",
+    "title": "Página de erro sem estilo visual e sem hierarquia",
+    "description": "O título aparece com a fonte serifada padrão do navegador, encostado no canto da tela, e o resto da tela fica vazio. Isso não segue a identidade visual do app e não deixa claro se o problema é do usuário ou do sistema.",
+    "rule": "página de erro sem estilo visual e sem hierarquia",
+    "scope": "screen",
+    "screenIds": [
+      "help"
+    ],
+    "evidence": [
+      "O título \"Página não encontrada\" aparece em fonte serifada padrão do navegador, no canto superior esquerdo, e o resto da tela está em branco."
+    ],
+    "reproduction": [
+      "Início",
+      "Ajuda"
+    ],
+    "suggestion": "Aplicar a tipografia e o espaçamento do design system, centralizar o conteúdo e acrescentar um texto curto explicando o que aconteceu.",
+    "confidence": 0.6
+  },
+  {
+    "id": "2b55024e47",
+    "category": "ux",
+    "severity": "medium",
+    "origin": "agent",
+    "title": "Página de Relatórios sem filtros, detalhamento ou exportação",
+    "description": "A tela tem o título \"Relatórios\", mas mostra só um número solto. Não dá para mudar o período, ver a composição da receita nem exportar os dados, que é o que se espera de uma área de relatórios.",
+    "rule": "página de relatórios sem filtros, detalhamento ou exportação",
+    "scope": "screen",
+    "screenIds": [
+      "reports"
+    ],
+    "evidence": [
+      "Abaixo do título \"Relatórios\" só aparece a linha \"Receita do mês: R$ 120.000\"; não há filtros, gráficos, tabelas nem botões."
+    ],
+    "reproduction": [
+      "Início",
+      "Relatórios"
+    ],
+    "suggestion": "Incluir um seletor de período, uma tabela ou gráfico com a receita detalhada (por projeto ou cliente) e uma ação para exportar (CSV/PDF).",
+    "confidence": 0.75
+  },
+  {
+    "id": "c06b20d8b6",
+    "category": "ux",
+    "severity": "medium",
+    "origin": "agent",
+    "title": "Painel sem conteúdo útil e com hierarquia fraca",
+    "description": "A página principal mostra só uma saudação e três links soltos. Não há resumo, métricas nem ações principais, e quase toda a área fica vazia.",
+    "rule": "painel sem conteúdo útil e com hierarquia fraca",
+    "scope": "screen",
+    "screenIds": [
+      "dashboard"
+    ],
+    "evidence": [
+      "Conteúdo: \"Bem-vindo ao Acme.\" / \"Último projeto\" / \"Ajuda · Docs externos\" e o resto da tela em branco."
+    ],
+    "reproduction": [
+      "Início"
+    ],
+    "suggestion": "Incluir cartões de resumo (projetos, faturas pendentes, atividade recente) e uma ação principal bem visível.",
+    "confidence": 0.6
+  },
+  {
+    "id": "3dae65f7b1",
+    "category": "ux",
+    "severity": "medium",
+    "origin": "agent",
+    "title": "Quadrado azul sem identificação",
+    "description": "Há um bloco azul sólido sem texto ou legenda. Pode ser um avatar, uma cor de tema ou um logo, mas a tela não deixa claro o que ele é nem se dá para interagir com ele.",
+    "rule": "quadrado azul sem identificação",
+    "scope": "screen",
+    "screenIds": [
+      "settings"
+    ],
+    "evidence": [
+      "Quadrado azul de ~40px abaixo do título \"Configurações\", sem texto associado"
+    ],
+    "reproduction": [
+      "Início",
+      "Configurações"
+    ],
+    "suggestion": "Incluir uma legenda (ex.: \"Foto de perfil\") e uma ação explícita (\"Alterar\"), ou remover o elemento se for só decorativo.",
+    "confidence": 0.7
+  },
+  {
+    "id": "b663d3f4f5",
+    "category": "ux",
+    "severity": "medium",
+    "origin": "agent",
+    "title": "Rota de Ajuda (/help) leva a uma página 404",
+    "description": "O usuário que procura ajuda cai numa página de erro. Isso quebra o fluxo de suporte justamente quando ele precisa de orientação, e passa a impressão de que o produto está quebrado.",
+    "rule": "rota de ajuda (/help) leva a uma página :n",
+    "scope": "screen",
+    "screenIds": [
+      "help"
+    ],
+    "evidence": [
+      "A tela da rota /help mostra apenas o título \"Página não encontrada\"."
+    ],
+    "reproduction": [
+      "Início",
+      "Ajuda"
+    ],
+    "suggestion": "Publicar a página de Ajuda nessa rota ou corrigir os links que apontam para /help, levando o usuário ao destino certo (central de ajuda ou documentação).",
+    "confidence": 0.8
+  },
+  {
+    "id": "2c37f9533a",
+    "category": "ux",
+    "severity": "medium",
+    "origin": "agent",
+    "title": "Rótulo \"Ver detalhes\" ambíguo",
+    "description": "Não fica claro de que são os detalhes: da equipe, dos membros ou dos convites.",
+    "rule": "rótulo \"ver detalhes\" ambíguo",
+    "scope": "screen",
+    "screenIds": [
+      "team"
+    ],
+    "evidence": [
+      "Botão \"Ver detalhes\""
+    ],
+    "reproduction": [
+      "Início",
+      "Equipe"
+    ],
+    "suggestion": "Usar um rótulo específico, como \"Ver membros\" ou \"Detalhes da equipe\".",
+    "confidence": 0.65
+  },
+  {
+    "id": "f9517dc66f",
+    "category": "ux",
+    "severity": "medium",
+    "origin": "agent",
+    "title": "Sem ação principal para criar projeto",
+    "description": "A tela de Projetos não tem botão nem link para criar um projeto novo, nem para buscar ou filtrar. Falta uma ação principal clara na página.",
+    "rule": "sem ação principal para criar projeto",
+    "scope": "screen",
+    "screenIds": [
+      "projects"
+    ],
+    "evidence": [
+      "Abaixo do título \"Projetos\" só aparecem a lista de três links e \"Ajuda · Docs externos\"; não há nenhum botão"
+    ],
+    "reproduction": [
+      "Início",
+      "Projetos"
+    ],
+    "suggestion": "Colocar um botão de destaque \"Novo projeto\" ao lado do título e, se a lista crescer, adicionar busca e filtros.",
+    "confidence": 0.65
+  },
+  {
+    "id": "fd262b1c27",
+    "category": "ux",
+    "severity": "low",
+    "origin": "agent",
+    "title": "Link externo sem indicação e misturado com links de ajuda",
+    "description": "\"Docs externos\" leva para fora do app, mas tem o mesmo estilo de \"Ajuda\", sem ícone de link externo. Além disso, os links de suporte ficam colados em \"Último projeto\", sem separação entre tipos de conteúdo diferentes.",
+    "rule": "link externo sem indicação e misturado com links de ajuda",
+    "scope": "screen",
+    "screenIds": [
+      "dashboard"
+    ],
+    "evidence": [
+      "\"Ajuda · Docs externos\" logo abaixo de \"Último projeto\", sem espaço nem ícone de link externo."
+    ],
+    "reproduction": [
+      "Início"
+    ],
+    "suggestion": "Adicionar um ícone de link externo e agrupar os links de suporte em uma seção separada.",
+    "confidence": 0.55
+  },
+  {
+    "id": "2cb6370026",
+    "category": "ux",
+    "severity": "low",
+    "origin": "agent",
+    "title": "Links de ajuda colados aos botões de ação",
+    "description": "Os links \"Ajuda · Docs externos\" ficam logo abaixo dos botões, sem espaçamento, e parecem fazer parte do grupo de ações.",
+    "rule": "links de ajuda colados aos botões de ação",
+    "scope": "screen",
+    "screenIds": [
+      "team"
+    ],
+    "evidence": [
+      "\"Ajuda · Docs externos\" imediatamente abaixo de \"Convidar usuário\" e \"Ver detalhes\""
+    ],
+    "reproduction": [
+      "Início",
+      "Equipe"
+    ],
+    "suggestion": "Separar os links de ajuda com espaçamento ou movê-los para uma área de suporte.",
+    "confidence": 0.55
+  },
+  {
+    "id": "e19dceb0c0",
+    "category": "ux",
+    "severity": "low",
+    "origin": "agent",
+    "title": "Links de ajuda com o mesmo peso dos itens da lista",
+    "description": "\"Ajuda\" aparece logo abaixo da lista, sem separação nem destaque diferente. Ele se confunde com o conteúdo principal e parece fazer parte da lista de projetos.",
+    "rule": "links de ajuda com o mesmo peso dos itens da lista",
+    "scope": "screen",
+    "screenIds": [
+      "projects"
+    ],
+    "evidence": [
+      "\"Ajuda · Docs externos\" logo abaixo de \"Projeto 3\", com o mesmo estilo de link azul sublinhado"
+    ],
+    "reproduction": [
+      "Início",
+      "Projetos"
+    ],
+    "suggestion": "Levar os links de ajuda para um rodapé ou ícone de ajuda e separá-los visualmente da lista.",
+    "confidence": 0.5
+  },
+  {
+    "id": "35fe6df495",
+    "category": "ux",
+    "severity": "low",
+    "origin": "agent",
+    "title": "Rótulo \"Último projeto\" é vago",
+    "description": "O link não diz qual é o projeto nem quando foi acessado. O usuário só descobre o destino depois de clicar.",
+    "rule": "rótulo \"último projeto\" é vago",
+    "scope": "screen",
+    "screenIds": [
+      "dashboard"
+    ],
+    "evidence": [
+      "Link \"Último projeto\" sem o nome do projeto."
+    ],
+    "reproduction": [
+      "Início"
+    ],
+    "suggestion": "Mostrar o nome e a data, por exemplo: \"Continuar: Projeto X (editado ontem)\".",
+    "confidence": 0.7
+  },
+  {
+    "id": "3ddc941437",
+    "category": "ux",
+    "severity": "low",
+    "origin": "agent",
+    "title": "Rótulo e valor da métrica com o mesmo estilo",
+    "description": "O rótulo e o valor aparecem numa única linha, com a mesma fonte e o mesmo peso. Nada destaca o número, e a métrica fica maior que o próprio título da página, o que inverte a hierarquia.",
+    "rule": "rótulo e valor da métrica com o mesmo estilo",
+    "scope": "screen",
+    "screenIds": [
+      "reports"
+    ],
+    "evidence": [
+      "\"Receita do mês: R$ 120.000\" está em fonte maior que o título \"Relatórios\", e rótulo e valor têm o mesmo estilo."
+    ],
+    "reproduction": [
+      "Início",
+      "Relatórios"
+    ],
+    "suggestion": "Usar um card de KPI: rótulo pequeno e discreto, valor em destaque e título da página como o elemento principal.",
+    "confidence": 0.6
+  }
+]
