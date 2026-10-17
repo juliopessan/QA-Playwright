@@ -187,3 +187,33 @@ describe("writeDocs", () => {
     expect(existsSync(join(d, "fluxos"))).toBe(false);
   });
 });
+
+describe("relatorio.html", () => {
+  it("é gerado junto, com resumo, achados, telas e imagens relativas", () => {
+    const d = mkdtempSync(join(tmpdir(), "qa-html-"));
+    writeDocs(result(), d);
+    const html = readFileSync(join(d, "relatorio.html"), "utf8");
+    expect(html).toContain("<title>Relatório QA Agent · x</title>");
+    expect(html).toContain("Imagem sem alt");
+    expect(html).toContain('src="img/billing.jpg"');
+    expect(html).toContain("opinião do agente · 60%");
+    expect(html).toMatch(/Crítica \(1\)/);
+  });
+
+  it("escapa todo texto vindo do site e ignora caminhos de imagem fora de img/", () => {
+    const d = mkdtempSync(join(tmpdir(), "qa-html-"));
+    const evil = '<script>alert(1)</script>';
+    writeDocs(
+      result({
+        screens: [screen("x", "/x", `Título ${evil}`, { screenshot: "javascript:alert(1)" })],
+        findings: [f({ rule: "r", title: `Erro ${evil}`, screenId: "x", evidence: [`"><img src=x onerror=alert(1)>`] })],
+      }),
+      d,
+    );
+    const html = readFileSync(join(d, "relatorio.html"), "utf8");
+    expect(html).not.toContain("<script>alert(1)</script>");
+    expect(html).not.toContain("<img src=x");
+    expect(html).not.toContain("javascript:");
+    expect(html).toContain("&lt;script&gt;");
+  });
+});
