@@ -7,10 +7,10 @@ declare const maskedBrand: unique symbol;
 export interface MaskedImage {
   readonly [maskedBrand]: true;
   readonly data: Buffer;
-  readonly mediaType: "image/png";
+  readonly mediaType: "image/png" | "image/jpeg";
 }
 
 /** Uso interno do módulo de mascaramento. Não reexportar fora de src/masking. */
-export function brandMaskedImage(data: Buffer): MaskedImage {
-  return { data, mediaType: "image/png" } as unknown as MaskedImage;
+export function brandMaskedImage(data: Buffer, mediaType: "image/png" | "image/jpeg" = "image/png"): MaskedImage {
+  return { data, mediaType } as unknown as MaskedImage;
 }

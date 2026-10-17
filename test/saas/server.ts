@@ -31,9 +31,10 @@ main{padding:24px;flex:1}.tab[aria-selected=true]{font-weight:700}dialog,[role=d
 export async function startSaas(
   port = 0,
   opts: { slowMs?: number } = {},
-): Promise<{ url: string; writes: WriteRequest[]; close(): Promise<void> }> {
+): Promise<{ url: string; writes: WriteRequest[]; visited: string[]; close(): Promise<void> }> {
   const slowMs = opts.slowMs ?? 1500;
   const writes: WriteRequest[] = [];
+  const visited: string[] = [];
 
   const server = createServer((req, res) => {
     const url = new URL(req.url ?? "/", "http://x");
@@ -47,6 +48,7 @@ export async function startSaas(
         res.writeHead(code, { "content-type": "text/html; charset=utf-8", ...headers }).end(content);
       const json = (code: number, data: unknown) => res.writeHead(code, { "content-type": "application/json" }).end(JSON.stringify(data));
 
+      if (method === "GET") visited.push(url.pathname);
       // Mutations de GraphQL e qualquer método de escrita são registrados (menos queries).
       const isGraphQlQuery = url.pathname === "/graphql" && !/mutation\b/.test(body);
       if (!["GET", "HEAD", "OPTIONS"].includes(method) && !isGraphQlQuery) writes.push({ method, path: url.pathname, body });
@@ -121,7 +123,7 @@ export async function startSaas(
       }
       if (url.pathname === "/settings") {
         return html(200, layout("Configurações", "Configurações",
-          `<img src="/logo.svg" width="40" height="40"><form onsubmit="return false"><input name="nome"><button type="submit">Salvar</button></form>`));
+          `<img src="/logo.svg" width="40" height="40"><form onsubmit="return false"><input name="nome"><button type="submit">Salvar</button></form><a href="/settings/delete-account">Excluir conta</a>`));
       }
       return html(404, "<h1>Página não encontrada</h1>");
     });
@@ -139,6 +141,7 @@ ${error ? `<p role="alert">${error}</p>` : ""}<form method="post" action="/login
   return {
     url: `http://127.0.0.1:${addr.port}`,
     writes,
+    visited,
     close: () => new Promise<void>((ok, bad) => server.close((e) => (e ? bad(e) : ok()))),
   };
 }
