@@ -4,6 +4,7 @@ import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { startSaas, SAAS_USER, SAAS_PASS } from "../saas/server.js";
 import { main, type CliIO } from "../../src/cli/index.js";
+import { FakeLLMProvider } from "../../src/llm/fake.js";
 
 let saas: Awaited<ReturnType<typeof startSaas>>;
 beforeAll(async () => {
@@ -67,4 +68,25 @@ describe("qa-agent explore", () => {
     expect(await main(["explore", "isto-nao-e-url", "--out-dir", mkdtempSync(join(tmpdir(), "qa-cli-")), ...FAST], t.cli)).toBe(2);
     expect(t.err.join("\n")).toMatch(/URL inválida/);
   });
+
+  it("com provedor de LLM, o Aprofundador roda e o orçamento é respeitado", async () => {
+    const outDir = mkdtempSync(join(tmpdir(), "qa-cli-"));
+    const t = io();
+    const fake = new FakeLLMProvider((req) => (req.task === "deepen" ? { elements: [] } : { findings: [] }));
+    t.cli.provider = fake;
+    const args = ["--max-telas", "3", "--estabilidade-ms", "200", "--config", "/nao/existe.yaml", "--env-file", "/nao/existe.env", "--max-llm-calls", "2"];
+    const code = await main(["explore", saas.url, "--out-dir", outDir, ...args], t.cli);
+    expect(code).toBe(0);
+    expect(fake.calls.length).toBe(2);
+    const runId = /(\d{8}-\d{6}-[0-9a-f]{4})/.exec(t.out.join("\n"))![1];
+    expect(readFileSync(join(outDir, runId, "cobertura.md"), "utf8")).toMatch(/orçamento/i);
+  }, 120_000);
+
+  it("sem chave nem provedor, avisa na cobertura que a parte com LLM não rodou", async () => {
+    const outDir = mkdtempSync(join(tmpdir(), "qa-cli-"));
+    const t = io();
+    await main(["explore", saas.url, "--out-dir", outDir, ...FAST], t.cli);
+    const runId = /(\d{8}-\d{6}-[0-9a-f]{4})/.exec(t.out.join("\n"))![1];
+    expect(readFileSync(join(outDir, runId, "cobertura.md"), "utf8")).toMatch(/ANTHROPIC_API_KEY/);
+  }, 120_000);
 });

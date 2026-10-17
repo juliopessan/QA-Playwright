@@ -137,8 +137,9 @@ export async function main(argv: string[], io: CliIO): Promise<number> {
     .option("--max-telas <n>", "número máximo de telas")
     .option("--estabilidade-ms <n>", "tempo sem mudanças no DOM para considerar a tela estável")
     .option("--sem-ux", "desliga a análise de UX pelo LLM")
+    .option("--max-llm-calls <n>", "orçamento de chamadas ao LLM na exploração")
     .option("--config <path>", "arquivo de configuração yaml")
-    .option("--env-file <path>", "arquivo .env com APP_USER e APP_PASS", ".env")
+    .option("--env-file <path>", "arquivo .env com APP_USER, APP_PASS e ANTHROPIC_API_KEY", ".env")
     .option("--headed", "abre o navegador visível")
     .action(async (url: string, opts: ExploreCliOptions & { semUx?: boolean }) => {
       code = await exploreCommand(url, { ...opts, ux: !opts.semUx }, io);

@@ -3,8 +3,13 @@ import { join } from "node:path";
 import { parseEnv } from "node:util";
 import { loadStorageStatePath } from "../auth/index.js";
 import { writeDocs } from "../docs/markdown.js";
+import { AnthropicProvider } from "../llm/anthropic.js";
+import { BudgetedProvider } from "../llm/budget.js";
+import type { LLMProvider } from "../llm/provider.js";
+import { DiskCache } from "../explore/cache.js";
 import { loadExploreConfig } from "../explore/config.js";
 import { explore } from "../explore/crawler.js";
+import { makeScreenHook } from "../explore/llm-hook.js";
 import { newRunId } from "../run/manifest.js";
 import type { Finding } from "../explore/types.js";
 import type { CliIO } from "./index.js";
@@ -14,6 +19,7 @@ export interface ExploreCliOptions {
   maxTelas?: string;
   estabilidadeMs?: string;
   ux: boolean;
+  maxLlmCalls?: string;
   config?: string;
   envFile: string;
   headed?: boolean;
@@ -59,6 +65,10 @@ export async function exploreCommand(url: string, opts: ExploreCliOptions, io: C
     ux: opts.ux ? undefined : false,
   });
 
+  const maxCalls = posIntOpt(opts.maxLlmCalls, "--max-llm-calls");
+  let provider: LLMProvider | undefined = io.provider ?? (env.ANTHROPIC_API_KEY ? new AnthropicProvider({ apiKey: env.ANTHROPIC_API_KEY }) : undefined);
+  if (provider && maxCalls !== undefined) provider = new BudgetedProvider(provider, maxCalls);
+
   const runId = newRunId();
   const runDir = join(opts.outDir, runId);
   mkdirSync(runDir, { recursive: true });
@@ -80,12 +90,25 @@ export async function exploreCommand(url: string, opts: ExploreCliOptions, io: C
       perf: cfg.perf,
       settleMs: cfg.settleMs,
       headed: opts.headed,
+      hooks: provider
+        ? {
+            afterScreen: makeScreenHook({
+              provider,
+              ux: cfg.ux,
+              cache: new DiskCache(join(opts.outDir, ".cache", "deepen")),
+              extraWriteVerbs: cfg.extraWriteVerbs,
+            }),
+          }
+        : undefined,
     });
   } catch (e) {
     const msg = (e as Error).message.split("\n")[0];
     throw new UsageError(msg.startsWith("Login falhou") ? msg : `exploração falhou: ${msg}`);
   }
 
+  if (!provider) {
+    result.llm.notes.push("Sem ANTHROPIC_API_KEY: o Aprofundador (abas e modais) e a análise de UX não rodaram; só crawler e análises objetivas.");
+  }
   writeDocs(result, runDir, { previous });
   const by = (s: string) => result.findings.filter((f) => f.severity === s).length;
   io.out(
