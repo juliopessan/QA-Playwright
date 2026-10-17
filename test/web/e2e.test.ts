@@ -10,6 +10,8 @@ import { makeAnalyze } from "../../api/analyze.js";
 import { makeLimiter } from "../../api/_lib/core.js";
 import { exaCrawl } from "../../api/_lib/exa.js";
 import { reviewWithClaude } from "../../api/_lib/review.js";
+import { makeReport } from "../../api/report.js";
+import { readFileSync } from "node:fs";
 
 /**
  * Fluxo completo no navegador: landing → POST /api/analyze (handler real) → Exa (HTTP simulado com o
@@ -64,6 +66,13 @@ describe("análise pela landing, de ponta a ponta", () => {
       await handler({ method: "POST", body: route.request().postDataJSON(), headers: { "x-forwarded-for": "9.9.9.9" } }, res);
       await route.fulfill({ status: out.status, headers: out.headers, body: out.body });
     });
+    const reportHandler = makeReport({ limiter: makeLimiter({ max: 20 }), renderPdf: (html: string) => import("../../api/report.js").then((m) => m.renderPdf(html, () => chromium.launch())) });
+    await page.route("**/api/report", async (route) => {
+      const out: any = { headers: {} };
+      const res = { set statusCode(v: number) { out.status = v; }, setHeader(k: string, v: string) { out.headers[k] = v; }, end(b: any) { out.body = b; } };
+      await reportHandler({ method: "POST", body: route.request().postDataJSON(), headers: { "x-forwarded-for": "9.9.9.9" } }, res);
+      await route.fulfill({ status: out.status, headers: out.headers, body: out.body });
+    });
     await page.goto(`${app.url}/`);
     await page.getByLabel("URL do site").fill("ukodelabs.com.br");
     await page.getByRole("button", { name: "Analisar o site" }).click();
@@ -91,7 +100,18 @@ describe("análise pela landing, de ponta a ponta", () => {
     expect(sizes[1][0]).toBe(390);
     expect(reviewImages).toBe(2);
     expect(text).toMatch(/Acessibilidade: /);
+    // Documento do relatório (HTML e PDF reais, gerados pelo handler e pelo Chromium).
+    const [htmlDl] = await Promise.all([page.waitForEvent("download"), page.getByRole("button", { name: "Baixar em HTML" }).click()]);
+    const doc = readFileSync((await htmlDl.path())!, "utf8");
+    expect(doc).toContain("1. Resumo executivo");
+    expect(doc).toContain("4. Opinião do agente (1)");
+    expect(doc).toContain("Falta uma chamada para ação na abertura");
+    expect(doc).toContain("data:image/jpeg;base64,");
+    expect(doc).not.toContain("Promessa sem prova");
+    const [pdfDl] = await Promise.all([page.waitForEvent("download", { timeout: 60_000 }), page.getByRole("button", { name: "Baixar o relatório (PDF)" }).click()]);
+    expect(pdfDl.suggestedFilename()).toMatch(/^relatorio-qa-agent-.*\.pdf$/);
+    expect(readFileSync((await pdfDl.path())!).subarray(0, 5).toString()).toBe("%PDF-");
     expect(errors).toEqual([]);
     await page.close();
-  });
+  }, 120_000);
 });

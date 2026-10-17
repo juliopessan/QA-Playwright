@@ -21,6 +21,20 @@ Landing (hero) ─▶ POST /api/analyze { url }
 
 Não há login, envio de formulário nem clique: a análise é somente leitura e cobre até 4 páginas públicas. Para explorar telas autenticadas, abas, modais e fluxos, com documentação em Markdown para PR, use o CLI (`qa-agent explore`).
 
+## Relatório como documento (PDF e HTML)
+
+O botão "Baixar o relatório" chama `POST /api/report` com o resultado da análise e o formato (`pdf` ou `html`). O servidor revalida o conteúdo (tamanhos, URLs http(s), só imagens JPEG em data URL), escapa todo texto e monta um documento A4 com:
+
+1. Capa (site, data, páginas, achados, tempo de resposta);
+2. Resumo executivo (números, prioridades, achados por categoria e tabela de todos os achados);
+3. Escopo e método (o que é medido e o que é opinião do agente, páginas analisadas);
+4. Achados medidos, com evidência, o que fazer e id estável;
+5. Opinião do agente, em seção separada, com a confiança do modelo;
+6. Evidências visuais (screenshots desktop e celular, com legenda);
+7. Observações e limitações, e checklist para a equipe.
+
+O PDF é gerado pelo Chromium da função, sem rede (a página só tem o HTML e imagens `data:`), com numeração de páginas. Se o PDF falhar, a página avisa e o HTML pode ser impresso em A4. Exemplos reais em [`docs/exemplo-analise-web/`](exemplo-analise-web/README.md), publicados em `/exemplo-analise/`.
+
 ## Configuração
 
 Variáveis de ambiente do projeto na Vercel (Settings → Environment Variables), depois um redeploy:
@@ -43,6 +57,6 @@ Sem `EXA_API_KEY`, o formulário responde que a análise ainda não foi configur
 
 ## Desenvolvimento
 
-- Função: `api/analyze.js`; módulos em `api/_lib/` (`core`, `probe`, `exa`, `browser`, `review`), em JavaScript puro, sem build. `vercel.json` inclui o binário do Chromium na função e define `maxDuration` de 120 s.
+- Funções: `api/analyze.js` (análise) e `api/report.js` (documento PDF/HTML); módulos em `api/_lib/` (`core`, `probe`, `exa`, `browser`, `review`, `report`), em JavaScript puro, sem build. `vercel.json` inclui o binário do Chromium na função e define `maxDuration` de 120 s.
 - Landing: `landing/index.src.html` (fonte) e `landing/index.html` (gerado com o Ledger). O build do site (`npm run build:web`) põe a landing na raiz e o app de teste em `/demo/`.
 - Testes: `test/web/` (validação, proteção de rede, checagens, Exa, revisão e a função completa com dependências simuladas) e `test/app/landing.test.ts` (o formulário e o relatório no navegador, com a API simulada).

@@ -11,6 +11,10 @@
     },
     "api/health.js": {
       "maxDuration": 10
+    },
+    "api/report.js": {
+      "maxDuration": 60,
+      "includeFiles": "node_modules/@sparticuz/chromium/bin/**"
     }
   }
 }

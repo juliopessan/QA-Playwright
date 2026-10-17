@@ -55,7 +55,7 @@ export const clientIp = (req) => String(req.headers?.["x-forwarded-for"] ?? req.
 export function send(res, status, body, headers = {}) {
   res.statusCode = status;
   for (const [k, v] of Object.entries({ "Content-Type": "application/json; charset=utf-8", "Cache-Control": "no-store", ...headers })) res.setHeader(k, v);
-  res.end(typeof body === "string" ? body : JSON.stringify(body));
+  res.end(typeof body === "string" || Buffer.isBuffer(body) ? body : JSON.stringify(body));
 }
 
 export function readBody(req) {

@@ -1,0 +1,22 @@
+{
+  "url": "https://ukodelabs.com.br/",
+  "finalUrl": "https://ukodelabs.com.br/",
+  "analyzedAt": "2026-10-17T19:55:00.000Z",
+  "status": 200,
+  "responseMs": 800,
+  "model": "claude-opus-5-5",
+  "summary": "O site comunica bem uma camada de governança para agentes de IA (política, aprovação, custo, auditoria), com tom técnico e provas verificáveis. O principal ponto a melhorar é a clareza para decisores não técnicos e sinais de confiança institucionais (clientes, equipe, contato).",
+  "pages": [{ "url": "https://ukodelabs.com.br/", "title": "UKode Labs" }],
+  "shots": [{ "url": "https://ukodelabs.com.br/", "title": "UKode Labs", "status": 200, "loadMs": 1600 }],
+  "notes": ["5 sugestão(ões) do modelo descartada(s) por não citar um trecho real do site."],
+  "findings": [
+    { "origin": "measured", "category": "acessibilidade", "severity": "high", "title": "Acessibilidade: Elements must meet minimum color contrast ratio thresholds", "description": "Ensure the contrast between foreground and background colors meets WCAG 2 AA minimum contrast ratio thresholds. Regra axe color-contrast.", "evidence": ".hero-grid > div > .eyebrow | .hero-foot", "suggestion": "Element has insufficient color contrast of 3.16 (foreground color: #8a867c, background color: #f2efe8, font size: 8.3pt (11px), font weight: normal). Expected contrast ratio of 4.5:1", "page": "https://ukodelabs.com.br/" },
+    { "origin": "measured", "category": "seguranca", "severity": "medium", "title": "Falta o cabeçalho Strict-Transport-Security (HSTS)", "evidence": "Cabeçalho strict-transport-security ausente na resposta", "suggestion": "Adicione Strict-Transport-Security: max-age=31536000; includeSubDomains.", "page": "https://ukodelabs.com.br/" },
+    { "origin": "agent", "category": "conteudo", "severity": "medium", "title": "Métrica '00 frameworks' confusa", "description": "Mostrar 00 num painel de métricas parece erro ou falha, não diferencial.", "evidence": "00 frameworks de agente", "suggestion": "Reescrever como 'Zero dependência de frameworks de agente' ou explicar o significado.", "page": "https://ukodelabs.com.br/", "confidence": 0.8 },
+    { "origin": "agent", "category": "confianca", "severity": "medium", "title": "Prova social apoiada só em repositório pessoal", "description": "A prova de credibilidade é um repo de pessoa física e contagem de testes. Faltam clientes, cases e equipe.", "evidence": "Clone `juliopessan/ukode-core`, rode `pytest` e confira.", "suggestion": "Adicionar cases, logos, quem são os fundadores e CNPJ/contato.", "page": "https://ukodelabs.com.br/", "confidence": 0.75 },
+    { "origin": "measured", "category": "seguranca", "severity": "low", "title": "A página pode ser embutida em iframes de outros sites", "evidence": "Sem X-Frame-Options e sem frame-ancestors na CSP", "suggestion": "Use frame-ancestors 'self' na CSP (ou X-Frame-Options: SAMEORIGIN).", "page": "https://ukodelabs.com.br/" },
+    { "origin": "measured", "category": "seguranca", "severity": "low", "title": "Sem X-Content-Type-Options: nosniff", "evidence": "Cabeçalho x-content-type-options ausente ou diferente de nosniff", "suggestion": "Envie X-Content-Type-Options: nosniff.", "page": "https://ukodelabs.com.br/" },
+    { "origin": "measured", "category": "seguranca", "severity": "low", "title": "Sem Content-Security-Policy", "evidence": "Cabeçalho content-security-policy ausente", "suggestion": "Defina uma CSP para limitar scripts e origens externas.", "page": "https://ukodelabs.com.br/" },
+    { "origin": "agent", "category": "acessibilidade", "severity": "low", "title": "Carrossel com texto borrado", "description": "O bloco animado exibe linha desfocada e depende de tempo; quem lê rápido ou usa leitor de tela perde conteúdo.", "evidence": "A POC impressionou todo mundo.", "suggestion": "Oferecer versão estática e respeitar prefers-reduced-motion.", "page": "https://ukodelabs.com.br/", "confidence": 0.6 }
+  ]
+}

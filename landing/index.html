@@ -535,7 +535,7 @@ html [hidden] { display: none; }   /* html prefix: beats .check/.field display r
         <form id="analyzeForm" class="az-form reveal" style="--d:.38s" novalidate>
           <div class="field"><label for="az-url">URL do site</label>
             <div class="az-row"><input class="input" id="az-url" name="url" type="text" inputmode="url" autocomplete="url" autocapitalize="none" spellcheck="false" placeholder="https://seusite.com.br" aria-describedby="az-url-hint az-url-err" required><button class="btn" type="submit" id="az-submit">Analisar o site</button></div>
-            <p class="hint" id="az-url-hint">Só sites públicos. A análise é somente leitura.</p>
+            <p class="hint" id="az-url-hint">Só sites públicos. A análise é somente leitura. <a class="link" href="exemplo-analise/relatorio-app-de-teste.pdf" target="_blank" rel="noopener">Ver um relatório de exemplo (PDF)</a></p>
             <p class="field-error" id="az-url-err"><svg class="i i--16" aria-hidden="true"><use href="#i-error"/></svg><span>Informe a URL do site, como https://seusite.com.br.</span></p></div>
           <p class="az-live" id="az-live" role="status" aria-live="polite"></p>
         </form>
@@ -562,7 +562,7 @@ html [hidden] { display: none; }   /* html prefix: beats .check/.field display r
       <div id="az-shots-wrap" style="margin-top:40px" hidden><h3 class="h3">Telas fotografadas</h3><div id="az-shots" class="shots"></div></div>
       <p id="az-pages" class="meta" style="margin-top:16px"></p>
       <ul id="az-notes" class="list meta" style="margin:8px 0 0"></ul>
-      <div class="row" style="margin-top:24px"><button class="btn btn--line" type="button" id="az-download">Baixar o relatório (HTML)</button><a class="link" href="#top" id="az-again">Analisar outro site <svg class="i i--16" aria-hidden="true"><use href="#i-arrow-up-right"/></svg></a></div>
+      <div class="row" style="margin-top:24px"><button class="btn" type="button" data-report="pdf" id="az-pdf">Baixar o relatório (PDF)</button><button class="btn btn--line" type="button" data-report="html" id="az-html">Baixar em HTML</button><a class="link" href="#top" id="az-again">Analisar outro site <svg class="i i--16" aria-hidden="true"><use href="#i-arrow-up-right"/></svg></a></div>
     </section>
 
     <section class="section section--rule" id="como">
@@ -618,7 +618,7 @@ node dist/cli/index.js publish &lt;runId&gt; --pr --repo dono/repo</pre><button 
         <details><summary>Quanto tempo leva? <svg class="i" aria-hidden="true"><use href="#i-plus"/></svg></summary><p>Cerca de um minuto: leitura, navegador com prints, medições e revisão rodam numa única etapa, com limite de dois minutos. O andamento aparece logo abaixo do botão.</p></details>
         <details><summary>O que o Claude recebe? <svg class="i" aria-hidden="true"><use href="#i-plus"/></svg></summary><p>O texto público das páginas lidas, até quatro screenshots do site e alguns fatos medidos. Nenhum dado de quem faz a análise.</p></details>
         <details><summary>Por que algumas sugestões somem? <svg class="i" aria-hidden="true"><use href="#i-plus"/></svg></summary><p>Toda sugestão do Claude precisa citar um trecho que existe no site. As que não citam são descartadas, e o relatório diz quantas foram.</p></details>
-        <details><summary>Onde ficam os prints e a documentação? <svg class="i" aria-hidden="true"><use href="#i-plus"/></svg></summary><p>A análise pela web mostra os prints (desktop e celular) e os achados na própria página, e você baixa tudo em um HTML único. O passo a passo de fluxos, os subestados (abas e modais) e a documentação em Markdown para PR vêm do CLI, na pasta qa-report. Veja um <a class="link" href="exemplo/relatorio.html" target="_blank" rel="noopener">relatório real de exemplo</a>.</p></details>
+        <details><summary>Onde ficam os prints e a documentação? <svg class="i" aria-hidden="true"><use href="#i-plus"/></svg></summary><p>A análise pela web mostra os prints (desktop e celular) e os achados na própria página, e você baixa o relatório como documento (PDF ou HTML) com capa, resumo executivo, achados com evidências e screenshots. O passo a passo de fluxos, os subestados (abas e modais) e a documentação em Markdown para PR vêm do CLI, na pasta qa-report. Veja um <a class="link" href="exemplo/relatorio.html" target="_blank" rel="noopener">relatório real do CLI</a> e um <a class="link" href="exemplo-analise/relatorio-app-de-teste.pdf" target="_blank" rel="noopener">relatório da análise pela web (PDF)</a>.</p></details>
         <details><summary>Funciona em sistemas com login? <svg class="i" aria-hidden="true"><use href="#i-plus"/></svg></summary><p>Não pela web. Para telas autenticadas, use o CLI, que roda no seu ambiente com o seu usuário de teste.</p></details>
         <details><summary>Há limite de uso? <svg class="i" aria-hidden="true"><use href="#i-plus"/></svg></summary><p>Sim: algumas análises a cada dez minutos por endereço de rede, para manter o serviço disponível para todos.</p></details>
       </div>
@@ -1079,26 +1079,23 @@ node dist/cli/index.js publish &lt;runId&gt; --pr --repo dono/repo</pre><button 
     $('#az-shots-wrap').hidden = !(r.shots && r.shots.length);
   }
 
-  var esc = function (v) { return String(v == null ? '' : v).replace(/[&<>"']/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]; }); };
-  /* Relatório HTML único (prints embutidos), gerado no navegador a partir do resultado já recebido. */
-  function standalone(r) {
-    var host = ''; try { host = new URL(r.finalUrl || r.url).host; } catch (e) {}
-    var out = '<!doctype html><html lang="pt-BR"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Relatório QA Agent · ' + esc(host) + '</title><style>body{font:16px/1.55 system-ui,Arial,sans-serif;margin:0;background:#F1EEE5;color:#17140F}main{max-width:1000px;margin:0 auto;padding:32px 16px}img{max-width:100%;border:1px solid #CFC9BA}h2{border-top:1px solid #17140F;padding-top:12px;margin-top:40px}article{border:1px solid #CFC9BA;padding:12px 16px;margin:0 0 12px}code,.m{font-family:ui-monospace,Menlo,monospace;font-size:13px;color:#5C564B}</style></head><body><main>';
-    out += '<p class="m">Relatório do QA Agent · ' + esc(r.analyzedAt || '') + '</p><h1>' + esc(host) + '</h1><p>' + esc(r.summary) + '</p>';
-    out += '<h2>Achados (' + r.findings.length + ')</h2>';
-    r.findings.forEach(function (f) { out += '<article><b>' + esc(SEV[f.severity] || f.severity) + '</b> · ' + esc(CAT[f.category] || f.category) + ' · <span class="m">' + (f.origin === 'agent' ? 'opinião do agente' : 'medido') + '</span><h3>' + esc(f.title) + '</h3>' + (f.description ? '<p>' + esc(f.description) + '</p>' : '') + '<p>Evidência: <code>' + esc(f.evidence) + '</code></p>' + (f.suggestion ? '<p>Sugestão: ' + esc(f.suggestion) + '</p>' : '') + '<p class="m">' + esc(f.page) + '</p></article>'; });
-    out += '<h2>Telas</h2>';
-    (r.shots || []).forEach(function (s) { out += '<article><h3>' + esc(s.title || s.url) + '</h3><p class="m">' + esc(s.url) + ' · HTTP ' + esc(s.status) + '</p>' + (IMG.test(s.desktop || '') ? '<img src="' + s.desktop + '" alt="desktop">' : '') + (IMG.test(s.mobile || '') ? '<img src="' + s.mobile + '" alt="celular" style="max-width:260px">' : '') + '</article>'; });
-    (r.notes || []).length && (out += '<h2>Observações</h2><ul>' + r.notes.map(function (n) { return '<li>' + esc(n) + '</li>'; }).join('') + '</ul>');
-    return out + '</main></body></html>';
+  /* O documento (A4, com capa, resumo, achados e evidências) é gerado no servidor a partir do resultado da análise. */
+  function save(blob, name) {
+    var url = URL.createObjectURL(blob);
+    var a = el('a'); a.href = url; a.download = name; D.body.appendChild(a); a.click(); a.remove();
+    setTimeout(function () { URL.revokeObjectURL(url); }, 4000);
   }
   D.addEventListener('click', function (e) {
-    var b = e.target.closest && e.target.closest('#az-download'); if (!b || !lastReport) return;
-    try {
-      var url = URL.createObjectURL(new Blob([standalone(lastReport)], { type: 'text/html' }));
-      var a = el('a'); a.href = url; a.download = 'relatorio-qa-agent.html'; D.body.appendChild(a); a.click(); a.remove(); setTimeout(function () { URL.revokeObjectURL(url); }, 4000);
-      L.toast('Relatório baixado.', { kind: 'ok' });
-    } catch (err) { L.toast('Não foi possível gerar o arquivo. Tente de novo.', { kind: 'err' }); }
+    var btn = e.target.closest && e.target.closest('[data-report]'); if (!btn || !lastReport || btn.getAttribute('aria-busy')) return;
+    var format = btn.getAttribute('data-report');
+    var work = fetch('/api/report', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ report: lastReport, format: format }) }).then(function (r) {
+      if (!r.ok) return r.json().catch(function () { return {}; }).then(function (b) { throw new Error(b.error || 'Não foi possível gerar o documento. Tente de novo.'); });
+      var m = /filename="([^"]+)"/.exec(r.headers.get('Content-Disposition') || '');
+      return r.blob().then(function (blob) { return { blob: blob, name: m ? m[1] : 'relatorio-qa-agent.' + format }; });
+    });
+    L.verbs.button(btn, work, { set: [[format === 'pdf' ? 'Gerando o PDF' : 'Montando o documento', format === 'pdf' ? 'PDF gerado' : 'Documento pronto']] })
+      .then(function (res) { save(res.blob, res.name); L.toast('Relatório baixado: ' + res.name, { kind: 'ok' }); })
+      .catch(function (err) { L.toast(err.message || 'Não foi possível gerar o documento.', { kind: 'err' }); });
   });
 
   form.addEventListener('submit', function (e) {
