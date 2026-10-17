@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { acceptAgentFindings, reviewPrompt, reviewWithClaude } from "../../api/_lib/review.js";
+import { acceptAgentFindings, imageBlocks, reviewPrompt, reviewWithClaude } from "../../api/_lib/review.js";
 
 const pages = [
   { url: "https://ukodelabs.com.br/", title: "Ukode Labs", text: "Desenvolvemos software sob medida. Fale com um especialista." },
@@ -31,11 +31,22 @@ describe("reviewWithClaude", () => {
     expect(params.model).toBe("claude-opus-5-5");
     expect(params.output_config.format.type).toBe("json_schema");
     expect(params.tool_choice).toBeUndefined();
-    expect(params.messages[0].content).toContain("<site-nao-confiavel>");
+    const parts = params.messages[0].content;
+    expect(parts.at(-1).text).toContain("<site-nao-confiavel>");
     expect(params.system).toMatch(/não confiável/);
     expect(r.summary).toBe("Resumo");
     expect(r.findings).toHaveLength(1);
   });
+  it("envia os screenshots como imagens e ignora o que não é JPEG em data URL", async () => {
+    let params: any;
+    const client = { beta: { messages: { create: async (p: any) => { params = p; return { stop_reason: "end_turn", content: [{ type: "text", text: JSON.stringify({ summary: "s", findings: [] }) }] }; } } } };
+    await reviewWithClaude(pages, {}, { client, images: ["data:image/jpeg;base64,/9j/AAA=", "https://evil.example/x.jpg", "data:image/svg+xml;base64,AAAA", undefined as any] });
+    const kinds = params.messages[0].content.map((c: any) => c.type);
+    expect(kinds).toEqual(["image", "text"]);
+    expect(params.messages[0].content[0].source).toEqual({ type: "base64", media_type: "image/jpeg", data: "/9j/AAA=" });
+    expect(imageBlocks(Array(9).fill("data:image/jpeg;base64,QQ=="))).toHaveLength(4);
+  });
+
   it("recusa do modelo vira erro claro", async () => {
     const client = { beta: { messages: { create: async () => ({ stop_reason: "refusal", content: [] }) } } };
     await expect(reviewWithClaude(pages, {}, { client })).rejects.toThrow(/recusou/);

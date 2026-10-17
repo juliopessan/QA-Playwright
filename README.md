@@ -25,7 +25,7 @@ npm run test-saas                                   # SaaS sintético com proble
 
 Detalhes, formato do relatório, configuração e limitações em [`docs/saas-explore.md`](docs/saas-explore.md). **Exemplo real** (Playwright + Claude contra o SaaS sintético), com prints de cada tela, subestados e o passo a passo de um fluxo: [`docs/exemplo-relatorio/`](docs/exemplo-relatorio/README.md), também publicado no site em `/exemplo/relatorio.html`.
 
-**Pela web:** na landing page publicada basta colar a URL de um site público: o Exa lê as páginas, uma visita direta mede segurança, desempenho, SEO e acessibilidade, e o Claude revisa o conteúdo citando trechos reais. O relatório aparece na própria página. Configuração e segurança em [`docs/web-analise.md`](docs/web-analise.md).
+**Pela web:** na landing page publicada basta colar a URL de um site público: o Exa lê as páginas, o Playwright (Chromium na própria função) fotografa até 4 páginas e mede console, rede, LCP/CLS e acessibilidade (axe), uma visita direta confere segurança e SEO, e o Claude revisa texto e prints citando trechos reais. O relatório, com os prints, aparece na própria página e pode ser baixado em HTML. Configuração e segurança em [`docs/web-analise.md`](docs/web-analise.md).
 
 ## Status
 

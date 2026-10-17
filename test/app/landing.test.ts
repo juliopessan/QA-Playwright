@@ -118,6 +118,7 @@ describe("análise pela landing", () => {
       { origin: "measured", category: "seguranca", severity: "medium", title: "Falta o cabeçalho HSTS", evidence: "strict-transport-security ausente", suggestion: "Adicione HSTS.", page: "https://ukodelabs.com.br/" },
       { origin: "agent", category: "ux", severity: "low", title: "CTA vago <b>x</b>", description: "d", evidence: "Fale conosco", suggestion: "Diga o que acontece.", page: "https://ukodelabs.com.br/", confidence: 0.7 },
     ],
+    shots: [{ url: "https://ukodelabs.com.br/", title: "UKode Labs", status: 200, loadMs: 1800, desktop: "data:image/jpeg;base64,/9j/4AAQSkZJRgABAQEASABIAAD/2wBDAP//////////////////////////////////////////////////////////////////////////////////////wgALCAABAAEBAREA/8QAFBABAAAAAAAAAAAAAAAAAAAAAP/aAAgBAQABPxA=", mobile: "data:image/jpeg;base64,/9j/4AAQSkZJRgABAQEASABIAAD/2wBDAP//////////////////////////////////////////////////////////////////////////////////////wgALCAABAAEBAREA/8QAFBABAAAAAAAAAAAAAAAAAAAAAP/aAAgBAQABPxA=" }, { url: "https://ukodelabs.com.br/contato", title: "Contato", status: 200, loadMs: 900, desktop: "javascript:alert(1)" }],
     counts: { high: 0, medium: 1, low: 1 }, notes: ["1 sugestão(ões) do modelo descartada(s) por não citar um trecho real do site."],
   };
 
@@ -147,7 +148,7 @@ describe("análise pela landing", () => {
     expect(sent).toEqual({ url: "ukodelabs.com.br" });
     await expect(page.locator("#az-result-h").innerText()).resolves.toBe("Análise de ukodelabs.com.br");
     await expect(page.locator("#az-summary").innerText()).resolves.toBe("Site claro, mas sem chamada principal.");
-    await expect(page.locator("#az-kpis").innerText()).resolves.toMatch(/Páginas lidas\s*2[\s\S]*Achados\s*2[\s\S]*0,4 s/);
+    await expect(page.locator("#az-kpis").innerText()).resolves.toMatch(/Telas analisadas\s*2[\s\S]*Achados\s*2[\s\S]*0,4 s/);
     const items = page.locator("#az-findings article");
     await expect(items.count()).resolves.toBe(2);
     await expect(items.nth(0).innerText()).resolves.toMatch(/Média[\s\S]*Segurança[\s\S]*medido/);
@@ -155,6 +156,26 @@ describe("análise pela landing", () => {
     await expect(page.locator("#az-findings h4 b").count()).resolves.toBe(0);
     await expect(page.locator("#az-notes").innerText()).resolves.toMatch(/descartada/);
     expect(errors).toEqual([]);
+    await page.close();
+  });
+
+  it("mostra os prints (desktop e celular), recusa imagem que não é JPEG em data URL e baixa o relatório em HTML único", async () => {
+    const { page } = await open({ api: (r) => json(r, 200, report) });
+    await page.getByLabel("URL do site").fill("ukodelabs.com.br");
+    await page.getByRole("button", { name: "Analisar o site" }).click();
+    await expect.poll(() => page.locator("#az-result").isVisible()).toBe(true);
+    const imgs = await page.locator("#az-shots img").evaluateAll((els) => els.map((e) => ({ alt: e.getAttribute("alt"), src: (e.getAttribute("src") ?? "").slice(0, 23) })));
+    expect(imgs).toEqual([{ alt: "Screenshot de UKode Labs no desktop", src: "data:image/jpeg;base64," }, { alt: "Screenshot de UKode Labs no celular", src: "data:image/jpeg;base64," }]);
+    await expect(page.locator("#az-shots figcaption").first().innerText()).resolves.toMatch(/UKode Labs[\s\S]*HTTP 200 · 1,8 s/);
+    const [download] = await Promise.all([page.waitForEvent("download"), page.getByRole("button", { name: "Baixar o relatório (HTML)" }).click()]);
+    expect(download.suggestedFilename()).toBe("relatorio-qa-agent.html");
+    const html = readFileSync((await download.path())!, "utf8");
+    expect(html).toContain("Relatório QA Agent · ukodelabs.com.br");
+    expect(html).toContain("data:image/jpeg;base64,");
+    expect(html).toContain("Falta o cabeçalho HSTS");
+    expect(html).toContain("CTA vago &lt;b&gt;x&lt;/b&gt;");
+    expect(html).not.toContain("javascript:");
+    expect(html).not.toContain("<b>x</b>");
     await page.close();
   });
 
