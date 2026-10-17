@@ -65,9 +65,10 @@ export function sanitizeReport(raw) {
 }
 
 const CSS = `
-:root{--paper:#F1EEE5;--paper2:#E7E3D7;--ink:#17140F;--soft:#5C564B;--line:#CFC9BA;--orange:#A8460F;--mint:#2F7454}
+:root{--paper:#F1EEE5;--paper2:#E7E3D7;--ink:#17140F;--soft:#5C564B;--line:#CFC9BA;--orange:#A8460F;--amber:#B07A12;--mint:#2F7454}
 *{box-sizing:border-box}
-@page{size:A4;margin:18mm 16mm 20mm;@bottom-left{content:"QA Agent · Relatório de análise";font:8pt "IBM Plex Mono",Menlo,monospace;color:#5C564B}@bottom-right{content:"Página " counter(page) " de " counter(pages);font:8pt "IBM Plex Mono",Menlo,monospace;color:#5C564B}}
+@page{size:A4;margin:20mm 16mm 20mm;@top-left{font:8pt "IBM Plex Mono",Menlo,monospace;color:#5C564B}@top-right{content:"Relatório de análise";font:8pt "IBM Plex Mono",Menlo,monospace;color:#5C564B}@bottom-left{content:"QA Agent · Relatório de análise";font:8pt "IBM Plex Mono",Menlo,monospace;color:#5C564B}@bottom-right{content:"Página " counter(page) " de " counter(pages);font:8pt "IBM Plex Mono",Menlo,monospace;color:#5C564B}}
+@page:first{margin:16mm;@top-left{content:none}@top-right{content:none}@bottom-left{content:none}@bottom-right{content:none}}
 html{-webkit-print-color-adjust:exact;print-color-adjust:exact}
 body{margin:0;background:var(--paper);color:var(--ink);font:10.5pt/1.5 Archivo,"Helvetica Neue",Arial,sans-serif}
 main{max-width:190mm;margin:0 auto;padding:12mm 8mm}
@@ -76,39 +77,43 @@ h1,h2,h3,h4{line-height:1.2;margin:0;break-after:avoid}
 h2{font-size:17pt;margin:0 0 4mm;padding-top:3mm;border-top:1.2pt solid var(--ink)}
 h3{font-size:11.5pt;margin:0 0 2mm}h4{font-size:9pt;font-family:"IBM Plex Mono",Menlo,monospace;text-transform:uppercase;letter-spacing:.04em;color:var(--soft);margin:3mm 0 1mm}
 p{margin:0 0 2.5mm}.soft{color:var(--soft)}.mono,code{font-family:"IBM Plex Mono",Menlo,monospace;font-size:8.5pt}
-section{margin:0 0 9mm}
-#evidencias{break-before:auto}#evidencias h2{break-after:avoid}
-.cover{min-height:245mm;display:flex;flex-direction:column;justify-content:space-between;break-after:page;padding-bottom:6mm}
+section{margin:0 0 9mm}#metodo,#evidencias{break-before:page}
+.cover{break-after:page}.cover>*{margin:0 0 7mm}.cover .brand{margin-bottom:10mm}
 .cover .brand{display:flex;align-items:center;gap:3mm;font:600 9pt "IBM Plex Mono",Menlo,monospace;letter-spacing:.14em;text-transform:uppercase}
 .cover .mark{width:9mm;height:9mm;background:var(--ink);color:var(--paper);display:grid;place-items:center;font:800 14pt Archivo,Arial,sans-serif;letter-spacing:0}
-.cover h1{font-size:34pt;letter-spacing:-.02em;margin:0 0 4mm}.cover h1 i{display:block;font:italic 400 28pt "Instrument Serif",Georgia,serif;letter-spacing:0}
-.cover .lede{font-size:12pt;max-width:150mm;color:var(--soft)}
-.meta-grid{display:grid;grid-template-columns:repeat(2,1fr);border:1pt solid var(--ink);margin-top:8mm}
-.meta-grid div{padding:3mm 4mm;border-right:1pt solid var(--line);border-bottom:1pt solid var(--line)}.meta-grid div:nth-child(2n){border-right:0}
+.cover h1{font-size:36pt;letter-spacing:-.02em;margin:0 0 3mm;overflow-wrap:anywhere}.cover h1 i{display:block;font:italic 400 28pt "Instrument Serif",Georgia,serif;letter-spacing:0}
+.cover .lede{font-size:11.5pt;max-width:160mm;color:var(--soft)}
+.hero{border:1pt solid var(--ink);height:60mm;margin-bottom:7mm;overflow:hidden;background:#fff}.hero img{display:block;width:100%;height:100%;object-fit:cover;object-position:top}
+.score{display:grid;grid-template-columns:1.4fr 1fr 1fr 1fr;background:var(--ink);color:var(--paper)}.score div{padding:4mm 5mm;border-right:1pt solid #3A352D}.score div:last-child{border-right:0}
+.score b{display:block;font:800 30pt/1 Archivo,Arial,sans-serif;font-variant-numeric:tabular-nums;letter-spacing:-.03em}.score span{display:block;margin-top:1.5mm;font:500 7.5pt "IBM Plex Mono",Menlo,monospace;text-transform:uppercase;letter-spacing:.06em;color:#CFC9BA}
+.score .h b{color:#F0A06A}.score .m b{color:#E6C168}.score .l b{color:#B9B2A3}
+.dist{display:flex;height:3.2mm;background:#3A352D}.dist i{display:block;height:100%}.dist .h{background:var(--orange)}.dist .m{background:var(--amber)}.dist .l{background:#8D8677}
+.toc{display:flex;flex-wrap:wrap;gap:1.5mm 5mm;font:500 8pt "IBM Plex Mono",Menlo,monospace;color:var(--soft);padding:0;list-style:none}.toc b{color:var(--ink);font-weight:600}
+.meta-grid{display:grid;grid-template-columns:repeat(2,1fr);border:1pt solid var(--ink)}
+.meta-grid div{padding:2.4mm 4mm;border-right:1pt solid var(--line);border-bottom:1pt solid var(--line);overflow-wrap:anywhere}.meta-grid div:nth-child(2n){border-right:0}
 .meta-grid b{display:block;font:500 7.5pt "IBM Plex Mono",Menlo,monospace;text-transform:uppercase;letter-spacing:.05em;color:var(--soft);margin-bottom:.5mm}
-.kpis{display:grid;grid-template-columns:repeat(4,1fr);border:1pt solid var(--ink);margin:4mm 0}
-.kpis div{padding:3mm 4mm;border-right:1pt solid var(--line)}.kpis div:last-child{border-right:0}
-.kpis b{display:block;font:800 22pt Archivo,Arial,sans-serif;font-variant-numeric:tabular-nums;letter-spacing:-.02em}.kpis span{font-size:8.5pt;color:var(--soft)}
+.bars{margin:2mm 0 4mm}.bars .r{display:grid;grid-template-columns:30mm 1fr 8mm;gap:3mm;align-items:center;margin:0 0 1.4mm;font-size:9pt}.bars .t{height:3.2mm;background:var(--paper2)}.bars .t i{display:block;height:100%;background:var(--ink)}.bars .n{font:600 9pt "IBM Plex Mono",Menlo,monospace;text-align:right}
 table{border-collapse:collapse;width:100%;font-size:9pt;margin:2mm 0 4mm}
 th{background:var(--paper2);text-align:left;font:500 7.5pt "IBM Plex Mono",Menlo,monospace;text-transform:uppercase;letter-spacing:.04em;color:var(--soft)}
 th,td{padding:1.8mm 2.4mm;border:.6pt solid var(--line);vertical-align:top;overflow-wrap:anywhere}
-tr{break-inside:avoid}
+tr{break-inside:avoid}thead{display:table-header-group}
 .nw{white-space:nowrap;overflow-wrap:normal}
 .sev{display:inline-block;padding:.3mm 2mm;border:1pt solid var(--ink);font:600 7.5pt "IBM Plex Mono",Menlo,monospace}
-.sev--high{border-color:var(--orange);color:var(--orange)}.sev--low{color:var(--soft);border-color:var(--line)}
+.sev--high{border-color:var(--orange);background:var(--orange);color:#fff}.sev--medium{border-color:var(--amber);color:var(--amber)}.sev--low{color:var(--soft);border-color:var(--line)}
 .tag{display:inline-block;padding:.3mm 2mm;background:var(--paper2);font:500 7.5pt "IBM Plex Mono",Menlo,monospace;color:var(--soft)}
-.f{border:.8pt solid var(--line);padding:3.5mm 4mm;margin:0 0 3mm;break-inside:avoid;background:#F7F5EE}
+.f{border:.8pt solid var(--line);border-left:2.2pt solid var(--soft);padding:3.2mm 4mm;margin:0 0 3mm;break-inside:avoid;background:#F7F5EE}.f--high{border-left-color:var(--orange)}.f--medium{border-left-color:var(--amber)}.f--low{border-left-color:var(--line)}
 .f header{display:flex;flex-wrap:wrap;gap:2mm;align-items:center;margin-bottom:2mm}.f header .id{margin-left:auto}
 .ev{font-family:"IBM Plex Mono",Menlo,monospace;font-size:8.5pt;background:var(--paper2);padding:1.5mm 2.5mm;border-left:2pt solid var(--ink);overflow-wrap:anywhere;margin:1mm 0 2mm}
 .fix{border-left:2pt solid var(--mint);padding-left:2.5mm}
-.shot{break-inside:avoid;margin:0 0 6mm}.shot .row{display:flex;gap:4mm;align-items:flex-start}
-.shot img{display:block;border:.8pt solid var(--line);max-width:100%;max-height:196mm;width:auto;height:auto}.shot .d{flex:1 1 0;min-width:0}.shot .m{flex:0 0 auto;max-width:50mm}
-.shot figcaption{font-size:8.5pt;color:var(--soft);margin-top:1.5mm;overflow-wrap:anywhere}
-.check{break-inside:avoid}.check li{list-style:none;margin:0 0 1.5mm;padding-left:0;display:flex;gap:2.5mm}.check{padding:0;margin:0}.check .box{flex:none;width:3.4mm;height:3.4mm;border:1pt solid var(--ink);margin-top:1mm}
+.shot{break-inside:avoid;margin:0 0 7mm}.shot .row{display:flex;gap:4mm;align-items:flex-start}
+.crop{overflow:hidden;border:.8pt solid var(--line);background:#fff}.crop img{display:block;width:100%;height:auto}.shot .d{flex:1 1 0;min-width:0}.shot .d .crop{max-height:112mm}.shot .m{flex:0 0 52mm}.shot .m .crop{max-height:112mm}
+.shot figcaption{font-size:8.5pt;color:var(--soft);margin-top:1.8mm;overflow-wrap:anywhere}.shot .lab{font:500 7pt "IBM Plex Mono",Menlo,monospace;text-transform:uppercase;letter-spacing:.05em;color:var(--soft);margin-bottom:1mm}
+.po{display:none}@media print{.po{display:inline}.pn{display:none}}@media screen{.crop,.shot .d .crop,.shot .m .crop{max-height:none}}
+.check td:first-child{width:8mm;text-align:center}.check .box{display:inline-block;width:3.6mm;height:3.6mm;border:1pt solid var(--ink)}.check .own{width:34mm}
 .legend{display:grid;grid-template-columns:1fr 1fr;gap:4mm}.legend>div{border:.8pt solid var(--line);padding:3mm 4mm}
 ul{margin:0 0 3mm;padding-left:5mm}
 .note{border:1pt solid var(--mint);padding:2.5mm 3.5mm;margin:3mm 0;background:#F7F5EE;font-size:9pt}
-@media (prefers-color-scheme:dark) and (not print){:root{--paper:#151310;--paper2:#1F1C17;--ink:#EDE9DE;--soft:#B3AC9E;--line:#3A352D;--orange:#E07A3C;--mint:#7EC8A1}.f,.note{background:#1B1814}}
+@media (prefers-color-scheme:dark) and (not print){:root{--paper:#151310;--paper2:#1F1C17;--ink:#EDE9DE;--soft:#B3AC9E;--line:#3A352D;--orange:#E07A3C;--mint:#7EC8A1}.f,.note{background:#1B1814}.hero,.crop{background:#222}}
 `;
 
 function row(label, value) {
@@ -116,7 +121,7 @@ function row(label, value) {
 }
 
 function findingCard(f, n) {
-  return `<article class="f" id="f-${esc(f.id)}">
+  return `<article class="f f--${f.severity}" id="f-${esc(f.id)}">
   <header><span class="sev sev--${f.severity}">${SEV[f.severity]}</span><span class="tag">${CAT[f.category]}</span><span class="tag">${f.origin === "agent" ? `opinião do agente${f.confidence !== undefined ? ` · ${Math.round(f.confidence * 100)}%` : ""}` : "medido"}</span><span class="mono id">A-${String(n).padStart(2, "0")} · ${esc(f.id)}</span></header>
   <h3>${esc(f.title)}</h3>
   ${f.description ? `<p>${esc(f.description)}</p>` : ""}
@@ -141,37 +146,44 @@ export function renderReportHtml(input) {
   const top = r.findings.filter((f) => f.severity !== "low").slice(0, 3);
   const byCat = Object.keys(CAT).map((c) => [c, r.findings.filter((f) => f.category === c).length]).filter(([, n]) => n);
   const date = fmtDate(r.analyzedAt);
+  const hero = (r.shots.find((x) => x.desktop) || {}).desktop;
+  const maxCat = Math.max(1, ...byCat.map(([, n]) => n));
 
   return `<!doctype html>
 <html lang="pt-BR"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
 <title>Relatório de análise · ${esc(host)}</title>
 <meta name="description" content="Relatório de análise do QA Agent para ${esc(host)}">
-<style>${CSS}</style></head><body><main>
+<style>${CSS}</style><style>@page{@top-left{content:"${host.replace(/[^A-Za-z0-9.:-]/g, "")}"}}@page:first{@top-left{content:none}}</style></head><body><main>
 
 <section class="cover">
   <div class="brand"><span class="mark">Q</span>QA Agent</div>
   <div>
     <p class="mono soft">Relatório de análise</p>
     <h1>${esc(host)}<i>evidências e achados</i></h1>
-    <p class="lede">${esc(r.summary || "Análise somente leitura do site: leitura do conteúdo, navegador com screenshots, medições de segurança, desempenho, SEO e acessibilidade, e revisão do conteúdo pelo Claude.")}</p>
-    <div class="meta-grid">
-      ${row("Site analisado", r.url)}
-      ${row("Data da análise", date)}
-      ${row("Páginas analisadas", String(r.shots.length || r.pages.length))}
-      ${row("Achados", `${r.findings.length} (${count("high")} altos, ${count("medium")} médios, ${count("low")} baixos)`)}
-      ${row("Resposta do HTML", r.responseMs != null ? `${secs(r.responseMs)} s (HTTP ${r.status ?? "—"})` : "")}
-      ${row("Duração da análise", r.durationMs != null ? `${secs(r.durationMs)} s` : "")}
-    </div>
   </div>
-  <p class="mono soft">Análise somente leitura de páginas públicas. Medições são reproduzíveis; itens marcados como opinião do agente não são medições.</p>
+  <p class="lede">${esc(r.summary || "Análise somente leitura do site: leitura do conteúdo, navegador com screenshots, medições de segurança, desempenho, SEO e acessibilidade, e revisão do conteúdo pelo Claude.")}</p>
+  ${hero ? `<div class="hero"><img src="${hero}" alt="Página inicial de ${esc(host)}"></div>` : ""}
+  <div>
+    <div class="score"><div><b>${r.findings.length}</b><span>achados no total</span></div><div class="h"><b>${count("high")}</b><span>alta</span></div><div class="m"><b>${count("medium")}</b><span>média</span></div><div class="l"><b>${count("low")}</b><span>baixa</span></div></div>
+    ${r.findings.length ? `<div class="dist">${["high", "medium", "low"].filter((v) => count(v)).map((v) => `<i class="${v[0]}" style="flex:${count(v)}"></i>`).join("")}</div>` : ""}
+  </div>
+  <div class="meta-grid">
+    ${row("Site analisado", r.url)}
+    ${row("Data da análise", date)}
+    ${row("Páginas analisadas", String(r.shots.length || r.pages.length))}
+    ${row("Medido / opinião do agente", `${measured.length} / ${agent.length}`)}
+    ${row("Resposta do HTML", r.responseMs != null ? `${secs(r.responseMs)} s (HTTP ${r.status ?? "—"})` : "")}
+    ${row("Duração da análise", r.durationMs != null ? `${secs(r.durationMs)} s` : "")}
+  </div>
+  <ul class="toc"><li><b>1</b> Resumo</li><li><b>2</b> Escopo e método</li><li><b>3</b> Achados medidos</li><li><b>4</b> Opinião do agente</li><li><b>5</b> Evidências visuais</li><li><b>6</b> Limitações</li><li><b>7</b> Checklist</li></ul>
+  <p class="mono soft" style="margin:0">Análise somente leitura de páginas públicas. Medições são reproduzíveis; itens marcados como opinião do agente não são medições.</p>
 </section>
 
 <section id="resumo">
   <h2>1. Resumo executivo</h2>
-  <div class="kpis"><div><b>${r.findings.length}</b><span>achados</span></div><div><b>${count("high")}</b><span>gravidade alta</span></div><div><b>${measured.length}</b><span>medidos</span></div><div><b>${agent.length}</b><span>opinião do agente</span></div></div>
   ${r.summary ? `<p>${esc(r.summary)}</p>` : ""}
   ${top.length ? `<h4>Prioridades</h4><ol>${top.map((f) => `<li><b>${esc(f.title)}</b> <span class="mono soft">(A-${String(num(f)).padStart(2, "0")} · ${SEV[f.severity]})</span></li>`).join("")}</ol>` : `<p class="soft">Nenhum achado de gravidade alta ou média.</p>`}
-  ${byCat.length ? `<h4>Achados por categoria</h4><table><tr>${byCat.map(([c]) => `<th>${CAT[c]}</th>`).join("")}</tr><tr>${byCat.map(([, n]) => `<td>${n}</td>`).join("")}</tr></table>` : ""}
+  ${byCat.length ? `<h4>Achados por gravidade</h4><div class="bars">${["high", "medium", "low"].map((v) => `<div class="r"><span>${SEV[v]}</span><span class="t"><i style="width:${Math.round((count(v) / Math.max(1, r.findings.length)) * 100)}%;background:${v === "high" ? "var(--orange)" : v === "medium" ? "var(--amber)" : "var(--soft)"}"></i></span><span class="n">${count(v)}</span></div>`).join("")}</div><h4>Achados por categoria</h4><div class="bars">${byCat.map(([c, n]) => `<div class="r"><span>${CAT[c]}</span><span class="t"><i style="width:${Math.round((n / maxCat) * 100)}%"></i></span><span class="n">${n}</span></div>`).join("")}</div>` : ""}
   ${r.findings.length ? `<h4>Todos os achados</h4><table><tr><th class="nw">#</th><th class="nw">Gravidade</th><th class="nw">Categoria</th><th class="nw">Origem</th><th>Achado</th></tr>${r.findings.map((f) => `<tr><td class="mono nw">A-${String(num(f)).padStart(2, "0")}</td><td class="nw">${SEV[f.severity]}</td><td class="nw">${CAT[f.category]}</td><td class="nw">${f.origin === "agent" ? "opinião" : "medido"}</td><td>${esc(f.title)}</td></tr>`).join("")}</table>` : ""}
 </section>
 
@@ -201,7 +213,7 @@ export function renderReportHtml(input) {
 
 <section id="evidencias">
   <h2>5. Evidências visuais</h2>
-  ${r.shots.some((s) => s.desktop) ? r.shots.filter((s) => s.desktop || s.mobile).map((s, i) => `<figure class="shot"><div class="row">${s.desktop ? `<div class="d"><img src="${s.desktop}" alt="Screenshot de ${esc(s.title || s.url)} no desktop"></div>` : ""}${s.mobile ? `<div class="m"><img src="${s.mobile}" alt="Screenshot de ${esc(s.title || s.url)} no celular"></div>` : ""}</div><figcaption><b>Figura ${i + 1}.</b> ${esc(s.title || s.url)} · ${esc(s.url)} · HTTP ${s.status || "—"} · carga ${secs(s.loadMs)} s${s.mobile ? " · desktop (1280 px) e celular (390 px)" : " · desktop (1280 px)"}</figcaption></figure>`).join("\n") : `<p class="soft">Sem screenshots nesta análise.</p>`}
+  ${r.shots.some((s) => s.desktop || s.mobile) ? r.shots.filter((s) => s.desktop || s.mobile).map((s, i) => `<figure class="shot"><div class="row">${s.desktop ? `<div class="d"><div class="lab">Desktop · 1280 px</div><div class="crop"><img src="${s.desktop}" alt="Screenshot de ${esc(s.title || s.url)} no desktop"></div></div>` : ""}${s.mobile ? `<div class="m"><div class="lab">Celular · 390 px</div><div class="crop"><img src="${s.mobile}" alt="Screenshot de ${esc(s.title || s.url)} no celular"></div></div>` : ""}</div><figcaption><b>Figura ${i + 1}.</b> ${esc(s.title || s.url)} · ${esc(s.url)} · HTTP ${s.status || "—"} · carga ${secs(s.loadMs)} s<span class="po"> · recorte da parte superior; a captura completa está no HTML</span></figcaption></figure>`).join("\n") : `<p class="soft">Sem screenshots nesta análise.</p>`}
 </section>
 
 <section id="limites">
@@ -216,7 +228,7 @@ export function renderReportHtml(input) {
 
 <section id="checklist">
   <h2>7. Checklist para a equipe</h2>
-  ${r.findings.length ? `<ul class="check">${r.findings.map((f) => `<li><span class="box"></span><span><b>${SEV[f.severity]}</b> · ${esc(f.title)} <span class="mono soft">A-${String(num(f)).padStart(2, "0")}</span></span></li>`).join("")}</ul>` : `<p class="soft">Sem pendências.</p>`}
+  ${r.findings.length ? `<table class="check"><thead><tr><th></th><th class="nw">Gravidade</th><th>Achado</th><th>#</th><th class="own">Responsável</th></tr></thead>${r.findings.map((f) => `<tr><td><span class="box"></span></td><td class="nw">${SEV[f.severity]}</td><td>${esc(f.title)}</td><td class="mono nw">A-${String(num(f)).padStart(2, "0")}</td><td class="own"></td></tr>`).join("")}</table>` : `<p class="soft">Sem pendências.</p>`}
 </section>
 
 </main></body></html>

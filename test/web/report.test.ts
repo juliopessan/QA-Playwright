@@ -70,8 +70,9 @@ describe("renderReportHtml", () => {
   });
 
   it("embute os screenshots e legenda as figuras", () => {
-    expect(html.match(/<img src="data:image\/jpeg;base64,/g)).toHaveLength(2);
-    expect(html).toMatch(/Figura 1\.[\s\S]*desktop \(1280 px\) e celular \(390 px\)/);
+    // capa (hero) + desktop e celular da figura 1
+    expect(html.match(/<img src="data:image\/jpeg;base64,/g)).toHaveLength(3);
+    expect(html).toMatch(/Desktop · 1280 px[\s\S]*Celular · 390 px[\s\S]*Figura 1\./);
   });
 
   it("escapa todo texto vindo do site e não deixa imagem ou link perigoso passar", () => {
