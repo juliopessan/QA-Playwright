@@ -1,6 +1,7 @@
 import { mkdirSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
 import { compareRuns, severityRank } from "../explore/findings.js";
+import { renderHtmlReport } from "./html-report.js";
 import type { BlockedAttempt, Category, ExploreResult, Finding, FlowRecord, Screen, Severity } from "../explore/types.js";
 
 const SEV_LABEL: Record<Severity, string> = { critical: "Crítica", high: "Alta", medium: "Média", low: "Baixa" };
@@ -169,7 +170,7 @@ export interface WriteDocsOptions {
   previous?: Finding[];
 }
 
-/** Gera a pasta Markdown de revisão (README, achados, mapa, cobertura, telas e dados). */
+/** Gera a pasta Markdown de revisão (README, achados, mapa, cobertura, telas e dados) e o relatorio.html. */
 export function writeDocs(r: ExploreResult, outDir: string, opts: WriteDocsOptions = {}): void {
   for (const d of ["telas", "dados", "img", ...(r.flows?.length ? ["fluxos"] : [])]) mkdirSync(join(outDir, d), { recursive: true });
   const issueById = new Map((opts.previous ?? []).filter((f) => f.issue !== undefined).map((f) => [f.id, f.issue!]));
@@ -183,6 +184,7 @@ export function writeDocs(r: ExploreResult, outDir: string, opts: WriteDocsOptio
   for (const s of r.screens) put(`telas/${s.id}.md`, screenPage(s, findings));
   for (const f of r.flows ?? []) put(`fluxos/${f.id}.md`, flowPage(f));
   put("dados/achados.json", JSON.stringify(sorted(findings), null, 2));
+  put("relatorio.html", renderHtmlReport({ ...r, findings }));
   put(
     "dados/manifest.json",
     JSON.stringify(
